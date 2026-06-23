@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --display:'Fraunces','Iowan Old Style',Georgia,serif;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  --canvas:#FDFAF6; --surface:#F5F0EB; --paper:#FFFFFF;
+  --ink:#2D1B35; --muted:#75607F; --faint:#A899AE;
+  --border:#E7DED3; --border-soft:#F0E9E0;
+  --accent:#FF6B6B; --accent-hover:#E85555; --accent-press:#D94F4F;
+  --accent-soft:#FFE3E1; --accent-tint:rgba(255,107,107,.07);
+  --track:#ECE4DA;
+  --shadow:0 6px 18px rgba(45,27,53,.08); --shadow-lift:0 16px 38px rgba(45,27,53,.13);
+  --coral-glow:0 12px 30px rgba(255,107,107,.32);
+  --bar:rgba(253,250,246,.85);
+  --green:#5C9E6E; --green-soft:rgba(92,158,110,.15);
+  --amber:#C98A2E; --amber-soft:rgba(201,138,46,.16);
+  --rose:#C2607B; --rose-soft:rgba(194,96,123,.15);
+}
+[data-theme="dark"]{
+  --canvas:#1E1322; --surface:#2A1D2F; --paper:#33243A;
+  --ink:#F7EEF0; --muted:#BCA9C2; --faint:#897790;
+  --border:rgba(247,238,240,.13); --border-soft:rgba(247,238,240,.07);
+  --accent:#FF7E7E; --accent-hover:#FF9090; --accent-press:#E85555;
+  --accent-soft:rgba(255,126,126,.20); --accent-tint:rgba(255,126,126,.11);
+  --track:rgba(247,238,240,.10);
+  --shadow:0 6px 20px rgba(0,0,0,.42); --shadow-lift:0 16px 40px rgba(0,0,0,.55);
+  --coral-glow:0 12px 30px rgba(255,107,107,.30);
+  --bar:rgba(30,19,34,.86);
+  --green:#86C497; --green-soft:rgba(134,196,151,.20);
+  --amber:#E2AE5E; --amber-soft:rgba(226,174,94,.20);
+  --rose:#DE89A2; --rose-soft:rgba(222,137,162,.20);
+}
+@keyframes sm-rise{from{transform:translateY(16px);}to{transform:none;}}
+@keyframes sm-breathe{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.82;}}
+@keyframes sm-pop{0%{transform:scale(1);}45%{transform:scale(1.03);}100%{transform:scale(1);}}
+@keyframes sm-halo{0%,100%{transform:scale(1);opacity:.55;}50%{transform:scale(2.1);opacity:.05;}}
