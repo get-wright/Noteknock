@@ -1,4 +1,10 @@
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Moon, Sparkles, Sun } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
@@ -53,8 +59,11 @@ export default function Login() {
   const [pwErr, setPwErr] = useState("");
   const [formErr, setFormErr] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const didInitialCheck = useRef(false);
 
   useEffect(() => {
+    if (didInitialCheck.current) return;
+    didInitialCheck.current = true;
     if (token) navigate("/app", { replace: true });
   }, [token, navigate]);
 
@@ -255,7 +264,7 @@ export default function Login() {
               type="email"
               inputMode="email"
               placeholder="ban@email.com"
-              autoComplete="off"
+              autoComplete="email"
               value={email}
               onChange={(ev) => setEmail(ev.target.value)}
               style={inputStyle(!!emailErr)}
@@ -286,7 +295,7 @@ export default function Login() {
                 className="sm-in"
                 type={showPw ? "text" : "password"}
                 placeholder="••••••••"
-                autoComplete="off"
+                autoComplete="current-password"
                 value={pw}
                 onChange={(ev) => setPw(ev.target.value)}
                 style={{ ...inputStyle(!!pwErr), paddingRight: 52 }}
