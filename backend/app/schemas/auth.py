@@ -1,11 +1,16 @@
 import re
+import uuid
 
 from pydantic import BaseModel, ConfigDict, field_validator
 from pydantic.alias_generators import to_camel
 
 
 class CamelModel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+    )
 
 
 class UserCreate(CamelModel):
@@ -26,6 +31,12 @@ class UserCreate(CamelModel):
         if len(v) < 8:
             raise ValueError("password must be at least 8 characters")
         return v
+
+
+class UserOut(CamelModel):
+    id: uuid.UUID
+    name: str
+    email: str
 
 
 class Token(BaseModel):
