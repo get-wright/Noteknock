@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
+from starlette.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,10 +16,11 @@ router = APIRouter(tags=["auth"])
 
 @router.post("/register", response_model=Token)
 async def register(body: UserCreate, db: AsyncSession = Depends(get_db)) -> Token:
+    password_hash = await run_in_threadpool(hash_password, body.password)
     user = User(
         name=body.name,
         email=body.email,
-        password_hash=hash_password(body.password),
+        password_hash=password_hash,
     )
     db.add(user)
     try:
@@ -40,7 +42,15 @@ async def login(
 ) -> Token:
     result = await db.execute(select(User).where(User.email == form_data.username))
     user = result.scalar_one_or_none()
-    if user is None or not verify_password(form_data.password, user.password_hash):
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid login details.",
+        )
+    valid = await run_in_threadpool(
+        verify_password, form_data.password, user.password_hash
+    )
+    if not valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid login details.",
