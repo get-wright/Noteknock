@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "xai/grok-composer-2.5-fast",
+  "model": "opencode-go/glm-5.2",
   "default_agent": "build",
   "instructions": [
     "handoff.md",
@@ -8,7 +8,7 @@
   ],
   "agent": {
     "build": {
-      "model": "xai/grok-composer-2.5-fast",
+      "model": "opencode-go/glm-5.2",
       "mode": "primary",
       "description": "Orchestrator for subagent-driven development of Noteknock. Dispatches implementer, spec-reviewer, and code-reviewer subagents per task in the plan. Reviews subagent output between tasks, stops for user approval at each phase gate."
     },
