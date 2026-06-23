@@ -1,20 +1,28 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthContext";
 import { useTheme } from "./hooks/useTheme";
+import { AuthProvider } from "./auth/AuthContext";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 export default function App() {
   useTheme();
   return (
     <AuthProvider>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Placeholder label="Landing" />} />
-        <Route path="/login" element={<Placeholder label="Login" />} />
-        <Route path="/register" element={<Placeholder label="Register" />} />
-        <Route path="/app/*" element={<Placeholder label="App" />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Placeholder label="Landing" />} />
+          <Route path="/login" element={<Placeholder label="Login" />} />
+          <Route path="/register" element={<Placeholder label="Register" />} />
+          <Route
+            path="/app/*"
+            element={
+              <ProtectedRoute>
+                <Placeholder label="App" />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
     </AuthProvider>
   );
 }
