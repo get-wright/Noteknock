@@ -11,11 +11,12 @@ def test_user_create_accepts_camel_case():
     assert u.password == "secret123"
 
 
-def test_user_create_accepts_snake_case_via_populate_by_name():
-    u = UserCreate.model_validate({"name": "Hà", "email": "ha@test.com", "password": "secret123"})
-    u2 = UserCreate(name="Hà", email="ha@test.com", password="secret123")
-    assert u.email == "ha@test.com"
-    assert u2.email == "ha@test.com"
+def test_camel_model_populate_by_name():
+    class Sub(CamelModel):
+        last_modified: float
+
+    s = Sub.model_validate({"last_modified": 1.5})
+    assert s.last_modified == 1.5
 
 
 def test_user_create_rejects_bad_email():
