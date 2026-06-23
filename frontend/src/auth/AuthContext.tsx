@@ -58,8 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const t = await authApi.login(email, password);
     setToken(t.access_token);
     setTokenState(t.access_token);
-    const me = await authApi.getMe();
-    setUser(me);
+    try {
+      const me = await authApi.getMe();
+      setUser(me);
+    } catch (err) {
+      clearToken();
+      setTokenState(null);
+      setUser(null);
+      throw err;
+    }
   };
 
   const register = async (data: {
@@ -70,8 +77,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const t = await authApi.register(data);
     setToken(t.access_token);
     setTokenState(t.access_token);
-    const me = await authApi.getMe();
-    setUser(me);
+    try {
+      const me = await authApi.getMe();
+      setUser(me);
+    } catch (err) {
+      clearToken();
+      setTokenState(null);
+      setUser(null);
+      throw err;
+    }
   };
 
   const logout = () => {
