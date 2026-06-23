@@ -3,6 +3,7 @@ import { useTheme } from "./hooks/useTheme";
 import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 export default function App() {
   useTheme();
@@ -12,7 +13,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Placeholder label="Landing" />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Placeholder label="Register" />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/app/*"
             element={
