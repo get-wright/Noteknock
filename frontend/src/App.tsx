@@ -4,6 +4,8 @@ import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Landing from "./pages/Landing";
+import AppPlaceholder from "./pages/AppPlaceholder";
 
 export default function App() {
   useTheme();
@@ -11,14 +13,14 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Placeholder label="Landing" />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/app/*"
             element={
               <ProtectedRoute>
-                <Placeholder label="App" />
+                <AppPlaceholder />
               </ProtectedRoute>
             }
           />
@@ -27,8 +29,4 @@ export default function App() {
       </BrowserRouter>
     </AuthProvider>
   );
-}
-
-function Placeholder({ label }: { label: string }) {
-  return <div style={{ padding: 24 }}>{label} placeholder</div>;
 }
