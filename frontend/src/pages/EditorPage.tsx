@@ -69,10 +69,7 @@ type EditorPageProps = {
 export default function EditorPage({ mode }: EditorPageProps) {
   const params = useParams();
   const navigate = useNavigate();
-  const routeTitle =
-    mode === "edit" && params.title
-      ? decodeURIComponent(params.title)
-      : "";
+  const routeTitle = mode === "edit" ? (params.title ?? "") : "";
 
   const [loadState, setLoadState] = useState<
     "loading" | "ready" | "notfound" | "error"
@@ -96,7 +93,8 @@ export default function EditorPage({ mode }: EditorPageProps) {
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (mode !== "edit" || !routeTitle) {
+    if (mode !== "edit") return;
+    if (!routeTitle) {
       setLoadState("notfound");
       return;
     }
@@ -158,7 +156,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
       setIsNew(false);
       setOriginalTitle(note.title);
       setTitle(note.title);
-      navigate(`/app/notes/${encodeURIComponent(note.title)}`, {
+      navigate(`/app/notes/${note.title}`, {
         replace: true,
       });
     },
@@ -167,12 +165,14 @@ export default function EditorPage({ mode }: EditorPageProps) {
     },
   });
 
+  const { forceSave } = autosave;
+
   const handleTitleChange = (value: string) => {
     setTitle(value);
     setTitleError(null);
     if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
     titleDebounceRef.current = setTimeout(() => {
-      void autosave.forceSave();
+      void forceSave();
     }, 900);
   };
 
@@ -187,12 +187,12 @@ export default function EditorPage({ mode }: EditorPageProps) {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        void autosave.forceSave();
+        void forceSave();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [autosave]);
+  }, [forceSave]);
 
   const handleAddTag = useCallback(
     (label: string) => {
