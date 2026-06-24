@@ -2,6 +2,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import delete, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
@@ -20,6 +21,39 @@ async def _get_owner_note(db: AsyncSession, owner_id: uuid.UUID, title: str) -> 
         select(Note).where(Note.owner_id == owner_id, Note.title == title)
     )
     return result.scalar_one_or_none()
+
+
+async def _lock_owner_note(db: AsyncSession, owner_id: uuid.UUID, title: str) -> Note | None:
+    result = await db.execute(
+        select(Note)
+        .where(Note.owner_id == owner_id, Note.title == title)
+        .with_for_update()
+    )
+    return result.scalar_one_or_none()
+
+
+async def _replace_quiz_for_note(
+    db: AsyncSession,
+    note_id: uuid.UUID,
+    owner_id: uuid.UUID,
+    generated: list[quizgen.GeneratedQuestion],
+) -> Quiz:
+    await db.execute(delete(Quiz).where(Quiz.note_id == note_id, Quiz.owner_id == owner_id))
+    quiz = Quiz(note_id=note_id, owner_id=owner_id)
+    db.add(quiz)
+    await db.flush()
+    for position, item in enumerate(generated):
+        db.add(
+            QuizQuestion(
+                quiz_id=quiz.id,
+                position=position,
+                prompt=item["prompt"],
+                options=item["options"],
+                correct_index=item["correct_index"],
+                explanation=item["explanation"],
+            )
+        )
+    return quiz
 
 
 async def _get_owner_quiz(db: AsyncSession, owner_id: uuid.UUID, note_id: uuid.UUID) -> Quiz | None:
@@ -79,27 +113,28 @@ async def generate_note_quiz(
     note = await _get_owner_note(db, user.id, title)
     if note is None:
         raise _note_not_found()
+    content_text = note.content_text
+    await db.commit()
+
     try:
-        generated = await quizgen.generate_quiz_questions(note.content_text)
+        generated = await quizgen.generate_quiz_questions(content_text)
     except Exception as exc:
         raise _generation_failed() from exc
 
-    await db.execute(delete(Quiz).where(Quiz.note_id == note.id, Quiz.owner_id == user.id))
-    quiz = Quiz(note_id=note.id, owner_id=user.id)
-    db.add(quiz)
-    await db.flush()
-    for position, item in enumerate(generated):
-        db.add(
-            QuizQuestion(
-                quiz_id=quiz.id,
-                position=position,
-                prompt=item["prompt"],
-                options=item["options"],
-                correct_index=item["correct_index"],
-                explanation=item["explanation"],
-            )
-        )
-    await db.commit()
+    quiz: Quiz | None = None
+    for attempt in range(2):
+        try:
+            locked_note = await _lock_owner_note(db, user.id, title)
+            if locked_note is None:
+                raise _note_not_found()
+            quiz = await _replace_quiz_for_note(db, locked_note.id, user.id, generated)
+            await db.commit()
+            break
+        except IntegrityError:
+            await db.rollback()
+            if attempt == 1:
+                raise _generation_failed() from None
+    assert quiz is not None
     await db.refresh(quiz)
     return await _quiz_to_out(db, quiz)
 

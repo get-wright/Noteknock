@@ -44,7 +44,12 @@ def _normalize_question(raw: Any, index: int) -> GeneratedQuestion:
     ):
         raise ValueError(f"Question {index} must have exactly 4 non-empty string options")
     correct = raw.get("correctIndex", raw.get("correct_index"))
-    if not isinstance(correct, int) or correct < 0 or correct > 3:
+    if (
+        isinstance(correct, bool)
+        or not isinstance(correct, int)
+        or correct < 0
+        or correct > 3
+    ):
         raise ValueError(f"Question {index} must have correctIndex between 0 and 3")
     explanation = raw.get("explanation")
     if explanation is not None and (not isinstance(explanation, str) or not explanation.strip()):

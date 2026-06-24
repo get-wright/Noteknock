@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 
@@ -208,3 +210,28 @@ async def test_quiz_cross_user_isolation(client, auth_token, monkeypatch):
     assert (
         await client.post("/api/notes/PrivateQuiz/quiz", headers=headers_b)
     ).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_quiz_concurrent_generate_both_succeed_single_quiz(
+    client, auth_token, monkeypatch
+):
+    await _create_note_with_content(client, auth_token, "QuizConcurrent")
+
+    async def fake_call_llm(prompt: str, system: str = "") -> str:
+        await asyncio.sleep(0.05)
+        return _valid_quiz_json()
+
+    monkeypatch.setattr("app.services.quizgen.call_llm", fake_call_llm)
+    headers = {"Authorization": f"Bearer {auth_token}"}
+
+    resp_a, resp_b = await asyncio.gather(
+        client.post("/api/notes/QuizConcurrent/quiz", headers=headers),
+        client.post("/api/notes/QuizConcurrent/quiz", headers=headers),
+    )
+
+    assert resp_a.status_code == 200
+    assert resp_b.status_code == 200
+    get_resp = await client.get("/api/notes/QuizConcurrent/quiz", headers=headers)
+    assert get_resp.status_code == 200
+    assert len(get_resp.json()["questions"]) == 2

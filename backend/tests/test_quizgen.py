@@ -9,6 +9,12 @@ def test_parse_questions_accepts_correct_index_snake_case():
     assert out[0]["correct_index"] == 3
 
 
+def test_parse_questions_rejects_bool_correct_index():
+    raw = '[{"prompt": "Q?", "options": ["a", "b", "c", "d"], "correctIndex": true}]'
+    with pytest.raises(ValueError):
+        _parse_questions(raw)
+
+
 @pytest.mark.parametrize("bad", ["{}", "not array", '[{"options":["a"],"correctIndex":0}]'])
 def test_parse_questions_rejects_invalid(bad: str):
     with pytest.raises(ValueError):
