@@ -1,0 +1,121 @@
+from __future__ import annotations
+
+import io
+import uuid
+from datetime import timedelta
+from pathlib import Path
+from typing import Literal
+
+from minio import Minio
+
+from app.config import settings
+
+ALLOWED_CONTENT_TYPES = frozenset(
+    {
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+        "text/plain",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/zip",
+    }
+)
+
+INLINE_CONTENT_TYPES = frozenset(
+    {
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+    }
+)
+
+
+class UploadValidationError(ValueError):
+    pass
+
+
+def sanitize_filename(filename: str) -> str:
+    name = Path(filename).name
+    cleaned = "".join(ch for ch in name if ch not in "\r\n\x00" and ord(ch) >= 32)
+    cleaned = cleaned.strip()
+    return cleaned or "upload"
+
+
+def build_object_key(owner_id: str, filename: str) -> str:
+    safe_name = sanitize_filename(filename)
+    ext = Path(safe_name).suffix.lower()
+    if ext and not all(ch.isalnum() or ch == "." for ch in ext):
+        ext = ""
+    return f"{owner_id}/{uuid.uuid4()}{ext}"
+
+
+def validate_upload(filename: str, content_type: str, size_bytes: int) -> None:
+    del filename
+    if size_bytes > settings.max_upload_bytes:
+        raise UploadValidationError("File exceeds maximum upload size")
+    if content_type not in ALLOWED_CONTENT_TYPES:
+        raise UploadValidationError("Unsupported content type")
+
+
+def classify_content_disposition(content_type: str) -> Literal["inline", "attachment"]:
+    if content_type in INLINE_CONTENT_TYPES:
+        return "inline"
+    return "attachment"
+
+
+class StorageService:
+    def __init__(self) -> None:
+        self._client = Minio(
+            settings.storage_endpoint,
+            access_key=settings.storage_access_key,
+            secret_key=settings.storage_secret_key,
+            secure=settings.storage_secure,
+        )
+        self._bucket = settings.storage_bucket
+
+    def ensure_bucket(self) -> None:
+        if not self._client.bucket_exists(self._bucket):
+            self._client.make_bucket(self._bucket)
+
+    def put_bytes(self, key: str, data: bytes, content_type: str) -> None:
+        stream = io.BytesIO(data)
+        self._client.put_object(
+            self._bucket,
+            key,
+            stream,
+            length=len(data),
+            content_type=content_type,
+        )
+
+    def presigned_get_url(
+        self,
+        key: str,
+        filename: str,
+        content_type: str,
+        download: bool = False,
+    ) -> str:
+        safe_name = sanitize_filename(filename)
+        disposition = classify_content_disposition(content_type)
+        if download or disposition == "attachment":
+            content_disposition = f'attachment; filename="{safe_name}"'
+        else:
+            content_disposition = f'inline; filename="{safe_name}"'
+
+        return self._client.presigned_get_object(
+            self._bucket,
+            key,
+            expires=timedelta(seconds=settings.storage_presigned_expiry_seconds),
+            response_headers={
+                "response-content-type": content_type,
+                "response-content-disposition": content_disposition,
+            },
+        )
