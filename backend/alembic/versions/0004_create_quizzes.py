@@ -119,9 +119,8 @@ def upgrade() -> None:
     op.create_index(
         "ix_review_events_owner_id_note_id_reviewed_at",
         "review_events",
-        ["owner_id", "note_id", "reviewed_at"],
+        ["owner_id", "note_id", sa.text("reviewed_at DESC")],
         unique=False,
-        postgresql_ops={"reviewed_at": "DESC"},
     )
 
 

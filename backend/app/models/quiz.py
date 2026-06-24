@@ -81,7 +81,6 @@ class ReviewEvent(Base):
             "ix_review_events_owner_id_note_id_reviewed_at",
             "owner_id",
             "note_id",
-            "reviewed_at",
-            postgresql_ops={"reviewed_at": "DESC"},
+            text("reviewed_at DESC"),
         ),
     )
