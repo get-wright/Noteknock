@@ -46,6 +46,34 @@ function formatBytes(bytes: number): string {
   return `${rounded} ${units[unitIndex]}`;
 }
 
+const CONTENT_TYPE_LABELS: Record<string, string> = {
+  "application/pdf": "PDF",
+  "text/plain": "TXT",
+  "application/msword": "DOC",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+    "DOCX",
+  "application/vnd.ms-powerpoint": "PPT",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation":
+    "PPTX",
+  "application/vnd.ms-excel": "XLS",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",
+  "application/zip": "ZIP",
+};
+
+function formatContentTypeLabel(contentType: string, filename: string): string {
+  const normalized = contentType.split(";", 1)[0].trim().toLowerCase();
+  if (CONTENT_TYPE_LABELS[normalized]) {
+    return CONTENT_TYPE_LABELS[normalized];
+  }
+
+  const extension = filename.split(".").pop()?.trim().toUpperCase();
+  if (extension && extension !== filename.toUpperCase() && extension.length <= 5) {
+    return extension;
+  }
+
+  return normalized ? "Tệp" : "";
+}
+
 type ResolvedAttachmentUrlState = {
   sourceUrl: string;
   previewUrl: string | null;
@@ -359,7 +387,10 @@ function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
     hasError,
   } = useResolvedAttachmentUrls(url);
   const displayName = name || "Tài liệu";
-  const metaParts = [contentType, formatBytes(sizeBytes)].filter(Boolean);
+  const metaParts = [
+    formatContentTypeLabel(contentType, name),
+    formatBytes(sizeBytes),
+  ].filter(Boolean);
 
   if (!url) {
     return (
