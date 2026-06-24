@@ -8,6 +8,7 @@ from app.api import notes
 from app.api import quiz
 from app.api import activity
 from app.api import recall
+from app.api import attachments
 from app.config import settings
 
 app = FastAPI(title="Noteknock")
@@ -37,6 +38,7 @@ app.include_router(notes.router, prefix="/api")
 app.include_router(quiz.router, prefix="/api")
 app.include_router(activity.router, prefix="/api")
 app.include_router(recall.router, prefix="/api")
+app.include_router(attachments.router, prefix="/api")
 
 
 @app.get("/health")
