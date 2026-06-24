@@ -8,6 +8,8 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import EditorPage from "./pages/EditorPage";
 import Study from "./pages/Study";
+import QuizPage from "./pages/Quiz";
+import QuizResultPage from "./pages/QuizResult";
 
 export default function App() {
   useTheme();
@@ -39,6 +41,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <EditorPage mode="edit" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/notes/:title/quiz/result"
+            element={
+              <ProtectedRoute>
+                <QuizResultPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/notes/:title/quiz"
+            element={
+              <ProtectedRoute>
+                <QuizPage />
               </ProtectedRoute>
             }
           />

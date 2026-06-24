@@ -141,6 +141,7 @@ export default function Study() {
   const minutes = useMemo(() => (note ? readMinutes(note.content) : 1), [note]);
 
   const editPath = `/app/notes/${encodeURIComponent(note?.title ?? titleParam)}/edit`;
+  const quizPath = `/app/notes/${encodeURIComponent(note?.title ?? titleParam)}/quiz`;
 
   const toggleRecallChecked = async (item: RecallItem) => {
     if (updatingRecallIdsRef.current.has(item.id)) return;
@@ -488,13 +489,12 @@ export default function Study() {
         <div style={{ marginTop: 34 }}>
           <button
             type="button"
-            aria-disabled
-            title="Sắp có"
+            onClick={() => navigate(quizPath)}
             style={{
               height: 54,
               padding: "0 30px",
               border: "none",
-              cursor: "default",
+              cursor: "pointer",
               background: "var(--accent)",
               color: "#fff",
               borderRadius: 16,
@@ -505,7 +505,6 @@ export default function Study() {
               display: "inline-flex",
               alignItems: "center",
               gap: 9,
-              opacity: 0.92,
             }}
           >
             <Play size={18} fill="currentColor" />
