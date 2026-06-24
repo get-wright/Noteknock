@@ -77,16 +77,18 @@ async def test_recall_items_order_by_position_then_creation(client, auth_token):
     assert second.status_code == 200
     assert third.status_code == 200
 
-    await client.patch(
+    third_patch = await client.patch(
         f"/api/notes/Ordering/recall/{third.json()['id']}",
         json={"position": 0},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
-    await client.patch(
+    second_patch = await client.patch(
         f"/api/notes/Ordering/recall/{second.json()['id']}",
         json={"position": 2},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
+    assert third_patch.status_code == 200
+    assert second_patch.status_code == 200
 
     resp = await client.get(
         "/api/notes/Ordering/recall",
@@ -113,6 +115,28 @@ async def test_recall_patch_partial_update_preserves_unspecified_fields(client, 
     assert patched["content"] == "Original"
     assert patched["position"] == 0
     assert patched["checked"] is True
+
+
+@pytest.mark.asyncio
+async def test_recall_patch_rejects_explicit_null_fields(client, auth_token):
+    await _create_note(client, auth_token, "NullPatch")
+    create = await _create_recall_item(client, auth_token, "NullPatch", "Original")
+    item = create.json()
+    headers = {"Authorization": f"Bearer {auth_token}"}
+
+    for field in ["content", "checked", "position"]:
+        resp = await client.patch(
+            f"/api/notes/NullPatch/recall/{item['id']}",
+            json={field: None},
+            headers=headers,
+        )
+        assert resp.status_code == 400
+
+    unchanged = await client.get("/api/notes/NullPatch/recall", headers=headers)
+    assert unchanged.status_code == 200
+    assert unchanged.json()[0]["content"] == "Original"
+    assert unchanged.json()[0]["checked"] is False
+    assert unchanged.json()[0]["position"] == 0
 
 
 @pytest.mark.asyncio
