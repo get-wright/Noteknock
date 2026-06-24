@@ -217,12 +217,14 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  max-width: 100%;
   padding: 14px 16px;
   margin: 0 0 1.05em;
   background: var(--paper);
   border: 1px solid var(--border);
   border-radius: 18px;
   box-shadow: var(--shadow-lift);
+  overflow: hidden;
   user-select: none;
 }
 
@@ -249,7 +251,7 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 .bn-material-name {
@@ -262,10 +264,24 @@
 }
 
 .bn-material-meta {
+  display: block;
+  max-width: 100%;
   font-size: 0.82rem;
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bn-material-actions {
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.bn-material-action {
+  max-width: 100%;
   white-space: nowrap;
 }
 
@@ -310,4 +326,22 @@
 
 .editor-upload-error__dismiss:hover {
   background: color-mix(in srgb, var(--rose) 12%, transparent);
+}
+
+@media (max-width: 720px) {
+  .bn-material-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .bn-material-body {
+    flex-basis: calc(100% - 56px);
+  }
+
+  .bn-material-actions {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    padding-left: 56px;
+  }
 }
