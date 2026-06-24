@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMap — Chế độ ôn tập</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --clay: #B5654A; --ochre: #B08A3E; --slate: #5A7398; --plum: #8A5F77;
+    --font: "Geist", system-ui, sans-serif;
+    --mono: "Geist Mono", ui-monospace, monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    background: radial-gradient(120% 80% at 50% 0%, #efedea 0%, #e4e2df 60%, #dcd9d5 100%);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 56px 24px 80px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+
+  .page-head { text-align: center; margin-bottom: 44px; }
+  .page-head h1 { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; color: #44403c; }
+  .page-head p { font-family: var(--mono); font-size: 0.74rem; color: #8a847e; margin-top: 6px; letter-spacing: 0.02em; }
+
+  .frames { display: flex; gap: 64px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .frame-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .frame-label { display: flex; align-items: center; gap: 9px; font-size: 0.8rem; font-weight: 500; color: #57534e; letter-spacing: -0.01em; }
+  .frame-label .swatch { width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.12); transition: background .3s ease; }
+
+  .phone {
+    width: 390px; height: 844px; border-radius: 46px; padding: 5px; background: #0c0a09;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 30px 70px -20px rgba(28,25,23,0.45); position: relative;
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 41px; overflow: hidden;
+    background: var(--canvas); color: var(--ink); display: flex; flex-direction: column;
+    transition: background .35s ease, color .35s ease;
+  }
+
+  .screen.day {
+    --canvas: #FAFAF8;
+    --canvas-tint: radial-gradient(130% 45% at 80% -6%, rgba(46,125,107,0.05), transparent 55%);
+    --surface: #FFFFFF; --ink: #1C1917; --muted: #78716C; --faint: #A8A29E;
+    --border: rgba(120,113,108,0.16);
+    --accent: #2E7D6B; --accent-soft: rgba(46,125,107,0.10); --accent-tint: rgba(46,125,107,0.06);
+    --hover: rgba(120,113,108,0.08);
+    --cta-shadow: 0 10px 28px -6px rgba(46,125,107,0.5);
+  }
+  .screen.night {
+    --canvas: #1A1715;
+    --canvas-tint: radial-gradient(130% 45% at 80% -6%, rgba(70,160,136,0.08), transparent 55%);
+    --surface: #24201D; --ink: #EDEAE6; --muted: #A8A29E; --faint: #6f6a64;
+    --border: rgba(237,234,230,0.12);
+    --accent: #46A088; --accent-soft: rgba(70,160,136,0.16); --accent-tint: rgba(70,160,136,0.09);
+    --hover: rgba(237,234,230,0.07);
+    --cta-shadow: 0 10px 30px -6px rgba(70,160,136,0.45);
+  }
+  .screen::before { content: ""; position: absolute; inset: 0; background: var(--canvas-tint); pointer-events: none; z-index: 0; }
+
+  /* Status bar */
+  .statusbar {
+    position: relative; z-index: 5; flex: 0 0 auto; height: 50px; padding: 0 30px 0 34px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.82rem; font-weight: 500; color: var(--ink);
+  }
+  .statusbar .si { display: flex; align-items: center; gap: 6px; }
+  .statusbar svg { display: block; }
+
+  /* Header */
+  .sv-header {
+    position: relative; z-index: 4; flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: 2px 12px 12px;
+  }
+  .iconbtn {
+    flex: 0 0 auto; width: 44px; height: 44px; border: none; background: none; cursor: pointer;
+    border-radius: 13px; color: var(--ink); display: flex; align-items: center; justify-content: center;
+    transition: background .15s ease;
+  }
+  .iconbtn:hover { background: var(--hover); }
+  .iconbtn svg { width: 22px; height: 22px; }
+  .sv-title { flex: 1 1 auto; min-width: 0; text-align: center; font-size: 1.0625rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Reading body */
+  .reading {
+    position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; overflow-y: auto;
+    padding: 14px 26px 130px; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  .reading::-webkit-scrollbar { display: none; }
+  .eyebrow { display: flex; align-items: center; gap: 9px; font-size: 0.84rem; color: var(--muted); font-weight: 500; margin-bottom: 24px; }
+  .eyebrow .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--clay); }
+  .eyebrow .sep { opacity: 0.5; }
+  .reading p { font-size: 1.15rem; line-height: 1.85; color: var(--ink); margin-bottom: 1.35em; text-wrap: pretty; }
+  .reading .mono { font-family: var(--mono); color: var(--accent); font-size: 0.94em; letter-spacing: 0.01em; white-space: nowrap; }
+  .reading b { font-weight: 600; }
+
+  .imp { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 1.35em; }
+  .imp .impstar { flex: 0 0 auto; color: var(--accent); margin-top: 6px; }
+  .imp .impstar svg { width: 19px; height: 19px; display: block; }
+  .imp p { margin-bottom: 0; }
+
+  /* Cần nhớ checklist */
+  .recall { margin-top: 16px; padding-top: 26px; border-top: 1px solid var(--border); }
+  .recall h3 { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .recall ul { list-style: none; }
+  .recall li {
+    display: flex; align-items: flex-start; gap: 13px; min-height: 48px; padding: 7px 2px; cursor: pointer;
+  }
+  .cbox {
+    flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border);
+    margin-top: 2px; display: flex; align-items: center; justify-content: center; color: transparent;
+    transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s cubic-bezier(.2,.9,.3,1.4);
+  }
+  .cbox svg { width: 15px; height: 15px; }
+  .recall li.on .cbox { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .recall li:active .cbox { transform: scale(0.88); }
+  .ctext { font-size: 1.05rem; line-height: 1.55; color: var(--ink); padding-top: 3px; transition: color .2s ease; }
+  .ctext .mono { font-family: var(--mono); font-size: 0.92em; color: var(--accent); }
+  .recall li.on .ctext { color: var(--muted); }
+
+  /* Floating CTA */
+  .cta-dock {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
+    padding: 26px 24px 30px; display: flex; justify-content: center; pointer-events: none;
+    background: linear-gradient(to top, var(--canvas) 48%, color-mix(in srgb, var(--canvas) 80%, transparent) 78%, transparent);
+  }
+  .cta {
+    pointer-events: auto; height: 54px; padding: 0 30px; border: none; cursor: pointer;
+    background: var(--accent); color: #fff; border-radius: 16px; box-shadow: var(--cta-shadow);
+    font-family: var(--font); font-weight: 600; font-size: 1rem; letter-spacing: -0.01em;
+    display: inline-flex; align-items: center; gap: 9px; transition: transform .12s ease;
+  }
+  .cta:active { transform: translateY(1px); }
+  .cta svg { width: 18px; height: 18px; }
+
+  @media (prefers-reduced-motion: reduce) { .screen, .cbox, .cta { transition: none; } }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>StudyMap — Chế độ ôn tập</h1>
+    <p>390 × 844</p>
+  </div>
+
+  <div class="frames" id="frames"></div>
+
+<script>
+const I = {
+  back:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  star:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.77l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85Z"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  play:  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.52.86l10.5-6.5a1 1 0 0 0 0-1.72L9.52 4.64A1 1 0 0 0 8 5.5Z"/></svg>',
+  sun:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>',
+  moon:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5Z"/></svg>',
+};
+
+function statusGlyphs() {
+  return `<span class="si">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4.2A11 11 0 0 1 15 4.2"/><path d="M4.4 6.8a7.2 7.2 0 0 1 8.2 0"/><path d="M6.9 9.3a3.4 3.4 0 0 1 3.2 0"/></svg>
+    <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1.5" width="21" height="10" rx="3" stroke="currentColor" stroke-width="1.2" opacity="0.45"/><rect x="3" y="3.5" width="15" height="6" rx="1.5" fill="currentColor"/><rect x="23.5" y="4.5" width="1.8" height="4" rx="0.9" fill="currentColor" opacity="0.45"/></svg>
+  </span>`;
+}
+
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+const RECALL = [
+  { html: 'Công thức gốc: <span class="mono">∫u dv = uv − ∫v du</span>', on: true },
+  { html: 'Chọn <b>u</b> theo thứ tự ưu tiên ILATE', on: true },
+  { html: 'Luôn cộng hằng số <span class="mono">+ C</span> ở kết quả cuối', on: false },
+  { html: 'Lặp lại từng phần nếu tích phân vẫn còn phức tạp', on: false },
+];
+
+function buildStudyView(theme, time) {
+  const screen = el(`<div class="screen ${theme}"></div>`);
+  screen.appendChild(el(`<div class="statusbar"><span style="font-family:var(--mono)">${time}</span>${statusGlyphs()}</div>`));
+
+  // header with working theme toggle
+  const header = el(`
+    <div class="sv-header">
+      <button class="iconbtn" aria-label="Quay lại" onclick="location.href='StudyMap%20Dashboard.html'">${I.back}</button>
+      <div class="sv-title">Tích phân từng phần</div>
+      <button class="iconbtn theme-toggle" aria-label="Đổi nền sáng tối">${theme === "day" ? I.moon : I.sun}</button>
+    </div>`);
+  screen.appendChild(header);
+
+  // reading column
+  const reading = el(`
+    <div class="reading">
+      <div class="eyebrow"><span class="sdot"></span>Toán <span class="sep">·</span> Giải tích <span class="sep">·</span> 4 phút đọc</div>
+
+      <p>Tích phân từng phần là công cụ để tính tích phân của một <b>tích hai hàm số</b>, dùng khi các phương pháp đổi biến thông thường không còn hiệu quả.</p>
+
+      <div class="imp">
+        <span class="impstar">${I.star}</span>
+        <p>Công thức gốc: <span class="mono">∫u dv = uv − ∫v du</span>. Gần như mọi bài toán đều quy về việc áp dụng đúng và đủ công thức này.</p>
+      </div>
+
+      <p>Bước quan trọng nhất là chọn <b>u</b> và <b>dv</b>. Quy tắc <b>ILATE</b> gợi ý thứ tự ưu tiên cho u: Logarit, hàm ngược, Đại số, Lượng giác, rồi hàm Mũ.</p>
+
+      <p>Ví dụ với ∫x·eˣ dx, ta chọn u = x (đại số) và dv = eˣ dx. Khi đó du = dx và v = eˣ, phần tích phân còn lại trở nên rất gọn.</p>
+
+      <div class="imp">
+        <span class="impstar">${I.star}</span>
+        <p>Luôn cộng hằng số <span class="mono">+ C</span> vào kết quả cuối cùng — đây là lỗi mất điểm phổ biến nhất khi đi thi.</p>
+      </div>
+
+      <p>Nếu sau một lần áp dụng mà tích phân vẫn phức tạp, hãy lặp lại từng phần cho tới khi đưa về một dạng cơ bản đã biết.</p>
+
+      <section class="recall">
+        <h3>Cần nhớ</h3>
+        <ul></ul>
+      </section>
+    </div>`);
+  const ul = reading.querySelector(".recall ul");
+  RECALL.forEach((item) => {
+    const li = el(`<li class="${item.on ? "on" : ""}"><span class="cbox">${I.check}</span><span class="ctext">${item.html}</span></li>`);
+    li.addEventListener("click", () => li.classList.toggle("on"));
+    ul.appendChild(li);
+  });
+  screen.appendChild(reading);
+
+  // floating CTA
+  screen.appendChild(el(`
+    <div class="cta-dock">
+      <button class="cta" onclick="location.href='StudyMap%20Quiz.html'">${I.play} Bắt đầu Quiz</button>
+    </div>`));
+
+  // theme toggle behaviour
+  const toggle = header.querySelector(".theme-toggle");
+  const swatch = () => screen.closest(".frame-wrap").querySelector(".swatch");
+  toggle.addEventListener("click", () => {
+    const toNight = screen.classList.contains("day");
+    screen.classList.toggle("day", !toNight);
+    screen.classList.toggle("night", toNight);
+    toggle.innerHTML = toNight ? I.sun : I.moon;
+    const sw = swatch(); if (sw) sw.style.background = toNight ? "#1A1715" : "#FAFAF8";
+  });
+
+  return screen;
+}
+
+function frame(theme, label, swatch, time) {
+  const wrap = el(`<div class="frame-wrap"></div>`);
+  wrap.appendChild(el(`<div class="frame-label"><span class="swatch" style="background:${swatch}"></span><span class="lbl-txt">${label}</span></div>`));
+  const phone = el(`<div class="phone"></div>`);
+  phone.appendChild(buildStudyView(theme, time));
+  wrap.appendChild(phone);
+  return wrap;
+}
+
+const frames = document.getElementById("frames");
+frames.appendChild(frame("day", "Study Day", "#FAFAF8", "23:41"));
+frames.appendChild(frame("night", "Study Night", "#1A1715", "23:41"));
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+/* Peeky — Typography tokens
+   Fraunces (soft serif) for display/headings — warm, characterful, a little editorial.
+   Inter for body/UI — quiet, legible, modern. */
+
+:root {
+  /* ---- Families ---- */
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'SF Mono', ui-monospace, Menlo, monospace;
+
+  /* Fraunces variable axes — soft, slightly warm optical setting */
+  --font-display-settings: 'opsz' 96, 'SOFT' 40, 'WONK' 0; /* @kind other */
+
+  /* ---- Weights ---- */
+  --fw-regular: 400;       /* @kind font */
+  --fw-medium:  500;       /* @kind font */
+  --fw-semibold:600;       /* @kind font */
+  --fw-bold:    700;       /* @kind font */
+  --weight-medium:   500;  /* @kind font */
+  --weight-semibold: 600;  /* @kind font */
+
+  /* ---- Type scale (mobile-first; rem @ 16px root) ---- */
+  --text-display:  2.5rem;   /* 40px — hero / big moments */
+  --text-h1:       2rem;     /* 32px — screen titles */
+  --text-h2:       1.5rem;   /* 24px — section heads */
+  --text-h3:       1.25rem;  /* 20px — card titles */
+  --text-lg:       1.125rem; /* 18px — lead body */
+  --text-base:     1rem;     /* 16px — body default */
+  --text-md:       1rem;     /* 16px — alias of base */
+  --text-sm:       0.875rem; /* 14px — secondary / meta */
+  --text-xs:       0.75rem;  /* 12px — captions / labels */
+
+  /* ---- Line heights ---- */
+  --lh-tight:   1.08;  /* @kind other */
+  --lh-snug:    1.2;   /* @kind other */
+  --lh-normal:  1.5;   /* @kind other */
+  --lh-relaxed: 1.65;  /* @kind other */
+
+  /* ---- Letter spacing ---- */
+  --ls-tight:  -0.02em;  /* @kind other */
+  --ls-snug:   -0.01em;  /* @kind other */
+  --ls-normal: 0;        /* @kind other */
+  --ls-wide:   0.04em;   /* @kind other */
+  --ls-wider:  0.08em;   /* @kind other */
+}

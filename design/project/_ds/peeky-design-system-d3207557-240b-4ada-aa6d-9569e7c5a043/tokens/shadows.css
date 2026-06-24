@@ -1,0 +1,16 @@
+/* Peeky — Shadow tokens. Soft, low, warm-tinted. Never hard or grey.
+   All shadows are tinted with plum, not black, to stay warm. */
+
+:root {
+  --shadow-xs:  0 1px 2px rgba(45, 27, 53, 0.05);
+  --shadow-sm:  0 2px 8px rgba(45, 27, 53, 0.06);
+  --shadow-md:  0 6px 18px rgba(45, 27, 53, 0.08);
+  --shadow-lg:  0 14px 34px rgba(45, 27, 53, 0.10);
+  --shadow-xl:  0 24px 60px rgba(45, 27, 53, 0.14);
+
+  /* Coral glow — for the primary shutter / CTA only */
+  --shadow-coral: 0 10px 28px rgba(255, 107, 107, 0.32);
+
+  /* Inset for sunken tracks / pressed wells */
+  --shadow-inset: inset 0 1px 3px rgba(45, 27, 53, 0.08);
+}

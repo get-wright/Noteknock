@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMap — Kết quả Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --clay: #B5654A; --ochre: #B08A3E; --slate: #5A7398; --plum: #8A5F77; --wrong: #C2705A;
+    --font: "Geist", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+  }
+  body {
+    font-family: var(--font);
+    background: radial-gradient(120% 80% at 50% 0%, #efedea 0%, #e4e2df 60%, #dcd9d5 100%);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 56px 24px 80px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  .page-head { text-align: center; margin-bottom: 44px; }
+  .page-head h1 { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; color: #44403c; }
+  .page-head p { font-family: var(--mono); font-size: 0.74rem; color: #8a847e; margin-top: 6px; letter-spacing: 0.02em; }
+
+  .frames { display: flex; gap: 64px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .frame-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .frame-label { display: flex; align-items: center; gap: 9px; font-size: 0.8rem; font-weight: 500; color: #57534e; letter-spacing: -0.01em; }
+  .frame-label .swatch { width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.12); }
+
+  .phone {
+    width: 390px; height: 844px; border-radius: 46px; padding: 5px; background: #0c0a09;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 30px 70px -20px rgba(28,25,23,0.45); position: relative;
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 41px; overflow: hidden;
+    background: var(--canvas); color: var(--ink); display: flex; flex-direction: column;
+  }
+  .screen.day {
+    --canvas: #FAFAF8;
+    --canvas-tint: radial-gradient(130% 42% at 80% -6%, rgba(46,125,107,0.06), transparent 55%);
+    --surface: #FFFFFF; --ink: #1C1917; --muted: #78716C; --faint: #A8A29E;
+    --border: rgba(120,113,108,0.18);
+    --accent: #2E7D6B; --accent-soft: rgba(46,125,107,0.12); --accent-tint: rgba(46,125,107,0.07);
+    --wrong: #C2705A; --wrong-soft: rgba(194,112,90,0.13);
+    --track: rgba(120,113,108,0.14); --hover: rgba(120,113,108,0.06);
+    --shadow: 0 8px 26px rgba(28,25,23,0.07);
+    --cta-shadow: 0 10px 26px -6px rgba(46,125,107,0.45);
+    --grid: rgba(120,113,108,0.13);
+  }
+  .screen.night {
+    --canvas: #1A1715;
+    --canvas-tint: radial-gradient(130% 42% at 80% -6%, rgba(70,160,136,0.09), transparent 55%);
+    --surface: #24201D; --ink: #EDEAE6; --muted: #A8A29E; --faint: #6f6a64;
+    --border: rgba(237,234,230,0.12);
+    --accent: #46A088; --accent-soft: rgba(70,160,136,0.18); --accent-tint: rgba(70,160,136,0.10);
+    --wrong: #C2705A; --wrong-soft: rgba(194,112,90,0.20);
+    --track: rgba(237,234,230,0.12); --hover: rgba(237,234,230,0.06);
+    --shadow: 0 8px 26px rgba(0,0,0,0.4);
+    --cta-shadow: 0 10px 28px -6px rgba(70,160,136,0.45);
+    --grid: rgba(237,234,230,0.10);
+  }
+  .screen::before { content: ""; position: absolute; inset: 0; background: var(--canvas-tint); pointer-events: none; z-index: 0; }
+
+  .statusbar {
+    position: relative; z-index: 5; flex: 0 0 auto; height: 50px; padding: 0 30px 0 34px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.82rem; font-weight: 500; color: var(--ink);
+  }
+  .statusbar .si { display: flex; align-items: center; gap: 6px; }
+  .statusbar svg { display: block; }
+
+  .topbar { position: relative; z-index: 3; flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 2px 12px 8px; }
+  .iconbtn { flex: 0 0 auto; width: 44px; height: 44px; border: none; background: none; cursor: pointer; border-radius: 13px; color: var(--ink); display: flex; align-items: center; justify-content: center; transition: background .15s ease; }
+  .iconbtn:hover { background: var(--hover); }
+  .iconbtn svg { width: 22px; height: 22px; }
+  .topbar .ttl { flex: 1 1 auto; text-align: center; font-size: 1rem; font-weight: 600; color: var(--ink); margin-right: 44px; }
+
+  .scroll { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 20px 32px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Hero score */
+  .hero { text-align: center; padding: 26px 0 36px; }
+  .hero .congrat { display: inline-flex; align-items: center; gap: 8px; font-size: 0.92rem; font-weight: 600; color: var(--accent); margin-bottom: 20px; }
+  .hero .congrat .pdot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+  .hero .score { font-family: var(--mono); font-weight: 500; font-size: 3.7rem; line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+  .hero .score .slash { color: var(--faint); font-weight: 400; }
+  .hero .score-lbl { font-size: 1.05rem; color: var(--muted); font-weight: 500; margin-top: 12px; letter-spacing: 0.01em; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); }
+
+  /* Chart */
+  .chart-card { padding: 18px 18px 16px; margin-bottom: 22px; }
+  .chart-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+  .chart-head h3 { font-size: 1.0rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); line-height: 1.3; }
+  .chart-head .delta { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 4px 9px; border-radius: 9px; }
+  .chart-head .delta .mono { font-family: var(--mono); font-weight: 500; }
+  .chart-head .delta svg { width: 13px; height: 13px; }
+  .chart-svg { width: 100%; height: auto; display: block; margin-top: 6px; overflow: visible; }
+  .chart-cap { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
+  .chart-cap .now { color: var(--accent); font-weight: 600; }
+
+  @keyframes breathe { 0%,100%{ transform: scale(1); opacity: .55; } 50%{ transform: scale(2.1); opacity: 0; } }
+  .pulse-halo { transform-origin: center; transform-box: fill-box; animation: breathe 2.6s ease-in-out infinite; }
+
+  /* Missed list */
+  .sec-h { display: flex; align-items: center; gap: 9px; margin: 2px 2px 12px; }
+  .sec-h h3 { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .sec-h .badge { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--wrong); background: var(--wrong-soft); padding: 2px 8px; border-radius: 7px; white-space: nowrap; }
+
+  .missed { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+  .miss { overflow: hidden; }
+  .miss .mrow { display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; min-height: 56px; }
+  .miss .mdot { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; background: var(--wrong); }
+  .miss .mq { flex: 1 1 auto; font-size: 0.97rem; font-weight: 500; color: var(--ink); line-height: 1.35; }
+  .miss .mq .mono { font-family: var(--mono); font-size: 0.92em; }
+  .miss .chev { flex: 0 0 auto; color: var(--muted); transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+  .miss .chev svg { width: 20px; height: 20px; display: block; }
+  .miss.open .chev { transform: rotate(180deg); }
+  .miss .mexp { max-height: 0; opacity: 0; overflow: hidden; transition: max-height .5s cubic-bezier(.2,.85,.25,1), opacity .35s ease; }
+  .miss.open .mexp { max-height: 340px; opacity: 1; }
+  .miss .mexp-in { padding: 15px 16px 17px; border-top: 1px solid var(--border); }
+  .miss .ansgrid { display: flex; flex-direction: column; gap: 9px; margin-bottom: 16px; }
+  .miss .ansrow { display: flex; align-items: center; gap: 11px; }
+  .miss .ansrow .atag { flex: 0 0 auto; width: 78px; font-size: 0.78rem; font-weight: 500; color: var(--muted); }
+  .miss .aval { font-family: var(--mono); font-size: 0.9rem; font-weight: 500; padding: 5px 11px; border-radius: 9px; white-space: nowrap; }
+  .miss .aval.you { color: var(--wrong); background: var(--wrong-soft); text-decoration: line-through; text-decoration-thickness: 1px; }
+  .miss .aval.ok { color: var(--accent); background: var(--accent-soft); }
+  .miss .why .wlbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: var(--accent); margin-bottom: 6px; }
+  .miss .why p { font-size: 0.92rem; line-height: 1.6; color: var(--ink); text-wrap: pretty; }
+  .miss .why p .mono { font-family: var(--mono); font-size: 0.92em; color: var(--accent); }
+
+  /* Schedule card */
+  .sched { padding: 18px 18px 18px; margin-bottom: 14px; }
+  .sched .top { display: flex; align-items: center; gap: 13px; margin-bottom: 17px; }
+  .sched .calicon { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 14px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
+  .sched .calicon svg { width: 23px; height: 23px; }
+  .sched .stext h4 { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  .sched .stext h4 .mono { font-family: var(--mono); font-weight: 500; }
+  .sched .stext p { font-size: 0.85rem; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .btn { width: 100%; height: 52px; border-radius: 15px; font-family: var(--font); font-weight: 600; font-size: 0.97rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform .12s ease, background .15s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn svg { width: 17px; height: 17px; }
+  .btn-primary { border: none; background: var(--accent); color: #fff; box-shadow: var(--cta-shadow); margin-bottom: 10px; }
+  .btn-ghost { border: 1px solid var(--border); background: transparent; color: var(--ink); }
+  .btn-ghost:hover { background: var(--hover); }
+
+  @media (prefers-reduced-motion: reduce) { .pulse-halo { animation: none; } .miss .mexp, .miss .chev { transition: none; } }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>StudyMap — Kết quả Quiz</h1>
+    <p>390 × 844</p>
+  </div>
+  <div class="frames" id="frames"></div>
+
+<script>
+const I = {
+  back:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l5-5 4 3 7-8"/><path d="M20 11V7h-4"/></svg>',
+  chev:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  cal:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/><path d="M9 14.5l2 2 4-4"/></svg>',
+  calc:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4 10-11"/></svg>',
+  home:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5"/><path d="M6 9.5V20h12V9.5"/></svg>',
+};
+function statusGlyphs() {
+  return `<span class="si">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4.2A11 11 0 0 1 15 4.2"/><path d="M4.4 6.8a7.2 7.2 0 0 1 8.2 0"/><path d="M6.9 9.3a3.4 3.4 0 0 1 3.2 0"/></svg>
+    <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1.5" width="21" height="10" rx="3" stroke="currentColor" stroke-width="1.2" opacity="0.45"/><rect x="3" y="3.5" width="15" height="6" rx="1.5" fill="currentColor"/><rect x="23.5" y="4.5" width="1.8" height="4" rx="0.9" fill="currentColor" opacity="0.45"/></svg>
+  </span>`;
+}
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+const MISSED = [
+  { q: 'Nguyên hàm của <span class="mono">1/x</span> (x &gt; 0)?', you: '−1/x² + C', ok: 'ln|x| + C',
+    why: 'Vì đạo hàm của <span class="mono">ln|x|</span> chính là <span class="mono">1/x</span>, nên nguyên hàm là phép đảo lại của nó.' },
+  { q: 'Đạo hàm của <span class="mono">cos(x)</span>?', you: 'sin(x)', ok: '−sin(x)',
+    why: 'Quanh điểm 0, cos đang giảm khi x tăng, nên đạo hàm mang dấu âm: <span class="mono">−sin(x)</span>.' },
+  { q: 'Giới hạn <span class="mono">(1 + 1/n)ⁿ</span> khi n→∞?', you: '1', ok: 'e ≈ 2,718',
+    why: 'Đây chính là một định nghĩa của số <span class="mono">e</span> — hằng số nền của logarit tự nhiên.' },
+];
+
+// organic accuracy over recent sessions (%)
+const SERIES = [44, 53, 49, 58, 64, 70];
+
+function buildChart(theme) {
+  const W = 322, H = 150, padX = 16, top = 14, bottom = 118;
+  const n = SERIES.length;
+  const xAt = (i) => padX + i * ((W - padX * 2) / (n - 1));
+  const yAt = (v) => bottom - (v / 100) * (bottom - top);
+  const pts = SERIES.map((v, i) => ({ x: xAt(i), y: yAt(v) }));
+
+  const smooth = (p) => {
+    let d = `M${p[0].x.toFixed(1)},${p[0].y.toFixed(1)}`;
+    for (let i = 0; i < p.length - 1; i++) {
+      const p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;
+    }
+    return d;
+  };
+  const line = smooth(pts);
+  const area = `${line} L${pts[n-1].x.toFixed(1)},${bottom} L${pts[0].x.toFixed(1)},${bottom} Z`;
+  const gid = "g_" + theme, lid = "l_" + theme;
+  const grid = [yAt(30), yAt(60), yAt(90)].map((y) =>
+    `<line x1="${padX}" y1="${y.toFixed(1)}" x2="${W-padX}" y2="${y.toFixed(1)}" stroke="var(--grid)" stroke-width="1"/>`).join("");
+  const last = pts[n-1];
+
+  return `
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Biểu đồ tăng trưởng độ chính xác">
+      <defs>
+        <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" style="stop-color:var(--accent);stop-opacity:.26"/>
+          <stop offset="100%" style="stop-color:var(--accent);stop-opacity:0"/>
+        </linearGradient>
+      </defs>
+      ${grid}
+      <path d="${area}" fill="url(#${gid})"/>
+      <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      ${pts.slice(0,-1).map((p)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.6" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>`).join("")}
+      <circle class="pulse-halo" cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="6" fill="var(--accent)"/>
+      <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="4.4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>
+    </svg>`;
+}
+
+function buildResult(theme, time) {
+  const screen = el(`<div class="screen ${theme}"></div>`);
+  screen.appendChild(el(`<div class="statusbar"><span style="font-family:var(--mono)">${time}</span>${statusGlyphs()}</div>`));
+  screen.appendChild(el(`
+    <div class="topbar">
+      <button class="iconbtn" aria-label="Đóng" onclick="location.href='StudyMap%20Dashboard.html'">${I.back}</button>
+      <div class="ttl">Kết quả</div>
+    </div>`));
+
+  const scroll = el(`<div class="scroll"></div>`);
+
+  scroll.appendChild(el(`
+    <div class="hero">
+      <span class="congrat"><span class="pdot"></span>Bạn đang tiến bộ</span>
+      <div class="score"><span>7</span> <span class="slash">/</span> <span>10</span></div>
+      <div class="score-lbl">câu đúng</div>
+    </div>`));
+
+  scroll.appendChild(el(`
+    <div class="card chart-card">
+      <div class="chart-head">
+        <h3>Biểu đồ tăng trưởng kiến thức</h3>
+        <span class="delta">${I.trend}<span class="mono">+12%</span></span>
+      </div>
+      ${buildChart(theme)}
+      <div class="chart-cap"><span>6 buổi học gần đây</span><span class="now">Hôm nay · 70%</span></div>
+    </div>`));
+
+  scroll.appendChild(el(`<div class="sec-h"><h3>Câu cần xem lại</h3><span class="badge">3 câu</span></div>`));
+  const missed = el(`<div class="missed"></div>`);
+  MISSED.forEach((m) => {
+    const card = el(`
+      <div class="card miss">
+        <div class="mrow">
+          <span class="mdot"></span>
+          <span class="mq">${m.q}</span>
+          <span class="chev">${I.chev}</span>
+        </div>
+        <div class="mexp"><div class="mexp-in">
+          <div class="ansgrid">
+            <div class="ansrow"><span class="atag">Bạn chọn</span><span class="aval you">${m.you}</span></div>
+            <div class="ansrow"><span class="atag">Đáp án đúng</span><span class="aval ok">${m.ok}</span></div>
+          </div>
+          <div class="why"><div class="wlbl">Giải thích lỗi sai</div><p>${m.why}</p></div>
+        </div></div>
+      </div>`);
+    card.querySelector(".mrow").addEventListener("click", () => card.classList.toggle("open"));
+    missed.appendChild(card);
+  });
+  scroll.appendChild(missed);
+
+  scroll.appendChild(el(`
+    <div class="card sched">
+      <div class="top">
+        <div class="calicon">${I.cal}</div>
+        <div class="stext">
+          <h4>Ôn tập lại sau <span class="mono">3</span> ngày</h4>
+          <p>Khoảng nghỉ tối ưu giúp bạn ghi nhớ lâu hơn.</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="location.href='StudyMap%20Review.html'">${I.calc} Lên lịch ôn tập</button>
+      <button class="btn btn-ghost" onclick="location.href='StudyMap%20Dashboard.html'">${I.home} Về Bài học</button>
+    </div>`));
+
+  screen.appendChild(scroll);
+
+  // open first missed by default so the pattern is visible
+  missed.querySelector(".miss").classList.add("open");
+  return screen;
+}
+
+function frame(theme, label, swatch, time) {
+  const wrap = el(`<div class="frame-wrap"></div>`);
+  wrap.appendChild(el(`<div class="frame-label"><span class="swatch" style="background:${swatch}"></span>${label}</div>`));
+  const phone = el(`<div class="phone"></div>`);
+  phone.appendChild(buildResult(theme, time));
+  wrap.appendChild(phone);
+  return wrap;
+}
+const frames = document.getElementById("frames");
+frames.appendChild(frame("day", "Study Day", "#FAFAF8", "21:36"));
+frames.appendChild(frame("night", "Study Night", "#1A1715", "21:36"));
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMap — Chuỗi học</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --font: "Geist", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace; }
+  body {
+    font-family: var(--font);
+    background: radial-gradient(120% 80% at 50% 0%, #efedea 0%, #e4e2df 60%, #dcd9d5 100%);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 56px 24px 80px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  .page-head { text-align: center; margin-bottom: 44px; }
+  .page-head h1 { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; color: #44403c; }
+  .page-head p { font-family: var(--mono); font-size: 0.74rem; color: #8a847e; margin-top: 6px; letter-spacing: 0.02em; }
+
+  .frames { display: flex; gap: 64px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .frame-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .frame-label { display: flex; align-items: center; gap: 9px; font-size: 0.8rem; font-weight: 500; color: #57534e; letter-spacing: -0.01em; }
+  .frame-label .swatch { width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.12); }
+
+  .phone {
+    width: 390px; height: 844px; border-radius: 46px; padding: 5px; background: #0c0a09;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 30px 70px -20px rgba(28,25,23,0.45); position: relative;
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 41px; overflow: hidden;
+    background: var(--canvas); color: var(--ink); display: flex; flex-direction: column;
+  }
+  .screen.day {
+    --canvas: #FAFAF8;
+    --canvas-tint: radial-gradient(140% 55% at 80% -10%, rgba(46,125,107,0.05), transparent 55%);
+    --surface: #FFFFFF; --ink: #1C1917; --muted: #78716C; --faint: #A8A29E;
+    --border: rgba(120,113,108,0.18);
+    --accent: #2E7D6B; --accent-soft: rgba(46,125,107,0.10); --accent-tint: rgba(46,125,107,0.06);
+    --shadow: 0 6px 20px rgba(28,25,23,0.06); --track: rgba(120,113,108,0.13); --hover: rgba(120,113,108,0.06);
+  }
+  .screen.night {
+    --canvas: #1A1715;
+    --canvas-tint: radial-gradient(140% 55% at 80% -10%, rgba(70,160,136,0.08), transparent 55%);
+    --surface: #24201D; --ink: #EDEAE6; --muted: #A8A29E; --faint: #6f6a64;
+    --border: rgba(237,234,230,0.12);
+    --accent: #46A088; --accent-soft: rgba(70,160,136,0.16); --accent-tint: rgba(70,160,136,0.08);
+    --shadow: 0 6px 20px rgba(0,0,0,0.35); --track: rgba(237,234,230,0.10); --hover: rgba(237,234,230,0.06);
+  }
+  .screen::before { content: ""; position: absolute; inset: 0; background: var(--canvas-tint); pointer-events: none; z-index: 0; }
+
+  .statusbar {
+    position: relative; z-index: 3; flex: 0 0 auto; height: 50px; padding: 0 30px 0 34px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.82rem; font-weight: 500; color: var(--ink);
+  }
+  .statusbar .si { display: flex; align-items: center; gap: 6px; }
+  .statusbar svg { display: block; }
+
+  .topbar { position: relative; z-index: 2; flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 2px 12px 10px; }
+  .iconbtn { flex: 0 0 auto; width: 44px; height: 44px; border: none; background: none; cursor: pointer; border-radius: 13px; color: var(--ink); display: flex; align-items: center; justify-content: center; transition: background .15s ease; }
+  .iconbtn:hover { background: var(--hover); }
+  .iconbtn svg { width: 22px; height: 22px; }
+  .topbar .ttl { flex: 1 1 auto; text-align: center; font-size: 1rem; font-weight: 600; color: var(--ink); margin-right: 44px; }
+
+  .scroll { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 6px 20px 32px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Hero */
+  .hero { display: flex; align-items: center; gap: 16px; background: linear-gradient(180deg, var(--accent-tint), var(--accent-tint)), var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow); padding: 20px 19px; margin-bottom: 18px; }
+  .hero .flame { flex: 0 0 auto; width: 58px; height: 58px; border-radius: 17px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 18px -6px var(--accent); }
+  .hero .flame svg { width: 30px; height: 30px; }
+  .hero .hmain { flex: 1 1 auto; }
+  .hero .hnum { font-family: var(--mono); font-weight: 500; color: var(--ink); line-height: 1; }
+  .hero .hnum .big { font-size: 2.3rem; letter-spacing: -0.02em; }
+  .hero .hnum .unit { font-size: 1rem; color: var(--muted); margin-left: 4px; }
+  .hero .hlbl { font-size: 0.86rem; color: var(--muted); margin-top: 6px; }
+
+  @keyframes breathe { 0%,100%{ transform: scale(1); opacity: 1; } 50%{ transform: scale(1.1); opacity: 0.85; } }
+  .pulse { animation: breathe 2.6s ease-in-out infinite; transform-origin: center; }
+
+  /* Mini stats */
+  .ministats { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-bottom: 24px; }
+  .ms { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 13px 15px; box-shadow: var(--shadow); }
+  .ms .v { font-family: var(--mono); font-weight: 500; font-size: 1.3rem; color: var(--ink); line-height: 1; }
+  .ms .v .u { font-size: 0.74rem; color: var(--muted); margin-left: 3px; }
+  .ms .k { font-size: 0.78rem; color: var(--muted); margin-top: 7px; }
+
+  /* Heatmap card */
+  .hmcard { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); padding: 18px 16px 16px; }
+  .hmcard h3 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 16px; }
+  .heat-body { display: flex; gap: 7px; }
+  .hdays { flex: 0 0 auto; width: 16px; display: flex; flex-direction: column; gap: 4px; padding-top: 19px; }
+  .hday { height: 13px; line-height: 13px; font-size: 0.58rem; color: var(--faint); text-align: right; }
+  .hmain { flex: 1 1 auto; min-width: 0; }
+  .hmonths { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--muted); margin-bottom: 6px; padding: 0 1px; }
+  .hgrid { display: flex; gap: 4px; }
+  .hcol { display: flex; flex-direction: column; gap: 4px; flex: 1 1 0; }
+  .hcell { width: 100%; aspect-ratio: 1 / 1; border-radius: 3px; background: var(--track); }
+  .hcell.l1 { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+  .hcell.l2 { background: color-mix(in srgb, var(--accent) 52%, transparent); }
+  .hcell.l3 { background: color-mix(in srgb, var(--accent) 76%, transparent); }
+  .hcell.l4 { background: var(--accent); }
+  .hcell.future { background: transparent; }
+  .legend { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 14px; font-size: 0.7rem; color: var(--muted); }
+  .legend .lc { width: 12px; height: 12px; border-radius: 3px; background: var(--track); }
+  .legend .lc.l1 { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+  .legend .lc.l2 { background: color-mix(in srgb, var(--accent) 52%, transparent); }
+  .legend .lc.l3 { background: color-mix(in srgb, var(--accent) 76%, transparent); }
+  .legend .lc.l4 { background: var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+
+  /* Activity timeline */
+  .timeline { margin-top: 26px; }
+  .tl-head { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); margin: 0 2px 4px; }
+  .tl-month { font-size: 0.86rem; font-weight: 700; color: var(--ink); padding: 14px 2px 4px; display: flex; align-items: center; gap: 8px; }
+  .tl-month span { color: var(--muted); font-weight: 500; }
+  .tl-month::after { content: ""; flex: 1 1 auto; height: 1px; background: var(--border); }
+  .tl-list { position: relative; padding: 16px 0 2px; }
+  .tl-list::before { content: ""; position: absolute; left: 17px; top: 6px; bottom: 14px; width: 2px; background: var(--border); }
+  .tl-item { position: relative; display: flex; gap: 14px; margin-bottom: 20px; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-node { flex: 0 0 auto; z-index: 1; width: 36px; height: 36px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--accent); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+  .tl-node svg { width: 19px; height: 19px; }
+  .tl-body { flex: 1 1 auto; min-width: 0; padding-top: 6px; }
+  .tl-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .tl-title { font-size: 0.96rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); line-height: 1.35; }
+  .tl-title b { color: var(--accent); font-weight: 700; }
+  .tl-date { flex: 0 0 auto; font-family: var(--mono); font-size: 0.72rem; color: var(--faint); }
+  .tl-sub { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+  .tl-bars { display: inline-flex; align-items: center; gap: 4px; margin-top: 9px; }
+  .tl-bars i { width: 13px; height: 9px; border-radius: 2px; background: var(--accent); }
+  .tl-bars i.off { background: var(--track); }
+  .tl-bars .cnt { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); margin-left: 4px; }
+  /* expanded subject card */
+  .tl-card { margin-top: 11px; border: 1px solid var(--border); border-radius: 14px; background: var(--accent-tint); padding: 13px 14px; }
+  .tl-card .ct { display: flex; align-items: center; gap: 8px; font-size: 0.94rem; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); }
+  .tl-card .ct .sdot { width: 9px; height: 9px; border-radius: 50%; background: var(--sc); flex: 0 0 auto; }
+  .tl-card .cex { font-size: 0.83rem; color: var(--muted); line-height: 1.5; margin-top: 7px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tl-card .cmeta { display: flex; align-items: center; gap: 8px; margin-top: 11px; font-size: 0.76rem; color: var(--muted); }
+  .tl-card .cmeta .sc-bars { display: inline-flex; gap: 3px; }
+  .tl-card .cmeta .sc-bars b { width: 13px; height: 5px; border-radius: 3px; background: var(--accent); }
+  .tl-card .cmeta .sc-bars b.off { background: var(--track); }
+  .tl-card .cmeta .dotsep { color: var(--faint); }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>StudyMap — Chuỗi học</h1>
+    <p>390 × 844</p>
+  </div>
+  <div class="frames" id="frames"></div>
+
+<script>
+const I = {
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  flame: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 3-2.1 4.3-2.1 7.1 0 1.4.8 2.4.8 2.4s-2.8-.7-3.4-3C6.4 9.8 6 11.7 6 13.5 6 17.6 8.7 21 12 21s6-3.2 6-7.5c0-4.5-3-6.8-4.4-9.7-.7 1.9-2 2.5-2.6 1.3C10.3 4.4 11 3 12 2Z"/></svg>',
+  flameLine: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.5 2.5-1.8 3.6-1.8 6 0 1.2.7 2 .7 2s-2.4-.6-2.9-2.6C6.4 10.3 6 11.9 6 13.4 6 17 8.7 20 12 20s6-2.7 6-6.3c0-3.8-2.6-5.7-3.8-8.2-.6 1.6-1.7 2.1-2.2 1.1C11.4 5.4 12 4.2 12 3Z"/></svg>',
+  note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H17a2 2 0 0 1 2 2v15a1 1 0 0 1-1.5.87L12 18l-5.5 2.87A1 1 0 0 1 5 20Z"/><path d="M9 8h6M9 12h4"/></svg>',
+  quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.1-2.5 3.9"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
+  review: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5v4h4"/><path d="M4.7 13a7.5 7.5 0 1 0 1.1-5.6L4 9.5"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
+};
+function statusGlyphs() {
+  return `<span class="si">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4.2A11 11 0 0 1 15 4.2"/><path d="M4.4 6.8a7.2 7.2 0 0 1 8.2 0"/><path d="M6.9 9.3a3.4 3.4 0 0 1 3.2 0"/></svg>
+    <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1.5" width="21" height="10" rx="3" stroke="currentColor" stroke-width="1.2" opacity="0.45"/><rect x="3" y="3.5" width="15" height="6" rx="1.5" fill="currentColor"/><rect x="23.5" y="4.5" width="1.8" height="4" rx="0.9" fill="currentColor" opacity="0.45"/></svg>
+  </span>`;
+}
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+// ---- deterministic study-activity data ----
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const WEEKS = 17;
+const MONTH_VI = ["Th1","Th2","Th3","Th4","Th5","Th6","Th7","Th8","Th9","Th10","Th11","Th12"];
+
+function buildHeatData() {
+  const rng = mulberry32(20260603);
+  const today = new Date(2026, 5, 3);            // 03/06/2026 (Wed)
+  const dow = (today.getDay() + 6) % 7;          // 0 = Monday
+  const lastMon = new Date(today); lastMon.setDate(today.getDate() - dow);
+  const start = new Date(lastMon); start.setDate(lastMon.getDate() - (WEEKS - 1) * 7);
+  const streakStart = new Date(today); streakStart.setDate(today.getDate() - 11); // 12-day streak
+
+  const cols = [];
+  const monthFirstCol = {};
+  for (let w = 0; w < WEEKS; w++) {
+    const days = [];
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(start); date.setDate(start.getDate() + w * 7 + d);
+      if (date > today) { days.push({ future: true }); continue; }
+      let level;
+      if (date >= streakStart) { level = 2 + Math.floor(rng() * 3); }   // active streak: 2..4
+      else { const r = rng(); level = r < 0.42 ? 0 : r < 0.66 ? 1 : r < 0.85 ? 2 : r < 0.96 ? 3 : 4; }
+      days.push({ level, date });
+      const m = date.getMonth();
+      if (date.getDate() <= 7 && monthFirstCol[m] === undefined) monthFirstCol[m] = w;
+    }
+    cols.push(days);
+  }
+  // distinct months in order for the label row
+  const months = [];
+  cols.forEach((days) => days.forEach((c) => { if (!c.future) { const m = c.date.getMonth(); if (!months.includes(m)) months.push(m); } }));
+  return { cols, months };
+}
+const HEAT = buildHeatData();
+
+function buildHeatmap() {
+  const dayLabels = ["T2", "", "T4", "", "T6", "", ""];
+  const days = el(`<div class="hdays"></div>`);
+  dayLabels.forEach((l) => days.appendChild(el(`<div class="hday">${l}</div>`)));
+
+  const months = el(`<div class="hmonths"></div>`);
+  HEAT.months.forEach((m) => months.appendChild(el(`<span>${MONTH_VI[m]}</span>`)));
+
+  const grid = el(`<div class="hgrid"></div>`);
+  HEAT.cols.forEach((week) => {
+    const col = el(`<div class="hcol"></div>`);
+    week.forEach((c) => {
+      if (c.future) col.appendChild(el(`<div class="hcell future"></div>`));
+      else col.appendChild(el(`<div class="hcell${c.level ? " l" + c.level : ""}"></div>`));
+    });
+    grid.appendChild(col);
+  });
+
+  const main = el(`<div class="hmain"></div>`);
+  main.appendChild(months);
+  main.appendChild(grid);
+
+  const body = el(`<div class="heat-body"></div>`);
+  body.appendChild(days);
+  body.appendChild(main);
+  return body;
+}
+
+// ---- activity timeline ----
+const SUBJECTS = { toan:{label:"Toán",c:"#B5654A"}, ly:{label:"Lý",c:"#B08A3E"}, anh:{label:"Tiếng Anh",c:"#5A7398"}, hoa:{label:"Hóa",c:"#8A5F77"} };
+
+const TIMELINE = [
+  { month: "Tháng 6", year: "2026", items: [
+    { icon: "flameLine", date: "Hôm nay", title: 'Giữ chuỗi học <b>12 ngày</b> liên tiếp', sub: "Học đều mỗi ngày trong tuần này" },
+    { icon: "note", date: "03/06", title: "Tạo 3 bài học mới", sub: "Toán · Lý · Hóa",
+      bars: 3 },
+    { icon: "quiz", date: "02/06", title: "Hoàn thành quiz với 9/10 câu đúng",
+      card: { subject: "toan", title: "Tích phân từng phần", ex: "Ôn lại quy tắc ILATE và luyện 10 câu trắc nghiệm áp dụng công thức từng phần.", strength: 3, extra: "9/10 đúng" } },
+  ]},
+  { month: "Tháng 5", year: "2026", items: [
+    { icon: "review", date: "28/05", title: "Ôn tập 5 bài đến hạn", sub: "Lặp lại theo lịch ghi nhớ" },
+    { icon: "note", date: "21/05", title: "Tạo 2 bài học mới", sub: "Tiếng Anh · Hóa", bars: 2 },
+  ]},
+];
+
+function timelineItem(it) {
+  const node = el(`<div class="tl-item"></div>`);
+  node.appendChild(el(`<div class="tl-node">${I[it.icon]}</div>`));
+  const b = el(`<div class="tl-body"></div>`);
+  b.appendChild(el(`<div class="tl-row"><div class="tl-title">${it.title}</div><div class="tl-date">${it.date}</div></div>`));
+  if (it.sub) b.appendChild(el(`<div class="tl-sub">${it.sub}</div>`));
+  if (it.bars) {
+    let bars = "";
+    for (let i = 0; i < 5; i++) bars += `<i class="${i < it.bars ? "" : "off"}"></i>`;
+    b.appendChild(el(`<div class="tl-bars">${bars}<span class="cnt">${it.bars} bài</span></div>`));
+  }
+  if (it.card) {
+    const s = SUBJECTS[it.card.subject];
+    let sc = "";
+    for (let i = 0; i < 3; i++) sc += `<b class="${i < it.card.strength ? "" : "off"}"></b>`;
+    b.appendChild(el(`
+      <div class="tl-card" style="--sc:${s.c}">
+        <div class="ct"><span class="sdot"></span>${it.card.title}</div>
+        <div class="cex">${it.card.ex}</div>
+        <div class="cmeta">
+          <span>${s.label}</span><span class="dotsep">·</span>
+          <span>Độ nhớ</span><span class="sc-bars">${sc}</span>
+          <span class="dotsep">·</span><span>${it.card.extra}</span>
+        </div>
+      </div>`));
+  }
+  node.appendChild(b);
+  return node;
+}
+
+function buildTimeline() {
+  const wrap = el(`<section class="timeline"></section>`);
+  wrap.appendChild(el(`<h3 class="tl-head">Hoạt động gần đây</h3>`));
+  TIMELINE.forEach((grp) => {
+    wrap.appendChild(el(`<div class="tl-month">${grp.month} <span>${grp.year}</span></div>`));
+    const list = el(`<div class="tl-list"></div>`);
+    grp.items.forEach((it) => list.appendChild(timelineItem(it)));
+    wrap.appendChild(list);
+  });
+  return wrap;
+}
+
+function buildScreen(theme, time) {
+  const screen = el(`<div class="screen ${theme}"></div>`);
+  screen.appendChild(el(`<div class="statusbar"><span style="font-family:var(--mono)">${time}</span>${statusGlyphs()}</div>`));
+  screen.appendChild(el(`
+    <div class="topbar">
+      <button class="iconbtn" aria-label="Quay lại" onclick="location.href='StudyMap%20Dashboard.html'">${I.back}</button>
+      <div class="ttl">Chuỗi học</div>
+    </div>`));
+
+  const scroll = el(`<div class="scroll"></div>`);
+
+  scroll.appendChild(el(`
+    <section class="hero">
+      <div class="flame pulse">${I.flame}</div>
+      <div class="hmain">
+        <div class="hnum"><span class="big">12</span><span class="unit">ngày</span></div>
+        <div class="hlbl">Chuỗi học hiện tại — cố lên nhé!</div>
+      </div>
+    </section>`));
+
+  scroll.appendChild(el(`
+    <section class="ministats">
+      <div class="ms"><div class="v">21<span class="u">ngày</span></div><div class="k">Chuỗi dài nhất</div></div>
+      <div class="ms"><div class="v">86<span class="u">ngày</span></div><div class="k">Tổng ngày đã học</div></div>
+    </section>`));
+
+  const card = el(`<section class="hmcard"><h3>Hoạt động học tập</h3></section>`);
+  card.appendChild(buildHeatmap());
+  card.appendChild(el(`
+    <div class="legend">Ít
+      <span class="lc"></span><span class="lc l1"></span><span class="lc l2"></span><span class="lc l3"></span><span class="lc l4"></span>
+      Nhiều
+    </div>`));
+  scroll.appendChild(card);
+
+  scroll.appendChild(buildTimeline());
+
+  screen.appendChild(scroll);
+  return screen;
+}
+
+function frame(theme, label, swatch, time) {
+  const wrap = el(`<div class="frame-wrap"></div>`);
+  wrap.appendChild(el(`<div class="frame-label"><span class="swatch" style="background:${swatch}"></span>${label}</div>`));
+  const phone = el(`<div class="phone"></div>`);
+  phone.appendChild(buildScreen(theme, time));
+  wrap.appendChild(phone);
+  return wrap;
+}
+const frames = document.getElementById("frames");
+frames.appendChild(frame("day", "Study Day", "#FAFAF8", "21:58"));
+frames.appendChild(frame("night", "Study Night", "#1A1715", "21:58"));
+</script>
+</body>
+</html>
