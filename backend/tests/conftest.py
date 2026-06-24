@@ -15,6 +15,7 @@ from app.db.session import get_db
 import app.models.user  # noqa: F401
 import app.models.note  # noqa: F401
 import app.models.quiz  # noqa: F401
+import app.models.attachment  # noqa: F401
 from app.main import app as fastapi_app
 
 TEST_DB_URL = os.getenv("TEST_DATABASE_URL", settings.database_url + "_test")
