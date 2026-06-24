@@ -6,5 +6,6 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    allowedHosts: ["studymap.ngố.vn", "studymap.xn--ng-k9s.vn"],
   },
 });
