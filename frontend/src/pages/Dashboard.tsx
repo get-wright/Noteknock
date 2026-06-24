@@ -450,6 +450,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [tagChips, setTagChips] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedRecent, setHasLoadedRecent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [continueNote, setContinueNote] = useState<Note | null>(null);
   const [continueProgress, setContinueProgress] =
@@ -511,6 +512,7 @@ export default function Dashboard() {
       setContinueNote(null);
       setContinueProgress(null);
     } finally {
+      setHasLoadedRecent(true);
       setLoading(false);
     }
   }, [enrich]);
@@ -568,8 +570,9 @@ export default function Dashboard() {
 
   const displayList = results !== null ? results : recent;
   const searchActive = results !== null;
+  const showInitialLoading = loading && !hasLoadedRecent && !searchActive;
   const showFullEmpty =
-    !loading && !error && recent.length === 0 && !searchActive;
+    hasLoadedRecent && !error && recent.length === 0 && !searchActive;
   const showNoMatch =
     !loading && searchActive && displayList.length === 0;
 
@@ -608,7 +611,21 @@ export default function Dashboard() {
       }}
     >
       <div style={{ maxWidth: 1080, margin: "0 auto", width: "100%" }}>
-        {showFullEmpty ? (
+        {showInitialLoading ? (
+          <section
+            className="sm-fade"
+            style={{
+              minHeight: "60vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "var(--muted)",
+              fontSize: ".95rem",
+            }}
+          >
+            Đang tải…
+          </section>
+        ) : showFullEmpty ? (
           <section className="sm-fade" style={{ display: "flex", flexDirection: "column", minHeight: "60vh" }}>
             <header
               style={{
@@ -1011,7 +1028,7 @@ export default function Dashboard() {
                   ) : null}
                 </div>
 
-                {loading ? (
+                {loading && searchActive ? (
                   <p style={{ color: "var(--muted)", fontSize: ".92rem" }}>
                     Đang tải…
                   </p>
