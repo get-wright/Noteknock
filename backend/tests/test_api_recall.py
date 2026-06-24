@@ -18,6 +18,25 @@ async def _create_recall_item(client, token: str, title: str, content: str):
     )
 
 
+async def _create_note_with_content(
+    client,
+    token: str,
+    title: str = "RecallAI",
+    text: str = "Quán tính giữ vật chuyển động.",
+) -> None:
+    resp = await client.post(
+        "/api/notes",
+        json={
+            "title": title,
+            "content": [
+                {"type": "paragraph", "content": [{"type": "text", "text": text}]}
+            ],
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 200
+
+
 @pytest.mark.asyncio
 async def test_recall_crud_happy_path_returns_camel_case_and_manual_source(client, auth_token):
     await _create_note(client, auth_token)
@@ -227,3 +246,157 @@ async def test_recall_auth_required(client):
     assert post_resp.status_code == 401
     assert patch_resp.status_code == 401
     assert delete_resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_recall_generate_happy_path_appends_ai_after_manual(
+    client, auth_token, monkeypatch
+):
+    await _create_note_with_content(client, auth_token, "RecallAI")
+    manual = await _create_recall_item(client, auth_token, "RecallAI", "Manual first")
+
+    async def fake_call_llm(prompt: str, system: str = "") -> str:
+        assert "Quán tính giữ vật chuyển động." in prompt
+        assert "Extract 3-5 key points" in prompt
+        assert "Vietnamese" in system or "Việt" in system
+        return '["Nhớ khái niệm quán tính", "Liên hệ định luật I Newton"]'
+
+    monkeypatch.setattr("app.api.recall.call_llm", fake_call_llm)
+
+    resp = await client.post(
+        "/api/notes/RecallAI/recall/generate",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+
+    assert resp.status_code == 200
+    items = resp.json()
+    assert [item["content"] for item in items] == [
+        "Manual first",
+        "Nhớ khái niệm quán tính",
+        "Liên hệ định luật I Newton",
+    ]
+    assert [item["source"] for item in items] == ["manual", "ai", "ai"]
+    assert [item["position"] for item in items] == [0, 1, 2]
+    assert items[0]["id"] == manual.json()["id"]
+
+
+@pytest.mark.asyncio
+async def test_recall_generate_replaces_prior_ai_preserving_manual(
+    client, auth_token, monkeypatch
+):
+    await _create_note_with_content(client, auth_token, "ReplaceAI")
+    manual = await _create_recall_item(client, auth_token, "ReplaceAI", "Manual stable")
+
+    async def first_call_llm(prompt: str, system: str = "") -> str:
+        return '["Old AI"]'
+
+    monkeypatch.setattr("app.api.recall.call_llm", first_call_llm)
+    first = await client.post(
+        "/api/notes/ReplaceAI/recall/generate",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    assert first.status_code == 200
+    old_ai_id = first.json()[1]["id"]
+
+    async def second_call_llm(prompt: str, system: str = "") -> str:
+        return "```json\n[\"New AI 1\", \"New AI 2\"]\n```"
+
+    monkeypatch.setattr("app.api.recall.call_llm", second_call_llm)
+    second = await client.post(
+        "/api/notes/ReplaceAI/recall/generate",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+
+    assert second.status_code == 200
+    items = second.json()
+    assert [item["content"] for item in items] == [
+        "Manual stable",
+        "New AI 1",
+        "New AI 2",
+    ]
+    assert items[0]["id"] == manual.json()["id"]
+    assert old_ai_id not in {item["id"] for item in items}
+
+
+@pytest.mark.asyncio
+async def test_recall_generate_missing_note_404(client, auth_token, monkeypatch):
+    async def fake_call_llm(prompt: str, system: str = "") -> str:
+        raise AssertionError("LLM should not be called for missing notes")
+
+    monkeypatch.setattr("app.api.recall.call_llm", fake_call_llm)
+
+    resp = await client.post(
+        "/api/notes/Missing/recall/generate",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("llm_response", ["not json", "[]", '["", 42]'])
+async def test_recall_generate_invalid_llm_response_502(
+    client, auth_token, monkeypatch, llm_response
+):
+    await _create_note_with_content(client, auth_token, "BadAI")
+
+    async def fake_call_llm(prompt: str, system: str = "") -> str:
+        return llm_response
+
+    monkeypatch.setattr("app.api.recall.call_llm", fake_call_llm)
+
+    resp = await client.post(
+        "/api/notes/BadAI/recall/generate",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+
+    assert resp.status_code == 502
+
+
+@pytest.mark.asyncio
+async def test_recall_generate_llm_error_502(client, auth_token, monkeypatch):
+    await _create_note_with_content(client, auth_token, "LLMError")
+
+    async def fake_call_llm(prompt: str, system: str = "") -> str:
+        raise RuntimeError("upstream unavailable")
+
+    monkeypatch.setattr("app.api.recall.call_llm", fake_call_llm)
+
+    resp = await client.post(
+        "/api/notes/LLMError/recall/generate",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+
+    assert resp.status_code == 502
+
+
+@pytest.mark.asyncio
+async def test_recall_generate_cross_user_isolation_and_auth(
+    client, auth_token, monkeypatch
+):
+    await _create_note_with_content(client, auth_token, "PrivateAI")
+
+    async def fake_call_llm(prompt: str, system: str = "") -> str:
+        return '["Private point"]'
+
+    monkeypatch.setattr("app.api.recall.call_llm", fake_call_llm)
+
+    unauthorized = await client.post("/api/notes/PrivateAI/recall/generate")
+    assert unauthorized.status_code == 401
+
+    resp_b = await client.post(
+        "/api/register",
+        json={"name": "B", "email": "recall-ai-b@test.com", "password": "secret123"},
+    )
+    token_b = resp_b.json()["access_token"]
+    isolated = await client.post(
+        "/api/notes/PrivateAI/recall/generate",
+        headers={"Authorization": f"Bearer {token_b}"},
+    )
+    assert isolated.status_code == 404
+
+    owner = await client.post(
+        "/api/notes/PrivateAI/recall/generate",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    assert owner.status_code == 200

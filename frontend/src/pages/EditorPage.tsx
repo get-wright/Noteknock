@@ -6,6 +6,7 @@ import { getNote, type Note } from "../api/notes";
 import {
   createRecallItem,
   deleteRecallItem,
+  generateRecall,
   getRecall,
   updateRecallItem,
   type RecallItem,
@@ -102,6 +103,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
   const [recallItems, setRecallItems] = useState<RecallItem[]>([]);
   const [newRecallContent, setNewRecallContent] = useState("");
   const [isCreatingRecall, setIsCreatingRecall] = useState(false);
+  const [isGeneratingRecall, setIsGeneratingRecall] = useState(false);
   const [isReorderingRecall, setIsReorderingRecall] = useState(false);
   const [editorEpoch, setEditorEpoch] = useState(0);
   const [editorDocument, setEditorDocument] = useState<unknown[]>(() =>
@@ -112,6 +114,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recallEditOriginalsRef = useRef<Record<string, string>>({});
   const isCreatingRecallRef = useRef(false);
+  const isGeneratingRecallRef = useRef(false);
   const isReorderingRecallRef = useRef(false);
 
   useEffect(() => {
@@ -274,6 +277,24 @@ export default function EditorPage({ mode }: EditorPageProps) {
     } finally {
       isCreatingRecallRef.current = false;
       setIsCreatingRecall(false);
+    }
+  };
+
+  const handleGenerateRecall = async () => {
+    if (!savedTitle || isGeneratingRecallRef.current) return;
+    isGeneratingRecallRef.current = true;
+    setIsGeneratingRecall(true);
+    try {
+      const items = await generateRecall(savedTitle);
+      setRecallItems(sortRecallItems(items));
+      setRecallError(null);
+    } catch (e) {
+      setRecallError(
+        e instanceof Error ? e.message : "Không tạo được điểm cần nhớ",
+      );
+    } finally {
+      isGeneratingRecallRef.current = false;
+      setIsGeneratingRecall(false);
     }
   };
 
@@ -582,18 +603,51 @@ export default function EditorPage({ mode }: EditorPageProps) {
             borderTop: "1px solid var(--border)",
           }}
         >
-          <h3
+          <div
             style={{
-              fontSize: ".78rem",
-              fontWeight: 700,
-              letterSpacing: ".06em",
-              textTransform: "uppercase",
-              color: "var(--muted)",
-              margin: "0 0 12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              marginBottom: 12,
             }}
           >
-            Cần nhớ
-          </h3>
+            <h3
+              style={{
+                fontSize: ".78rem",
+                fontWeight: 700,
+                letterSpacing: ".06em",
+                textTransform: "uppercase",
+                color: "var(--muted)",
+                margin: 0,
+              }}
+            >
+              Cần nhớ
+            </h3>
+            {savedTitle ? (
+              <button
+                type="button"
+                onClick={() => void handleGenerateRecall()}
+                disabled={isGeneratingRecall}
+                style={{
+                  height: 32,
+                  padding: "0 14px",
+                  borderRadius: 99,
+                  border: "1px solid var(--accent)",
+                  background: "transparent",
+                  color: "var(--accent)",
+                  fontFamily: "var(--body)",
+                  fontSize: ".82rem",
+                  fontWeight: 700,
+                  cursor: isGeneratingRecall ? "default" : "pointer",
+                  opacity: isGeneratingRecall ? 0.62 : 1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {isGeneratingRecall ? "Đang tạo…" : "Tạo bằng AI"}
+              </button>
+            ) : null}
+          </div>
           {savedTitle ? (
             <>
               {recallItems.length ? (

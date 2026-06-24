@@ -27,6 +27,12 @@ export function getRecall(title: string): Promise<RecallItem[]> {
   return apiRequest<RecallItem[]>(recallPath(title));
 }
 
+export function generateRecall(title: string): Promise<RecallItem[]> {
+  return apiRequest<RecallItem[]>(`${recallPath(title)}/generate`, {
+    method: "POST",
+  });
+}
+
 export function createRecallItem(
   title: string,
   data: RecallItemCreateInput,
