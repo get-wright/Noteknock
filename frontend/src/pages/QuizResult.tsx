@@ -659,8 +659,7 @@ export default function QuizResultPage() {
           </div>
           <button
             type="button"
-            title="Sắp có trong màn Ôn tập"
-            onClick={() => navigate("/app")}
+            onClick={() => navigate("/app/review")}
             style={{
               width: "100%",
               height: 52,

@@ -10,6 +10,7 @@ import EditorPage from "./pages/EditorPage";
 import Study from "./pages/Study";
 import QuizPage from "./pages/Quiz";
 import QuizResultPage from "./pages/QuizResult";
+import ReviewPage from "./pages/Review";
 
 export default function App() {
   useTheme();
@@ -65,6 +66,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Study />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/review"
+            element={
+              <ProtectedRoute>
+                <ReviewPage />
               </ProtectedRoute>
             }
           />
