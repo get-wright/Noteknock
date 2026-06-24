@@ -21,7 +21,7 @@ def parse_search(term: str) -> dict:
 
     text = rest
     text = re.sub(r"\bAND\b", " ", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bNOT\b", "-", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bNOT\b\s*", "-", text, flags=re.IGNORECASE)
     text = re.sub(r"\btitle:\s*", "", text, flags=re.IGNORECASE)
     text = re.sub(r"\bcontent:\s*", "", text, flags=re.IGNORECASE)
     text = text.strip()

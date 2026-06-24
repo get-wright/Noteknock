@@ -1,0 +1,16 @@
+/* Peeky — Motion tokens. Gentle, springy, never snappy or corporate.
+   Things ease in softly and settle with a tiny bounce. No harsh linear moves. */
+
+:root {
+  --ease-soft:   cubic-bezier(0.22, 0.61, 0.36, 1);   /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);   /* @kind other */
+  --ease-inout:  cubic-bezier(0.65, 0, 0.35, 1);      /* @kind other */
+  --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1);   /* @kind other */
+
+  --dur-fast:   140ms;  /* @kind other */
+  --dur-base:   220ms;  /* @kind other */
+  --dur-slow:   360ms;  /* @kind other */
+  --dur-slower: 560ms;  /* @kind other */
+  --duration-fast: 140ms;  /* @kind other */
+  --duration-base: 220ms;  /* @kind other */
+}

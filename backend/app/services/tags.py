@@ -2,7 +2,7 @@ import re
 
 from app.services.content import blocks_to_text
 
-_TAG_RE = re.compile(r"(?:(?<=^#)|(?<=\s#))[\w-]+(?=\s|$)")
+_TAG_RE = re.compile(r"(?:(?<=^#)|(?<=[\s(\[]#))([\w-]+)(?=[^\w-]|$)")
 
 
 def extract_tags(blocks: list) -> list[str]:
@@ -10,7 +10,7 @@ def extract_tags(blocks: list) -> list[str]:
     seen: set[str] = set()
     tags: list[str] = []
     for m in _TAG_RE.finditer(text):
-        tag = m.group(0).lower()
+        tag = m.group(1).lower()
         if tag not in seen:
             seen.add(tag)
             tags.append(tag)

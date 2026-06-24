@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMap — Đăng nhập</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --wrong: #C2705A; --font: "Geist", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace; }
+
+  body {
+    font-family: var(--font);
+    background: radial-gradient(120% 80% at 50% 0%, #efedea 0%, #e4e2df 60%, #dcd9d5 100%);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 56px 24px 80px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  .page-head { text-align: center; margin-bottom: 44px; }
+  .page-head h1 { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; color: #44403c; }
+  .page-head p { font-family: var(--mono); font-size: 0.74rem; color: #8a847e; margin-top: 6px; letter-spacing: 0.02em; }
+
+  .frames { display: flex; gap: 64px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .frame-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .frame-label { display: flex; align-items: center; gap: 9px; font-size: 0.8rem; font-weight: 500; color: #57534e; letter-spacing: -0.01em; }
+  .frame-label .swatch { width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.12); }
+
+  .phone {
+    width: 390px; height: 844px; border-radius: 46px; padding: 5px; background: #0c0a09;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 30px 70px -20px rgba(28,25,23,0.45); position: relative;
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 41px; overflow: hidden;
+    background: var(--canvas); color: var(--ink); display: flex; flex-direction: column;
+  }
+  .screen.day {
+    --canvas: #FAFAF8;
+    --canvas-tint: radial-gradient(95% 50% at 100% 0%, rgba(46,125,107,0.10), transparent 60%);
+    --surface: #FFFFFF; --ink: #1C1917; --muted: #78716C; --faint: #A8A29E;
+    --border: rgba(120,113,108,0.20);
+    --accent: #2E7D6B; --accent-soft: rgba(46,125,107,0.14); --accent-tint: rgba(46,125,107,0.06);
+    --wrong: #C2705A; --wrong-soft: rgba(194,112,90,0.16);
+    --hover: rgba(120,113,108,0.06);
+    --cta-shadow: 0 10px 26px -8px rgba(46,125,107,0.5);
+  }
+  .screen.night {
+    --canvas: #1A1715;
+    --canvas-tint: radial-gradient(95% 50% at 100% 0%, rgba(70,160,136,0.14), transparent 60%);
+    --surface: #24201D; --ink: #EDEAE6; --muted: #A8A29E; --faint: #6f6a64;
+    --border: rgba(237,234,230,0.14);
+    --accent: #46A088; --accent-soft: rgba(70,160,136,0.20); --accent-tint: rgba(70,160,136,0.10);
+    --wrong: #C2705A; --wrong-soft: rgba(194,112,90,0.22);
+    --hover: rgba(237,234,230,0.06);
+    --cta-shadow: 0 10px 28px -8px rgba(70,160,136,0.45);
+  }
+  .screen::before { content: ""; position: absolute; inset: 0; background: var(--canvas-tint); pointer-events: none; z-index: 0; }
+
+  .statusbar {
+    position: relative; z-index: 5; flex: 0 0 auto; height: 50px; padding: 0 30px 0 34px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.82rem; font-weight: 500; color: var(--ink);
+  }
+  .statusbar .si { display: flex; align-items: center; gap: 6px; }
+  .statusbar svg { display: block; }
+
+  .login { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; padding: 34px 28px 30px; scrollbar-width: none; }
+  .login::-webkit-scrollbar { display: none; }
+
+  /* Brand */
+  .brand { margin-top: 22px; margin-bottom: 40px; }
+  .logo { display: inline-flex; align-items: center; gap: 11px; margin-bottom: 22px; }
+  .logo .mark { width: 38px; height: 38px; border-radius: 11px; background: var(--accent); display: flex; align-items: center; justify-content: center; box-shadow: var(--cta-shadow); }
+  .logo .mark span { color: #fff; font-weight: 700; font-size: 1.25rem; letter-spacing: -0.03em; }
+  .wordmark { font-size: 2.55rem; font-weight: 700; letter-spacing: -0.035em; line-height: 1; color: var(--ink); }
+  .wordmark em { font-style: normal; color: var(--accent); }
+  .tagline { font-size: 1.06rem; line-height: 1.5; color: var(--muted); max-width: 280px; text-wrap: pretty; }
+
+  /* Form */
+  .form { display: flex; flex-direction: column; }
+  .field { margin-bottom: 17px; }
+  .field label { display: block; font-size: 0.86rem; font-weight: 500; color: var(--ink); margin-bottom: 8px; }
+  .inwrap { position: relative; }
+  .field input {
+    width: 100%; height: 52px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);
+    padding: 0 15px; font-family: var(--font); font-size: 1rem; color: var(--ink);
+    transition: border-color .16s ease, box-shadow .16s ease;
+  }
+  .field input::placeholder { color: var(--faint); }
+  .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .field.pw input { padding-right: 56px; }
+  .eye { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: none; background: none; cursor: pointer; color: var(--muted); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .eye:hover { background: var(--hover); }
+  .eye svg { width: 20px; height: 20px; }
+  .field.error input { border-color: var(--wrong); box-shadow: 0 0 0 3px var(--wrong-soft); }
+  .field .err { font-size: 0.82rem; color: var(--wrong); margin-top: 8px; display: none; }
+  .field.error .err { display: block; }
+
+  .btn { width: 100%; height: 54px; border-radius: 15px; font-family: var(--font); font-weight: 600; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: transform .12s ease, background .15s ease; }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary { border: none; background: var(--accent); color: #fff; box-shadow: var(--cta-shadow); margin-top: 6px; }
+
+  .divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--faint); font-size: 0.82rem; }
+  .divider::before, .divider::after { content: ""; flex: 1 1 auto; height: 1px; background: var(--border); }
+
+  .btn-google { border: 1px solid var(--border); background: var(--surface); color: var(--ink); }
+  .btn-google:hover { background: var(--hover); }
+  .btn-google .g { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.86rem; color: var(--muted); }
+
+  .foot { margin-top: auto; padding-top: 28px; font-size: 0.94rem; color: var(--muted); }
+  .foot a { color: var(--accent); font-weight: 600; text-decoration: none; cursor: pointer; }
+
+  @media (prefers-reduced-motion: reduce) { .field input, .btn { transition: none; } }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>StudyMap — Đăng nhập</h1>
+    <p>390 × 844</p>
+  </div>
+  <div class="frames" id="frames"></div>
+
+<script>
+const I = {
+  eyeOn:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16"/><path d="M9.6 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.8 3.4"/><path d="M6 7.4A15.7 15.7 0 0 0 2.5 12S6 18.5 12 18.5a9.3 9.3 0 0 0 3.2-.55"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+};
+function statusGlyphs() {
+  return `<span class="si">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4.2A11 11 0 0 1 15 4.2"/><path d="M4.4 6.8a7.2 7.2 0 0 1 8.2 0"/><path d="M6.9 9.3a3.4 3.4 0 0 1 3.2 0"/></svg>
+    <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1.5" width="21" height="10" rx="3" stroke="currentColor" stroke-width="1.2" opacity="0.45"/><rect x="3" y="3.5" width="15" height="6" rx="1.5" fill="currentColor"/><rect x="23.5" y="4.5" width="1.8" height="4" rx="0.9" fill="currentColor" opacity="0.45"/></svg>
+  </span>`;
+}
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+function buildLogin(theme, time, preset) {
+  const screen = el(`<div class="screen ${theme}"></div>`);
+  screen.appendChild(el(`<div class="statusbar"><span style="font-family:var(--mono)">${time}</span>${statusGlyphs()}</div>`));
+
+  const login = el(`
+    <div class="login">
+      <div class="brand">
+        <div class="logo"><span class="mark"><span>S</span></span></div>
+        <div class="wordmark">Study<em>Map</em></div>
+        <p class="tagline">Sắp xếp kiến thức và ôn tập nhẹ nhàng trước mỗi kỳ thi.</p>
+      </div>
+
+      <form class="form" novalidate>
+        <div class="field">
+          <label for="em_${theme}">Email</label>
+          <div class="inwrap"><input id="em_${theme}" type="email" inputmode="email" placeholder="ban@email.com" autocomplete="off" /></div>
+          <div class="err">Email không hợp lệ</div>
+        </div>
+
+        <div class="field pw">
+          <label for="pw_${theme}">Mật khẩu</label>
+          <div class="inwrap">
+            <input id="pw_${theme}" type="password" placeholder="••••••••" autocomplete="off" />
+            <button type="button" class="eye" aria-label="Hiện mật khẩu">${I.eyeOff}</button>
+          </div>
+          <div class="err">Mật khẩu cần ít nhất 8 ký tự</div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+
+        <div class="divider">hoặc</div>
+
+        <button type="button" class="btn btn-google" onclick="location.href='StudyMap%20Dashboard.html'"><span class="g">G</span>Tiếp tục với Google</button>
+      </form>
+
+      <p class="foot">Chưa có tài khoản? <a>Đăng ký</a></p>
+    </div>`);
+  screen.appendChild(login);
+
+  // wordmark uses two-tone via <em>; tagline set above
+  const form = login.querySelector(".form");
+  const emField = login.querySelector(".field:not(.pw)");
+  const pwField = login.querySelector(".field.pw");
+  const emInput = emField.querySelector("input");
+  const pwInput = pwField.querySelector("input");
+  const emErr = emField.querySelector(".err");
+
+  // password show/hide
+  const eye = pwField.querySelector(".eye");
+  eye.addEventListener("click", () => {
+    const show = pwInput.type === "password";
+    pwInput.type = show ? "text" : "password";
+    eye.innerHTML = show ? I.eyeOn : I.eyeOff;
+  });
+
+  // clear error on input
+  emInput.addEventListener("input", () => emField.classList.remove("error"));
+  pwInput.addEventListener("input", () => pwField.classList.remove("error"));
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    let ok = true;
+    const v = emInput.value.trim();
+    if (!v) { emErr.textContent = "Vui lòng nhập email"; emField.classList.add("error"); ok = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { emErr.textContent = "Email không hợp lệ"; emField.classList.add("error"); ok = false; }
+    else emField.classList.remove("error");
+    if (pwInput.value.length < 8) { pwField.classList.add("error"); ok = false; }
+    else pwField.classList.remove("error");
+    if (ok) location.href = "StudyMap%20Dashboard.html";
+  });
+
+  // preset a validation-error state to showcase Gentle-Wrong styling
+  if (preset === "error") {
+    emInput.value = "thuha@email.com";
+    pwInput.value = "12345";
+    pwField.classList.add("error");
+  }
+
+  return screen;
+}
+
+function frame(theme, label, swatch, time, preset) {
+  const wrap = el(`<div class="frame-wrap"></div>`);
+  wrap.appendChild(el(`<div class="frame-label"><span class="swatch" style="background:${swatch}"></span>${label}</div>`));
+  const phone = el(`<div class="phone"></div>`);
+  phone.appendChild(buildLogin(theme, time, preset));
+  wrap.appendChild(phone);
+  return wrap;
+}
+const frames = document.getElementById("frames");
+frames.appendChild(frame("day", "Study Day", "#FAFAF8", "9:41"));
+frames.appendChild(frame("night", "Study Night", "#1A1715", "9:41", "error"));
+</script>
+</body>
+</html>

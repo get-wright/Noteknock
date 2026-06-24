@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudyMap — Ôn tập</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --clay: #B5654A; --ochre: #B08A3E; --slate: #5A7398; --plum: #8A5F77;
+    --font: "Geist", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+  }
+  body {
+    font-family: var(--font);
+    background: radial-gradient(120% 80% at 50% 0%, #efedea 0%, #e4e2df 60%, #dcd9d5 100%);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    padding: 56px 24px 80px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  .page-head { text-align: center; margin-bottom: 44px; }
+  .page-head h1 { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; color: #44403c; }
+  .page-head p { font-family: var(--mono); font-size: 0.74rem; color: #8a847e; margin-top: 6px; letter-spacing: 0.02em; }
+
+  .frames { display: flex; gap: 64px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+  .frame-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .frame-label { display: flex; align-items: center; gap: 9px; font-size: 0.8rem; font-weight: 500; color: #57534e; letter-spacing: -0.01em; }
+  .frame-label .swatch { width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.12); }
+
+  .phone {
+    width: 390px; height: 844px; border-radius: 46px; padding: 5px; background: #0c0a09;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 30px 70px -20px rgba(28,25,23,0.45); position: relative;
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 41px; overflow: hidden;
+    background: var(--canvas); color: var(--ink); display: flex; flex-direction: column;
+  }
+  .screen.day {
+    --canvas: #FAFAF8;
+    --canvas-tint: radial-gradient(140% 60% at 80% -10%, rgba(46,125,107,0.05), transparent 55%);
+    --surface: #FFFFFF; --ink: #1C1917; --muted: #78716C; --faint: #A8A29E;
+    --border: rgba(120,113,108,0.18);
+    --accent: #2E7D6B; --accent-soft: rgba(46,125,107,0.10); --accent-tint: rgba(46,125,107,0.06);
+    --shadow: 0 6px 20px rgba(28,25,23,0.06); --shadow-lift: 0 10px 28px rgba(28,25,23,0.10);
+    --bar: rgba(255,255,255,0.82); --bar-shadow: 0 -6px 24px rgba(28,25,23,0.07);
+    --track: rgba(120,113,108,0.16); --cta-shadow: 0 10px 24px -8px rgba(46,125,107,0.45);
+  }
+  .screen.night {
+    --canvas: #1A1715;
+    --canvas-tint: radial-gradient(140% 60% at 80% -10%, rgba(70,160,136,0.08), transparent 55%);
+    --surface: #24201D; --ink: #EDEAE6; --muted: #A8A29E; --faint: #6f6a64;
+    --border: rgba(237,234,230,0.12);
+    --accent: #46A088; --accent-soft: rgba(70,160,136,0.16); --accent-tint: rgba(70,160,136,0.08);
+    --shadow: 0 6px 20px rgba(0,0,0,0.35); --shadow-lift: 0 12px 30px rgba(0,0,0,0.5);
+    --bar: rgba(36,32,29,0.82); --bar-shadow: 0 -6px 26px rgba(0,0,0,0.42);
+    --track: rgba(237,234,230,0.14); --cta-shadow: 0 10px 26px -8px rgba(70,160,136,0.45);
+  }
+  .screen::before { content: ""; position: absolute; inset: 0; background: var(--canvas-tint); pointer-events: none; z-index: 0; }
+
+  .statusbar {
+    position: relative; z-index: 3; flex: 0 0 auto; height: 50px; padding: 0 30px 0 34px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 0.82rem; font-weight: 500; color: var(--ink);
+  }
+  .statusbar .si { display: flex; align-items: center; gap: 6px; }
+  .statusbar svg { display: block; }
+
+  .scroll { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 4px 20px 120px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* Header */
+  .head { padding: 12px 2px 22px; }
+  .head h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  .head .sub { color: var(--muted); font-size: 0.95rem; margin-top: 6px; line-height: 1.45; }
+
+  /* Hero progress */
+  .hero {
+    background: linear-gradient(180deg, var(--accent-tint), var(--accent-tint)), var(--surface);
+    border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow);
+    padding: 18px 18px 18px; margin-bottom: 28px;
+  }
+  .hero .row { display: flex; align-items: center; gap: 15px; margin-bottom: 16px; }
+  .ring { position: relative; width: 58px; height: 58px; flex: 0 0 auto; }
+  .ring svg { transform: rotate(-90deg); display: block; }
+  .ring .rt { stroke: var(--track); }
+  .ring .rf { stroke: var(--accent); stroke-linecap: round; }
+  .ring .center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 0.82rem; font-weight: 600; color: var(--accent); }
+  .hero .htext .hlbl { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+  .hero .htext .hbig { font-size: 1.12rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; color: var(--ink); }
+  .hero .cta {
+    width: 100%; height: 50px; border: none; cursor: pointer; background: var(--accent); color: #fff;
+    border-radius: 14px; box-shadow: var(--cta-shadow); font-family: var(--font); font-weight: 600; font-size: 0.97rem;
+    display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform .12s ease;
+  }
+  .hero .cta:active { transform: translateY(1px); }
+  .hero .cta svg { width: 17px; height: 17px; }
+
+  @keyframes breathe { 0%,100%{ transform: scale(1); opacity: 1; } 50%{ transform: scale(1.1); opacity: 0.85; } }
+  .pulse { animation: breathe 2.8s ease-in-out infinite; transform-origin: center; }
+
+  /* Section label */
+  .sec-label { display: flex; align-items: center; gap: 9px; margin: 0 2px 13px; }
+  .sec-label h3 { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+  .sec-label .count { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 7px; white-space: nowrap; }
+
+  .rlist { display: flex; flex-direction: column; gap: 12px; margin-bottom: 26px; }
+  .rcard {
+    position: relative; display: flex; align-items: center; gap: 13px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: 14px 15px 14px 18px; box-shadow: var(--shadow); cursor: pointer;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease;
+  }
+  .rcard::before { content: ""; position: absolute; left: 0; top: 13px; bottom: 13px; width: 3px; border-radius: 999px; background: var(--sc); }
+  .rcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+  .rmain { flex: 1 1 auto; min-width: 0; }
+  .rhead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .rhead .subj { display: inline-flex; align-items: center; gap: 6px; font-size: 0.74rem; font-weight: 600; color: var(--sc); }
+  .rhead .subj .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sc); }
+  .rhead .due { font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 6px; letter-spacing: 0.01em; white-space: nowrap; }
+  .rhead .due.soon { color: var(--muted); background: var(--track); }
+  .rtitle { font-size: 1.02rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.3; }
+  .rmeta { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  .rmeta .last { font-size: 0.78rem; color: var(--muted); }
+  .strength { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; flex: 0 0 auto; }
+  .strength .slbl { font-size: 0.72rem; color: var(--faint); }
+  .strength .bars { display: inline-flex; gap: 3px; }
+  .strength .bars i { width: 13px; height: 5px; border-radius: 3px; background: var(--accent); }
+  .strength .bars i.off { background: var(--track); }
+  .rgo { flex: 0 0 auto; color: var(--faint); display: flex; align-items: center; }
+  .rgo svg { width: 21px; height: 21px; }
+  .rcard.upcoming { opacity: 0.62; box-shadow: none; cursor: default; }
+  .rcard.upcoming:hover { transform: none; box-shadow: none; }
+
+  /* Tab bar */
+  .tabbar {
+    position: absolute; z-index: 4; left: 0; right: 0; bottom: 0; height: 94px; padding: 12px 18px 30px;
+    display: grid; grid-template-columns: 1fr 1fr 66px 1fr 1fr; align-items: start;
+    background: var(--bar); backdrop-filter: blur(18px) saturate(1.1); -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    border-top: 1px solid var(--border); box-shadow: var(--bar-shadow);
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; color: #A8A29E; padding-top: 4px; }
+  .tab svg { width: 23px; height: 23px; }
+  .tab span { font-size: 0.68rem; font-weight: 500; white-space: nowrap; }
+  .tab.active { color: var(--accent); }
+  .fab {
+    width: 58px; height: 58px; margin-top: -12px; justify-self: center; border-radius: 19px; border: none; cursor: pointer;
+    background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px -4px var(--accent); transition: transform .12s ease;
+  }
+  .fab:active { transform: translateY(1px) scale(0.97); }
+  .fab svg { width: 26px; height: 26px; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+  .reveal { animation: rise .55s cubic-bezier(.2,.8,.2,1) both; }
+  @media (prefers-reduced-motion: reduce) { .pulse, .reveal { animation: none !important; } .rcard { transition: none; } }
+</style>
+</head>
+<body>
+  <div class="page-head">
+    <h1>StudyMap — Ôn tập</h1>
+    <p>390 × 844</p>
+  </div>
+  <div class="frames" id="frames"></div>
+
+<script>
+const I = {
+  book: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15.5H5.5A1.5 1.5 0 0 0 4 21Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15.5h5.5A1.5 1.5 0 0 1 20 21Z"/></svg>',
+  quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.1-2.5 3.9"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
+  review: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5v4h4"/><path d="M4.7 13a7.5 7.5 0 1 0 1.1-5.6L4 9.5"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
+  profile: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.52.86l10.5-6.5a1 1 0 0 0 0-1.72L9.52 4.64A1 1 0 0 0 8 5.5Z"/></svg>',
+};
+function statusGlyphs() {
+  return `<span class="si">
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2 4.2A11 11 0 0 1 15 4.2"/><path d="M4.4 6.8a7.2 7.2 0 0 1 8.2 0"/><path d="M6.9 9.3a3.4 3.4 0 0 1 3.2 0"/></svg>
+    <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x="1" y="1.5" width="21" height="10" rx="3" stroke="currentColor" stroke-width="1.2" opacity="0.45"/><rect x="3" y="3.5" width="15" height="6" rx="1.5" fill="currentColor"/><rect x="23.5" y="4.5" width="1.8" height="4" rx="0.9" fill="currentColor" opacity="0.45"/></svg>
+  </span>`;
+}
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+
+const SUBJECTS = { toan:{label:"Toán",c:"#B5654A"}, ly:{label:"Lý",c:"#B08A3E"}, anh:{label:"Tiếng Anh",c:"#5A7398"}, hoa:{label:"Hóa",c:"#8A5F77"} };
+
+const DUE = [
+  { subject:"toan", title:"Tích phân từng phần", last:"Ôn lần cuối 3 ngày trước", strength:2 },
+  { subject:"ly",   title:"Định luật Kirchhoff", last:"Ôn lần cuối 5 ngày trước", strength:1 },
+  { subject:"hoa",  title:"Cấu hình Electron",   last:"Ôn lần cuối 1 tuần trước", strength:1 },
+];
+const SOON = [
+  { subject:"anh",  title:"Thì hiện tại hoàn thành", when:"Sau 2 ngày", strength:3 },
+  { subject:"toan", title:"Phương trình lượng giác", when:"Sau 5 ngày", strength:3 },
+];
+
+function ringSVG(done, total) {
+  const r = 24, c = 2 * Math.PI * r, pct = done / total;
+  return `<svg width="58" height="58" viewBox="0 0 58 58">
+    <circle class="rt" cx="29" cy="29" r="${r}" fill="none" stroke-width="5"/>
+    <circle class="rf" cx="29" cy="29" r="${r}" fill="none" stroke-width="5" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct)}"/>
+  </svg>`;
+}
+function bars(strength) {
+  let s = "";
+  for (let i = 0; i < 3; i++) s += `<i class="${i < strength ? "" : "off"}"></i>`;
+  return s;
+}
+function reviewCard(item, upcoming) {
+  const s = SUBJECTS[item.subject];
+  return el(`
+    <article class="rcard${upcoming ? " upcoming" : ""}" style="--sc:${s.c}"${upcoming ? "" : ` onclick="location.href='StudyMap%20Study%20View.html'"`}>
+      <div class="rmain">
+        <div class="rhead">
+          <span class="subj"><i class="dot"></i>${s.label}</span>
+          ${upcoming
+            ? `<span class="due soon">${item.when}</span>`
+            : `<span class="strength"><span class="slbl">Độ nhớ</span><span class="bars">${bars(item.strength)}</span></span>`}
+        </div>
+        <h4 class="rtitle">${item.title}</h4>
+        <div class="rmeta">
+          <span class="last">${upcoming ? "Lặp lại theo lịch ôn tập" : item.last}</span>
+        </div>
+      </div>
+      ${upcoming ? "" : `<span class="rgo">${I.chev}</span>`}
+    </article>`);
+}
+
+function buildScreen(theme, time) {
+  const screen = el(`<div class="screen ${theme}"></div>`);
+  screen.appendChild(el(`<div class="statusbar"><span style="font-family:var(--mono)">${time}</span>${statusGlyphs()}</div>`));
+
+  const scroll = el(`<div class="scroll"></div>`);
+
+  scroll.appendChild(el(`
+    <header class="head">
+      <h2>Ôn tập</h2>
+      <p class="sub">Ôn lại đúng lúc để ghi nhớ lâu hơn.</p>
+    </header>`));
+
+  scroll.appendChild(el(`
+    <section class="hero reveal">
+      <div class="row">
+        <div class="ring pulse">${ringSVG(1,4)}<span class="center">1/4</span></div>
+        <div class="htext">
+          <div class="hlbl">Hôm nay</div>
+          <div class="hbig">Còn 3 bài đến hạn ôn tập</div>
+        </div>
+      </div>
+      <button class="cta" onclick="location.href='StudyMap%20Study%20View.html'">${I.play} Bắt đầu ôn tập</button>
+    </section>`));
+
+  scroll.appendChild(el(`<div class="sec-label"><h3>Đến hạn hôm nay</h3><span class="count">3 bài</span></div>`));
+  const due = el(`<section class="rlist"></section>`);
+  DUE.forEach((d, i) => { const c = reviewCard(d, false); c.classList.add("reveal"); c.style.animationDelay = (90 + i*70) + "ms"; due.appendChild(c); });
+  scroll.appendChild(due);
+
+  scroll.appendChild(el(`<div class="sec-label"><h3>Sắp tới</h3></div>`));
+  const soon = el(`<section class="rlist"></section>`);
+  SOON.forEach((d) => soon.appendChild(reviewCard(d, true)));
+  scroll.appendChild(soon);
+
+  screen.appendChild(scroll);
+
+  screen.appendChild(el(`
+    <nav class="tabbar">
+      <div class="tab" onclick="location.href='StudyMap%20Dashboard.html'">${I.book}<span>Bài học</span></div>
+      <div class="tab" onclick="location.href='StudyMap%20Quiz.html'">${I.quiz}<span>Quiz</span></div>
+      <button class="fab" aria-label="Thêm bài học" onclick="location.href='StudyMap%20Editor.html'">${I.plus}</button>
+      <div class="tab active">${I.review}<span>Ôn tập</span></div>
+      <div class="tab" onclick="location.href='StudyMap%20Profile.html'">${I.profile}<span>Hồ sơ</span></div>
+    </nav>`));
+
+  return screen;
+}
+
+function frame(theme, label, swatch, time) {
+  const wrap = el(`<div class="frame-wrap"></div>`);
+  wrap.appendChild(el(`<div class="frame-label"><span class="swatch" style="background:${swatch}"></span>${label}</div>`));
+  const phone = el(`<div class="phone"></div>`);
+  phone.appendChild(buildScreen(theme, time));
+  wrap.appendChild(phone);
+  return wrap;
+}
+const frames = document.getElementById("frames");
+frames.appendChild(frame("day", "Study Day", "#FAFAF8", "21:48"));
+frames.appendChild(frame("night", "Study Night", "#1A1715", "21:48"));
+</script>
+</body>
+</html>

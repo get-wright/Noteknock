@@ -1,0 +1,116 @@
+/* Peeky — Color tokens
+   Warm, intimate, authentic. No cold hues, no neon, no default dark mode.
+   Cream paper, deep-plum ink, a single coral CTA. */
+
+:root {
+  /* ---- Brand base palette ---- */
+  --plum-900: #1F1226;   /* deepest plum — rarely used, max contrast */
+  --plum-800: #2D1B35;   /* PRIMARY — headings, ink, dark surfaces */
+  --plum-700: #432E4D;
+  --plum-600: #5A4566;
+  --plum-500: #75607F;   /* muted plum — secondary text */
+  --plum-300: #A899AE;
+  --plum-200: #CFC5D2;
+
+  --coral-700: #D94F4F;  /* coral pressed */
+  --coral-600: #E85555;  /* coral hover */
+  --coral-500: #FF6B6B;  /* ACCENT — primary CTA */
+  --coral-300: #FFB3B3;
+  --coral-100: #FFE3E1;  /* coral wash / tint surface */
+
+  /* ---- Warm neutrals (the paper) ---- */
+  --cream:     #FDFAF6;  /* app background */
+  --surface:   #F5F0EB;  /* raised surface / sheets */
+  --surface-2: #ECE4DA;  /* sunken / track */
+  --paper:     #FFFFFF;  /* photo cards, top sheets */
+  --line:      #E7DED3;  /* hairline borders */
+  --line-soft: #F0E9E0;
+
+  /* ---- Warm semantic accents (kept warm, never clinical) ---- */
+  --green-500: #5C9E6E;  /* sent / success */
+  --green-100: #E2F0E4;
+  --amber-500: #E0A04B;  /* warning / pending */
+  --amber-100: #FBEFD9;
+  --rose-500:  #D9534F;  /* error / destructive */
+  --rose-100:  #FBE3E1;
+  --gold-500:  #E8B04B;  /* reactions / love highlight */
+
+  /* ---- Semantic aliases (use these in product) ---- */
+  --bg:               var(--cream);
+  --bg-surface:       var(--surface);
+  --bg-sunken:        var(--surface-2);
+  --bg-card:          var(--paper);
+  --bg-inverse:       var(--plum-800);
+  --bg-coral-wash:    var(--coral-100);
+
+  --text-strong:      var(--plum-800);
+  --text-body:        var(--plum-700);
+  --text-muted:       var(--plum-500);
+  --text-subtle:      var(--plum-300);
+  --text-on-coral:    #FFFFFF;
+  --text-on-dark:     #FBF1EC;
+  --text-inverse:     var(--cream);
+
+  --border:           var(--line);
+  --border-soft:      var(--line-soft);
+  --border-strong:    var(--plum-200);
+
+  --action:           var(--coral-500);
+  --action-hover:     var(--coral-600);
+  --action-press:     var(--coral-700);
+  --action-wash:      var(--coral-100);
+
+  --focus-ring:       rgba(255, 107, 107, 0.45);
+  --overlay-scrim:    rgba(31, 18, 38, 0.55);
+}
+
+/* ---- Extended palette + semantic aliases ----
+   The vocabulary the components, guidelines, and UI kit are authored against.
+   All map onto the base palette above so there is a single source of truth. */
+:root {
+  /* Cream scale (the warm paper, lightest → deepest) */
+  --cream-50:  #FFFEFB;
+  --cream-100: #FDFAF6;   /* = app background */
+  --cream-200: #F5F0EB;   /* = surface */
+  --cream-300: #ECE4DA;   /* = sunken */
+  --cream-400: #E3D9CD;
+
+  /* Plum scale extras */
+  --plum-100: #EDE7EF;
+  --plum-400: #8C7A94;
+
+  /* Coral scale extras */
+  --coral-200: #FFD0CE;
+  --coral-400: #FF8A8A;
+
+  /* Warm accent families (illustration / semantic warmth) */
+  --peach-200: #FBD9C4;
+  --peach-500: #F3A87C;
+  --sun-200:   #FAE6B8;
+  --sun-500:   #E8B04B;
+  --red-100:   #FBE3E1;
+  --red-500:   #D9534F;
+
+  /* Semantic surfaces */
+  --surface-app:    var(--cream-100);
+  --surface-card:   var(--paper);
+  --surface-sunken: var(--cream-300);
+  --surface-tint:   var(--coral-100);
+  --surface-ink:    var(--plum-800);
+
+  /* Semantic text */
+  --text-on-ink: #FBF1EC;
+  --text-faint:  var(--plum-300);
+
+  /* Actions */
+  --action-primary:      var(--coral-500);
+  --action-primary-tint: var(--coral-100);
+  --action-ink:          var(--plum-800);
+
+  /* Borders */
+  --border-hairline: var(--line);
+  --border-focus:    var(--coral-500);
+
+  /* Feedback */
+  --feedback-danger: var(--red-500);
+}

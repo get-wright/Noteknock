@@ -40,7 +40,9 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_db),
 ) -> Token:
-    result = await db.execute(select(User).where(User.email == form_data.username))
+    result = await db.execute(
+        select(User).where(User.email == form_data.username.casefold())
+    )
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(

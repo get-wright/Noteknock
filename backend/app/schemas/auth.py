@@ -23,7 +23,7 @@ class UserCreate(CamelModel):
     def validate_email(cls, v: str) -> str:
         if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v):
             raise ValueError("invalid email")
-        return v
+        return v.casefold()
 
     @field_validator("password")
     @classmethod

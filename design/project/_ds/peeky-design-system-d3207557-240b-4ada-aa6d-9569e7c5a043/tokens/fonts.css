@@ -1,0 +1,6 @@
+/* Peeky webfonts — Fraunces (display) + Inter (body)
+   Loaded from Google Fonts CDN. These are the genuine families, not substitutes.
+   If you'd prefer self-hosted binaries, drop the .woff2 files in assets/fonts/
+   and swap the @import for @font-face rules pointing at them. */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');

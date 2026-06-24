@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --display:'Fraunces','Iowan Old Style',Georgia,serif;
+  --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  --canvas:#FDFAF6; --surface:#F5F0EB; --paper:#FFFFFF;
+  --ink:#2D1B35; --muted:#75607F; --faint:#A899AE;
+  --border:#E7DED3; --border-soft:#F0E9E0;
+  --accent:#FF6B6B; --accent-hover:#E85555; --accent-press:#D94F4F;
+  --accent-soft:#FFE3E1; --accent-tint:rgba(255,107,107,.07);
+  --track:#ECE4DA;
+  --shadow:0 6px 18px rgba(45,27,53,.08); --shadow-lift:0 16px 38px rgba(45,27,53,.13);
+  --coral-glow:0 12px 30px rgba(255,107,107,.32);
+  --bar:rgba(253,250,246,.85);
+  --green:#5C9E6E; --green-soft:rgba(92,158,110,.15);
+  --amber:#C98A2E; --amber-soft:rgba(201,138,46,.16);
+  --rose:#C2607B; --rose-soft:rgba(194,96,123,.15);
+}
+[data-theme="dark"]{
+  --canvas:#1E1322; --surface:#2A1D2F; --paper:#33243A;
+  --ink:#F7EEF0; --muted:#BCA9C2; --faint:#897790;
+  --border:rgba(247,238,240,.13); --border-soft:rgba(247,238,240,.07);
+  --accent:#FF7E7E; --accent-hover:#FF9090; --accent-press:#E85555;
+  --accent-soft:rgba(255,126,126,.20); --accent-tint:rgba(255,126,126,.11);
+  --track:rgba(247,238,240,.10);
+  --shadow:0 6px 20px rgba(0,0,0,.42); --shadow-lift:0 16px 40px rgba(0,0,0,.55);
+  --coral-glow:0 12px 30px rgba(255,107,107,.30);
+  --bar:rgba(30,19,34,.86);
+  --green:#86C497; --green-soft:rgba(134,196,151,.20);
+  --amber:#E2AE5E; --amber-soft:rgba(226,174,94,.20);
+  --rose:#DE89A2; --rose-soft:rgba(222,137,162,.20);
+}
+*,*::before,*::after{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{font-family:var(--body);background:var(--canvas);color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.ic{display:inline-flex;align-items:center;justify-content:center;}
+.ic svg{width:100%;height:100%;display:block;}
+.sm-scroll{scrollbar-width:thin;scrollbar-color:var(--track) transparent;}
+.sm-scroll::-webkit-scrollbar{width:9px;height:9px;}
+.sm-scroll::-webkit-scrollbar-thumb{background:var(--track);border-radius:99px;border:2px solid transparent;background-clip:content-box;}
+.sm-scroll::-webkit-scrollbar-track{background:transparent;}
+.sm-ce:empty::before{content:attr(data-ph);color:var(--faint);}
+.sm-ce:focus{outline:none;}
+.sm-in::placeholder{color:var(--faint);}
+.sm-in:focus{outline:none;}
+.m{font-family:var(--mono);color:var(--accent);font-size:.93em;}
+.mo{font-family:var(--mono);font-size:.96em;}
+.sm-ce p{margin:0 0 1.05em;}
+.sm-ce b{font-weight:600;}
+@keyframes sm-rise{from{transform:translateY(16px);}to{transform:none;}}
+@keyframes sm-breathe{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.82;}}
+@keyframes sm-pop{0%{transform:scale(1);}45%{transform:scale(1.03);}100%{transform:scale(1);}}
+@keyframes sm-halo{0%,100%{transform:scale(1);opacity:.55;}50%{transform:scale(2.1);opacity:.05;}}
+.sm-rise{animation:sm-rise .5s cubic-bezier(.22,.61,.36,1) both;}
+.sm-pulse{animation:sm-breathe 2.8s ease-in-out infinite;transform-origin:center;}
+.sm-fade{animation:sm-rise .45s cubic-bezier(.22,.61,.36,1) both;}
+@media (prefers-reduced-motion:reduce){.sm-rise,.sm-pulse,.sm-fade{animation:none!important;}}
+</style>
+</helmet>
+
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--canvas);color:var(--ink);font-family:var(--body);transition:background .4s ease,color .4s ease;">
+
+  <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:flex;align-items:stretch;">
+      <div style="{{ loginArtStyle }}">
+        <div style="position:relative;z-index:1;max-width:380px;">
+          <span style="display:inline-flex;align-items:center;gap:8px;font-size:.74rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;opacity:.85;margin-bottom:22px;"><span class="ic" style="width:15px;height:15px;">{{ ico.sparkle }}</span>Sổ tay học tập</span>
+          <h2 style="font-family:var(--display);font-weight:600;font-size:2.7rem;line-height:1.1;letter-spacing:-.02em;color:#fff;">Học chậm lại, nhớ lâu hơn.</h2>
+          <p style="color:rgba(255,255,255,.82);font-size:1.05rem;line-height:1.6;margin-top:16px;">Ghi chú, ôn tập theo lịch ghi nhớ và theo dõi tiến bộ mỗi ngày — nhẹ nhàng trước mỗi kỳ thi.</p>
+        </div>
+      </div>
+      <div class="sm-scroll" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow-y:auto;padding:40px 28px;position:relative;">
+        <button onClick="{{ onToggleTheme }}" aria-label="Đổi giao diện" style="position:absolute;top:22px;right:22px;width:42px;height:42px;border:1px solid var(--border);background:var(--paper);border-radius:13px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;"><span class="ic" style="width:20px;height:20px;">{{ themeIcon }}</span></button>
+        <div style="width:100%;max-width:380px;">
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:10px;">
+            <span style="width:40px;height:40px;border-radius:12px;background:var(--accent);box-shadow:var(--coral-glow);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:600;font-size:1.35rem;">S</span>
+            <span style="font-family:var(--display);font-weight:600;font-size:2rem;letter-spacing:-.025em;">Study<em style="font-style:normal;color:var(--accent);">Map</em></span>
+          </div>
+          <p style="color:var(--muted);font-size:1rem;line-height:1.5;margin-bottom:30px;">Đăng nhập để tiếp tục ôn tập.</p>
+
+          <label style="display:block;font-size:.86rem;font-weight:500;margin-bottom:8px;">Email</label>
+          <input class="sm-in" type="email" inputmode="email" placeholder="ban@email.com" autocomplete="off" value="{{ loginEmail }}" onInput="{{ onLoginEmail }}" style="{{ emailStyle }}" />
+          <div style="{{ emailErrStyle }}">{{ emailErr }}</div>
+
+          <label style="display:block;font-size:.86rem;font-weight:500;margin:18px 0 8px;">Mật khẩu</label>
+          <div style="position:relative;">
+            <input class="sm-in" type="{{ pwType }}" placeholder="••••••••" autocomplete="off" value="{{ loginPw }}" onInput="{{ onLoginPw }}" style="{{ pwStyle }}" />
+            <button onClick="{{ onTogglePw }}" aria-label="Hiện mật khẩu" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);width:38px;height:38px;border:none;background:none;cursor:pointer;color:var(--muted);border-radius:10px;display:flex;align-items:center;justify-content:center;"><span class="ic" style="width:20px;height:20px;">{{ pwIcon }}</span></button>
+          </div>
+          <div style="{{ pwErrStyle }}">{{ pwErr }}</div>
+
+          <button onClick="{{ onLoginSubmit }}" style="width:100%;height:54px;margin-top:22px;border:none;cursor:pointer;background:var(--accent);color:#fff;border-radius:15px;box-shadow:var(--coral-glow);font-family:var(--body);font-weight:600;font-size:1rem;">Đăng nhập</button>
+
+          <div style="display:flex;align-items:center;gap:14px;margin:22px 0;color:var(--faint);font-size:.82rem;"><span style="flex:1;height:1px;background:var(--border);"></span>hoặc<span style="flex:1;height:1px;background:var(--border);"></span></div>
+
+          <button onClick="{{ goDashboard }}" style="width:100%;height:54px;border:1px solid var(--border);background:var(--paper);color:var(--ink);border-radius:15px;cursor:pointer;font-family:var(--body);font-weight:600;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px;"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.86rem;color:var(--muted);">G</span>Tiếp tục với Google</button>
+
+          <p style="margin-top:26px;font-size:.94rem;color:var(--muted);">Chưa có tài khoản? <a style="color:var(--accent);font-weight:600;cursor:pointer;">Đăng ký</a></p>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ showShell }}" hint-placeholder-val="{{ true }}">
+    <div style="{{ shellStyle }}">
+
+      <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+        <aside style="{{ asideStyle }}">
+          <sc-if value="{{ collapseAtEdge }}" hint-placeholder-val="{{ true }}"><button onClick="{{ onToggleSidebar }}" aria-label="Thu gọn thanh bên" style="{{ edgeBtnStyle }}"><span class="ic" style="{{ collapseIconStyle }}">{{ collapseIcon }}</span></button></sc-if>
+          <div style="{{ brandRowStyle }}">
+            <span style="flex:0 0 auto;width:38px;height:38px;border-radius:12px;background:var(--accent);box-shadow:var(--coral-glow);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--display);font-weight:600;font-size:1.3rem;">S</span>
+            <span style="{{ brandTextStyle }}">Study<em style="font-style:normal;color:var(--accent);">Map</em></span>
+            <sc-if value="{{ collapseAtHeader }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onToggleSidebar }}" aria-label="Thu gọn thanh bên" style="{{ headerBtnStyle }}"><span class="ic" style="{{ collapseIconStyle }}">{{ collapseIcon }}</span></button></sc-if>
+          </div>
+          <nav style="display:flex;flex-direction:column;gap:4px;">
+            <sc-for list="{{ nav }}" as="item" hint-placeholder-count="4">
+              <button onClick="{{ item.onClick }}" title="{{ item.label }}" style="{{ item.style }}">
+                <span class="ic" style="width:22px;height:22px;flex:0 0 auto;">{{ item.icon }}</span>
+                <span style="{{ item.labelStyle }}">{{ item.label }}</span>
+                <sc-if value="{{ item.badge }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px;">{{ item.badge }}</span></sc-if>
+              </button>
+            </sc-for>
+          </nav>
+          <button onClick="{{ goEditor }}" title="Bài học mới" style="{{ newLessonStyle }}">
+            <span class="ic" style="width:20px;height:20px;flex:0 0 auto;">{{ ico.plus }}</span><span style="{{ newLessonLabelStyle }}">Bài học mới</span>
+          </button>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px;">
+            <button onClick="{{ goStreak }}" title="Chuỗi học" style="{{ streakBtnStyle }}">
+              <span class="ic sm-pulse" style="width:22px;height:22px;flex:0 0 auto;color:var(--accent);">{{ ico.flame }}</span>
+              <span style="{{ streakTextStyle }}"><b style="font-family:var(--mono);font-weight:600;font-size:1.05rem;">12 ngày</b><span style="font-size:.74rem;color:var(--muted);margin-top:2px;">Chuỗi học</span></span>
+            </button>
+            <button onClick="{{ onToggleTheme }}" title="{{ themeLabel }}" style="{{ sidebarThemeStyle }}">
+              <span class="ic" style="width:18px;height:18px;flex:0 0 auto;">{{ themeIcon }}</span><span style="{{ sidebarThemeTextStyle }}">{{ themeLabel }}</span>
+            </button>
+            <sc-if value="{{ collapseAtBottom }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onToggleSidebar }}" aria-label="Thu gọn thanh bên" style="{{ bottomBtnStyle }}"><span class="ic" style="{{ collapseIconStyle }}">{{ collapseIcon }}</span><span style="{{ bottomLabelStyle }}">{{ bottomLabel }}</span></button></sc-if>
+          </div>
+        </aside>
+      </sc-if>
+
+      <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;">
+        <header style="{{ topbarStyle }}">
+          <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ onBack }}" aria-label="Quay lại" style="width:42px;height:42px;flex:0 0 auto;border:none;background:transparent;border-radius:13px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;margin-left:-6px;"><span class="ic" style="width:24px;height:24px;">{{ ico.back }}</span></button>
+          </sc-if>
+          <sc-if value="{{ showBrandMobile }}" hint-placeholder-val="{{ false }}">
+            <span style="font-family:var(--display);font-weight:600;font-size:1.4rem;letter-spacing:-.02em;">Study<em style="font-style:normal;color:var(--accent);">Map</em></span>
+          </sc-if>
+          <h1 style="{{ titleStyle }}">{{ headerTitle }}</h1>
+          <div style="flex:1 1 auto;"></div>
+          <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ onToggleTheme }}" aria-label="Đổi giao diện" style="width:42px;height:42px;border:1px solid var(--border);background:var(--paper);border-radius:13px;cursor:pointer;color:var(--ink);display:flex;align-items:center;justify-content:center;"><span class="ic" style="width:20px;height:20px;">{{ themeIcon }}</span></button>
+          </sc-if>
+        </header>
+
+        <div data-scroll class="sm-scroll" style="flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;">
+          <div style="{{ contentStyle }}">
+
+            <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+              <section class="sm-fade" key="dash">
+                <header style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:30px;">
+                  <div>
+                    <h2 style="font-family:var(--display);font-weight:600;font-size:2.3rem;letter-spacing:-.02em;line-height:1.05;">Chào buổi tối, Hà</h2>
+                    <p style="color:var(--muted);font-size:1.05rem;margin-top:10px;">Bạn còn <b style="color:var(--accent);font-weight:600;">2 bài</b> cần ôn hôm nay</p>
+                  </div>
+                  <span style="flex:0 0 auto;width:52px;height:52px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.05rem;border:1px solid var(--border);">Hà</span>
+                </header>
+
+                <div style="{{ dashGridStyle }}">
+                  <div style="display:flex;flex-direction:column;min-width:0;">
+                    <section style="background:var(--paper);border:1px solid var(--border);border-radius:24px;padding:24px 24px 22px;box-shadow:var(--shadow);margin-bottom:24px;position:relative;overflow:hidden;">
+                      <span style="position:absolute;inset:0;background:var(--accent-tint);pointer-events:none;"></span>
+                      <span style="position:relative;display:inline-flex;align-items:center;gap:7px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;"><span class="ic" style="width:15px;height:15px;">{{ ico.play }}</span>Tiếp tục học</span>
+                      <h3 style="position:relative;font-family:var(--display);font-weight:600;font-size:1.7rem;letter-spacing:-.02em;line-height:1.15;">Tích phân từng phần</h3>
+                      <p style="position:relative;color:var(--muted);font-size:1rem;margin-top:8px;line-height:1.55;max-width:62ch;">Công thức ∫u dv = uv − ∫v du. Chọn u theo quy tắc ưu tiên ILATE để đơn giản hóa.</p>
+                      <div style="position:relative;display:flex;align-items:center;gap:18px;margin-top:22px;flex-wrap:wrap;">
+                        <div style="flex:1 1 240px;min-width:200px;">
+                          <div style="display:flex;align-items:center;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:8px;"><span>Tiến độ</span><span style="font-family:var(--mono);color:var(--accent);font-weight:600;">4/7 mục</span></div>
+                          <div style="height:7px;border-radius:99px;background:var(--track);overflow:hidden;"><i style="display:block;height:100%;width:57%;border-radius:99px;background:var(--accent);"></i></div>
+                        </div>
+                        <button onClick="{{ goStudy }}" style="flex:0 0 auto;height:48px;padding:0 22px;border:none;cursor:pointer;background:var(--accent);color:#fff;border-radius:14px;box-shadow:var(--coral-glow);font-family:var(--body);font-weight:600;font-size:.95rem;display:inline-flex;align-items:center;gap:8px;">Tiếp tục<span class="ic" style="width:18px;height:18px;">{{ ico.arrow }}</span></button>
+                      </div>
+                    </section>
+
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 16px;flex-wrap:wrap;">
+                      <h3 style="font-family:var(--display);font-weight:600;font-size:1.25rem;letter-spacing:-.01em;">Bài học gần đây</h3>
+                      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                        <sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+                          <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+                        </sc-for>
+                        <div style="position:relative;">
+                          <button onClick="{{ onSortToggle }}" style="{{ sortBtnStyle }}">
+                            <span class="ic" style="width:15px;height:15px;flex:0 0 auto;">{{ icSort }}</span>
+                            <span style="white-space:nowrap;">{{ sortLabel }}</span>
+                            <span class="ic" style="{{ sortCaretStyle }}">{{ icChevDown }}</span>
+                          </button>
+                          <sc-if value="{{ sortOpen }}" hint-placeholder-val="{{ false }}">
+                            <div onClick="{{ onSortClose }}" style="position:fixed;inset:0;z-index:40;"></div>
+                            <div class="sm-fade" style="position:absolute;right:0;top:calc(100% + 8px);z-index:41;width:194px;background:var(--paper);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-lift);padding:6px;">
+                              <div style="font-size:.68rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);padding:7px 10px 6px;">Sắp xếp theo môn</div>
+                              <sc-for list="{{ sortOptions }}" as="o" hint-placeholder-count="6">
+                                <button onClick="{{ o.onClick }}" style="{{ o.style }}">
+                                  <i style="{{ o.dotStyle }}"></i>
+                                  <span style="flex:1 1 auto;text-align:left;">{{ o.label }}</span>
+                                  <span class="ic" style="{{ o.checkStyle }}">{{ o.check }}</span>
+                                </button>
+                              </sc-for>
+                            </div>
+                          </sc-if>
+                        </div>
+                      </div>
+                    </div>
+                    <section style="display:flex;flex-direction:column;gap:14px;">
+                      <sc-for list="{{ notes }}" as="n" hint-placeholder-count="4">
+                        <article onClick="{{ n.onClick }}" style="{{ n.cardStyle }}">
+                          <span style="position:absolute;left:0;top:16px;bottom:16px;width:3px;border-radius:99px;background:{{ n.color }};"></span>
+                          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                            <span style="display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:600;color:{{ n.color }};"><i style="width:8px;height:8px;border-radius:50%;background:{{ n.color }};"></i>{{ n.subjectLabel }}</span>
+                            <span class="ic" style="width:20px;height:20px;color:{{ n.starColor }};">{{ n.starIcon }}</span>
+                          </div>
+                          <h4 style="{{ n.titleStyle }}">{{ n.title }}</h4>
+                          <p style="color:var(--muted);font-size:.92rem;line-height:1.5;margin-top:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ n.ex }}</p>
+                          <div style="display:flex;align-items:center;gap:10px;margin-top:14px;">
+                            <span style="{{ n.tagStyle }}">#{{ n.diffLabel }}</span>
+                            <span style="font-size:.8rem;color:var(--muted);">{{ n.time }}</span>
+                          </div>
+                          <div style="display:flex;align-items:center;gap:12px;margin-top:13px;">
+                            <div style="flex:1 1 auto;height:6px;border-radius:99px;background:var(--track);overflow:hidden;"><i style="display:block;height:100%;border-radius:99px;background:var(--accent);width:{{ n.barPct }};"></i></div>
+                            <span style="font-size:.78rem;color:var(--muted);white-space:nowrap;"><b style="font-family:var(--mono);font-weight:600;color:var(--ink);">{{ n.count }}</b> mục</span>
+                          </div>
+                        </article>
+                      </sc-for>
+                    </section>
+                    <sc-if value="{{ notesEmpty }}" hint-placeholder-val="{{ false }}">
+                      <div style="text-align:center;padding:38px 16px;color:var(--muted);font-size:.92rem;">Không có bài học nào phù hợp.</div>
+                    </sc-if>
+                  </div>
+
+                  <aside style="{{ dashAsideStyle }}">
+                    <sc-for list="{{ statTiles }}" as="t" hint-placeholder-count="3">
+                      <button onClick="{{ t.onClick }}" style="{{ t.style }}">
+                        <span class="ic" style="width:20px;height:20px;color:var(--accent);">{{ t.icon }}</span>
+                        <span style="font-family:var(--mono);font-weight:600;color:var(--ink);line-height:1;margin-top:4px;"><span style="font-size:1.7rem;letter-spacing:-.01em;">{{ t.num }}</span><span style="font-size:.8rem;color:var(--muted);margin-left:4px;">{{ t.unit }}</span></span>
+                        <span style="font-size:.78rem;color:var(--muted);font-weight:500;">{{ t.label }}</span>
+                      </button>
+                    </sc-for>
+                    <div style="background:var(--paper);border:1px solid var(--border);border-radius:20px;padding:20px 18px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:12px;">
+                      <span style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);align-self:flex-start;">Mục tiêu tuần</span>
+                      {{ goalRing }}
+                      <span style="font-size:.82rem;color:var(--muted);">5 / 7 bài đã ôn</span>
+                    </div>
+                    <section style="grid-column:1 / -1;background:var(--paper);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:15px 16px 9px;">
+                        <span style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);">Bảng xếp hạng</span>
+                        <button onClick="{{ goProfile }}" style="border:none;background:none;cursor:pointer;font-size:.8rem;font-weight:500;color:var(--accent);font-family:var(--body);">Xem tất cả</button>
+                      </div>
+                      <sc-for list="{{ leaderboard }}" as="l" hint-placeholder-count="4">
+                        <div style="{{ l.rowStyle }}"><span style="{{ l.rankStyle }}">{{ l.rank }}</span><span style="flex:0 0 auto;width:34px;height:34px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;border:1px solid var(--border);">{{ l.av }}</span><span style="{{ l.nameStyle }}">{{ l.name }}</span><span style="{{ l.ptsStyle }}">{{ l.pts }}</span></div>
+                      </sc-for>
+                    </section>
+                  </aside>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="display:flex;flex-direction:column;min-height:60vh;">
+                <header style="display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:14px;">
+                  <div><h2 style="font-family:var(--display);font-weight:600;font-size:2rem;letter-spacing:-.02em;">Xin chào, Hà</h2><p style="color:var(--muted);font-size:1rem;margin-top:6px;">Sổ tay học tập của bạn</p></div>
+                  <span style="flex:0 0 auto;width:50px;height:50px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;border:1px solid var(--border);">Hà</span>
+                </header>
+                <div style="flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;">
+                  {{ emptyIllus }}
+                  <h2 style="font-family:var(--display);font-weight:600;font-size:1.85rem;letter-spacing:-.02em;line-height:1.2;margin-top:30px;max-width:18ch;text-wrap:balance;">Bắt đầu bài học đầu tiên của bạn</h2>
+                  <p style="font-size:1rem;line-height:1.6;color:var(--muted);max-width:34ch;margin-top:14px;">Ghi lại kiến thức ngay khi học, để mùa thi không còn vội vã.</p>
+                  <button onClick="{{ goEditor }}" style="margin-top:30px;height:52px;padding:0 28px;border:none;cursor:pointer;background:var(--accent);color:#fff;border-radius:16px;box-shadow:var(--coral-glow);font-family:var(--body);font-weight:600;font-size:1rem;display:inline-flex;align-items:center;gap:9px;"><span class="ic" style="width:19px;height:19px;">{{ ico.plus }}</span>Thêm bài học</button>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isStudy }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="max-width:720px;margin:0 auto;">
+                <div style="display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--muted);font-weight:500;margin-bottom:26px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:#E2725B;"></span>Toán <span style="opacity:.5;">·</span> Giải tích <span style="opacity:.5;">·</span> 4 phút đọc
+                  <button onClick="{{ goEditor }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border:1px solid var(--border);background:var(--paper);border-radius:99px;cursor:pointer;color:var(--ink);font-family:var(--body);font-size:.82rem;font-weight:500;"><span class="ic" style="width:16px;height:16px;">{{ icEdit }}</span>Chỉnh sửa</button>
+                </div>
+                <p style="font-size:1.18rem;line-height:1.85;margin-bottom:1.35em;text-wrap:pretty;">Tích phân từng phần là công cụ để tính tích phân của một <b style="font-weight:600;">tích hai hàm số</b>, dùng khi các phương pháp đổi biến thông thường không còn hiệu quả.</p>
+                <p style="font-size:1.12rem;line-height:1.72;margin-bottom:1.35em;padding:16px 18px;background:var(--accent-tint);border-radius:16px;text-wrap:pretty;">Công thức gốc: <span class="m">∫u dv = uv − ∫v du</span>. Gần như mọi bài toán đều quy về việc áp dụng đúng và đủ công thức này.</p>
+                <p style="font-size:1.18rem;line-height:1.85;margin-bottom:1.35em;text-wrap:pretty;">Bước quan trọng nhất là chọn <b style="font-weight:600;">u</b> và <b style="font-weight:600;">dv</b>. Quy tắc <b style="font-weight:600;">ILATE</b> gợi ý thứ tự ưu tiên cho u: Logarit, hàm ngược, Đại số, Lượng giác, rồi hàm Mũ.</p>
+                <p style="font-size:1.18rem;line-height:1.85;margin-bottom:1.35em;text-wrap:pretty;">Ví dụ với ∫x·eˣ dx, ta chọn u = x (đại số) và dv = eˣ dx. Khi đó du = dx và v = eˣ, phần tích phân còn lại trở nên rất gọn.</p>
+                <p style="font-size:1.12rem;line-height:1.72;margin-bottom:1.35em;padding:16px 18px;background:var(--accent-tint);border-radius:16px;text-wrap:pretty;">Luôn cộng hằng số <span class="m">+ C</span> vào kết quả cuối cùng — đây là lỗi mất điểm phổ biến nhất khi đi thi.</p>
+                <section style="margin-top:18px;padding-top:28px;border-top:1px solid var(--border);">
+                  <h3 style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Cần nhớ</h3>
+                  <ul style="list-style:none;padding:0;margin:0;">
+                    <sc-for list="{{ recall }}" as="r" hint-placeholder-count="4">
+                      <li onClick="{{ r.onClick }}" style="{{ r.rowStyle }}"><span style="{{ r.boxStyle }}"><span class="ic" style="width:15px;height:15px;">{{ r.check }}</span></span>{{ r.textEl }}</li>
+                    </sc-for>
+                  </ul>
+                </section>
+                <div style="margin-top:34px;">
+                  <button onClick="{{ onStartQuiz }}" style="height:54px;padding:0 30px;border:none;cursor:pointer;background:var(--accent);color:#fff;border-radius:16px;box-shadow:var(--coral-glow);font-family:var(--body);font-weight:600;font-size:1rem;display:inline-flex;align-items:center;gap:9px;"><span class="ic" style="width:18px;height:18px;">{{ icPlay }}</span>Bắt đầu Quiz</button>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isEditor }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="max-width:760px;margin:0 auto;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+                  <input class="sm-in" type="text" placeholder="Tiêu đề bài học" onInput="{{ onTitleInput }}" style="flex:1 1 auto;min-width:0;border:none;background:none;font-family:var(--display);font-weight:600;font-size:1.7rem;letter-spacing:-.02em;color:var(--ink);padding:4px 2px;" />
+                  <span style="flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);white-space:nowrap;"><span class="ic" style="width:14px;height:14px;color:var(--accent);">{{ icSave }}</span>{{ saveText }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:22px;">
+                  <sc-for list="{{ editorSubjects }}" as="s" hint-placeholder-count="4">
+                    <button onClick="{{ s.onClick }}" style="{{ s.style }}"><i style="{{ s.dotStyle }}"></i>{{ s.label }}</button>
+                  </sc-for>
+                  <input class="sm-in" placeholder="+ Thẻ mới" value="{{ newTag }}" onInput="{{ onNewTagInput }}" onKeyDown="{{ onTagKeyDown }}" style="{{ tagInputStyle }}" />
+                  <span style="width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
+                  <sc-for list="{{ editorDiffs }}" as="d" hint-placeholder-count="3">
+                    <button onClick="{{ d.onClick }}" style="{{ d.style }}">#{{ d.label }}</button>
+                  </sc-for>
+                </div>
+                <div class="sm-ce" contenteditable="true" spellcheck="false" data-ph="Bắt đầu viết bài học của bạn…" onInput="{{ onEditorInput }}" style="font-size:1.0625rem;line-height:1.78;color:var(--ink);caret-color:var(--accent);min-height:280px;outline:none;">
+                  <p>Tích phân từng phần dùng để tính tích phân của một <b>tích hai hàm số</b>. Đây là kỹ thuật xương sống khi gặp các biểu thức mà đổi biến thông thường không xử lý được.</p>
+                  <div style="font-family:var(--mono);font-size:.98rem;color:var(--accent);background:var(--accent-tint);padding:13px 15px;border-radius:12px;margin-bottom:1.05em;letter-spacing:.01em;" contenteditable="false">∫ u dv = u·v − ∫ v du</div>
+                  <p>Chìa khóa là chọn <b>u</b> và <b>dv</b> hợp lý. Quy tắc ưu tiên ILATE giúp chọn u theo thứ tự: Logarit, hàm ngược, Đại số, Lượng giác, rồi hàm Mũ.</p>
+                  <p>Ví dụ với ∫ x·eˣ dx, ta chọn u = x và dv = eˣ dx. Khi đó du = dx, v = eˣ, suy ra kết quả là x·eˣ − eˣ + C.</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+                  <span style="font-weight:700;font-size:1.1rem;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;color:var(--ink);">B</span>
+                  <span style="font-style:italic;font-weight:600;font-size:1.1rem;font-family:Georgia,serif;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;cursor:pointer;color:var(--ink);">I</span>
+                  <span class="ic" style="width:44px;height:44px;padding:11px;border-radius:12px;cursor:pointer;color:var(--ink);">{{ icImage }}</span>
+                  <span class="ic" style="width:44px;height:44px;padding:11px;border-radius:12px;cursor:pointer;color:var(--ink);">{{ icReset }}</span>
+                  <span style="margin-left:auto;font-size:.82rem;color:var(--muted);"><b style="font-family:var(--mono);font-weight:600;color:var(--ink);">{{ words }}</b> từ</span>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isQuiz }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="max-width:640px;margin:0 auto;">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:13px;">
+                  <button onClick="{{ onQuizClose }}" aria-label="Đóng" style="width:40px;height:40px;margin-left:-8px;border:none;background:none;cursor:pointer;border-radius:12px;color:var(--ink);display:flex;align-items:center;justify-content:center;"><span class="ic" style="width:22px;height:22px;">{{ ico.back }}</span></button>
+                  <span style="margin-left:auto;font-size:.92rem;color:var(--muted);font-weight:500;">{{ qCountText }}</span>
+                </div>
+                <div style="height:6px;border-radius:99px;background:var(--track);overflow:hidden;margin-bottom:24px;"><i style="display:block;height:100%;border-radius:99px;background:var(--accent);width:{{ qProgress }};transition:width .5s cubic-bezier(.2,.9,.3,1.1);"></i></div>
+
+                <div style="background:var(--paper);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);padding:24px 22px;margin-bottom:22px;">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:.76rem;font-weight:600;letter-spacing:.04em;color:var(--muted);margin-bottom:14px;text-transform:uppercase;"><span style="width:8px;height:8px;border-radius:50%;background:#E2725B;"></span>{{ qTopic }}</div>
+                  {{ qTextEl }}
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:11px;">
+                  <sc-for list="{{ options }}" as="o" hint-placeholder-count="4">
+                    <button onClick="{{ o.onClick }}" style="{{ o.style }}">
+                      <span style="{{ o.badgeStyle }}">{{ o.letter }}</span>
+                      {{ o.htmlEl }}
+                      <span class="ic" style="width:22px;height:22px;flex:0 0 auto;">{{ o.fIcon }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+
+                <div style="{{ explStyle }}">
+                  <div style="padding:16px 18px;">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:600;color:var(--accent);margin-bottom:8px;"><span class="ic" style="width:17px;height:17px;">{{ icInfo }}</span>Giải thích</div>
+                    {{ qExplEl }}
+                  </div>
+                </div>
+
+                <div style="{{ dockStyle }}">
+                  <button onClick="{{ onQuizNext }}" style="width:100%;height:54px;border:none;cursor:pointer;background:var(--accent);color:#fff;border-radius:16px;box-shadow:var(--coral-glow);font-family:var(--body);font-weight:600;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:9px;">Câu tiếp theo<span class="ic" style="width:18px;height:18px;">{{ icArrow18 }}</span></button>
+                  <button onClick="{{ goResultFromQuiz }}" style="border:none;background:none;cursor:pointer;color:var(--muted);font-family:var(--body);font-size:.9rem;font-weight:500;">Kết thúc &amp; xem kết quả</button>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isResult }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="max-width:640px;margin:0 auto;">
+                <div style="text-align:center;padding:14px 0 34px;">
+                  <span style="display:inline-flex;align-items:center;gap:8px;font-size:.92rem;font-weight:600;color:var(--accent);margin-bottom:18px;"><span style="width:9px;height:9px;border-radius:50%;background:var(--accent);"></span>Bạn đang tiến bộ</span>
+                  <div style="font-family:var(--mono);font-weight:600;font-size:3.7rem;line-height:1;letter-spacing:-.02em;color:var(--ink);">7 <span style="color:var(--faint);font-weight:400;">/</span> 10</div>
+                  <div style="font-size:1.05rem;color:var(--muted);font-weight:500;margin-top:12px;">câu đúng</div>
+                </div>
+
+                <div style="background:var(--paper);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:20px 20px 16px;margin-bottom:24px;">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;">
+                    <h3 style="font-family:var(--display);font-weight:600;font-size:1.15rem;letter-spacing:-.01em;line-height:1.3;">Biểu đồ tăng trưởng kiến thức</h3>
+                    <span style="flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-size:.82rem;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:9px;"><span class="ic" style="width:13px;height:13px;">{{ icTrend }}</span><span style="font-family:var(--mono);font-weight:600;">+12%</span></span>
+                  </div>
+                  {{ growthChart }}
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;font-size:.74rem;color:var(--muted);"><span>6 buổi học gần đây</span><span style="color:var(--accent);font-weight:600;">Hôm nay · 70%</span></div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:9px;margin:2px 2px 14px;">
+                  <h3 style="font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);">Câu cần xem lại</h3>
+                  <span style="font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--rose);background:var(--rose-soft);padding:3px 9px;border-radius:7px;">3 câu</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:26px;">
+                  <sc-for list="{{ missed }}" as="m" hint-placeholder-count="3">
+                    <div style="background:var(--paper);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;">
+                      <div onClick="{{ m.onClick }}" style="display:flex;align-items:center;gap:12px;padding:15px 16px;cursor:pointer;min-height:56px;">
+                        <span style="flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--rose);"></span>
+                        {{ m.qEl }}
+                        <span style="{{ m.chevStyle }}"><span class="ic" style="width:20px;height:20px;">{{ m.chev }}</span></span>
+                      </div>
+                      <div style="{{ m.panelStyle }}">
+                        <div style="padding:15px 16px 17px;border-top:1px solid var(--border);">
+                          <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:16px;">
+                            <div style="display:flex;align-items:center;gap:11px;"><span style="flex:0 0 auto;width:84px;font-size:.78rem;font-weight:500;color:var(--muted);">Bạn chọn</span><span style="font-family:var(--mono);font-size:.9rem;font-weight:500;padding:5px 11px;border-radius:9px;color:var(--rose);background:var(--rose-soft);text-decoration:line-through;">{{ m.you }}</span></div>
+                            <div style="display:flex;align-items:center;gap:11px;"><span style="flex:0 0 auto;width:84px;font-size:.78rem;font-weight:500;color:var(--muted);">Đáp án đúng</span><span style="font-family:var(--mono);font-size:.9rem;font-weight:500;padding:5px 11px;border-radius:9px;color:var(--accent);background:var(--accent-soft);">{{ m.ok }}</span></div>
+                          </div>
+                          <div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;color:var(--accent);margin-bottom:6px;">Giải thích lỗi sai</div>
+                          {{ m.whyEl }}
+                        </div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="background:var(--paper);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:20px;">
+                  <div style="display:flex;align-items:center;gap:13px;margin-bottom:18px;">
+                    <span class="ic" style="width:46px;height:46px;flex:0 0 auto;padding:11px;border-radius:14px;background:var(--accent-soft);color:var(--accent);">{{ icCal }}</span>
+                    <div><h4 style="font-family:var(--display);font-weight:600;font-size:1.1rem;letter-spacing:-.01em;">Ôn tập lại sau <span class="m" style="color:var(--ink);">3</span> ngày</h4><p style="font-size:.85rem;color:var(--muted);margin-top:3px;line-height:1.45;">Khoảng nghỉ tối ưu giúp bạn ghi nhớ lâu hơn.</p></div>
+                  </div>
+                  <button onClick="{{ goReview }}" style="width:100%;height:52px;border:none;cursor:pointer;background:var(--accent);color:#fff;border-radius:15px;box-shadow:var(--coral-glow);font-family:var(--body);font-weight:600;font-size:.97rem;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;"><span class="ic" style="width:17px;height:17px;">{{ icCheckBtn }}</span>Lên lịch ôn tập</button>
+                  <button onClick="{{ goDashboard }}" style="width:100%;height:52px;border:1px solid var(--border);cursor:pointer;background:transparent;color:var(--ink);border-radius:15px;font-family:var(--body);font-weight:600;font-size:.97rem;display:flex;align-items:center;justify-content:center;gap:8px;"><span class="ic" style="width:17px;height:17px;">{{ icHome }}</span>Về Bài học</button>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="max-width:720px;margin:0 auto;">
+                <header style="margin-bottom:24px;">
+                  <h2 style="font-family:var(--display);font-weight:600;font-size:2rem;letter-spacing:-.02em;">Ôn tập</h2>
+                  <p style="color:var(--muted);font-size:1rem;margin-top:6px;">Ôn lại đúng lúc để ghi nhớ lâu hơn.</p>
+                </header>
+                <section style="position:relative;overflow:hidden;background:var(--paper);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);padding:22px;margin-bottom:28px;">
+                  <span style="position:absolute;inset:0;background:var(--accent-tint);pointer-events:none;"></span>
+                  <div style="position:relative;display:flex;align-items:center;gap:16px;margin-bottom:18px;">
+                    <div class="sm-pulse">{{ reviewRing }}</div>
+                    <div><div style="font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:5px;">Hôm nay</div><div style="font-family:var(--display);font-weight:600;font-size:1.25rem;letter-spacing:-.01em;line-height:1.3;">Còn 3 bài đến hạn ôn tập</div></div>
+                  </div>
+                  <button onClick="{{ onStartQuiz }}" style="position:relative;width:100%;height:50px;border:none;cursor:pointer;background:var(--accent);color:#fff;border-radius:14px;box-shadow:var(--coral-glow);font-family:var(--body);font-weight:600;font-size:.97rem;display:flex;align-items:center;justify-content:center;gap:8px;"><span class="ic" style="width:17px;height:17px;">{{ icPlay }}</span>Bắt đầu ôn tập</button>
+                </section>
+                <div style="display:flex;align-items:center;gap:9px;margin:0 2px 14px;"><h3 style="font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);">Đến hạn hôm nay</h3><span style="font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:7px;">3 bài</span></div>
+                <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px;">
+                  <sc-for list="{{ due }}" as="d" hint-placeholder-count="3">
+                    <article onClick="{{ d.onClick }}" style="{{ d.cardStyle }}">
+                      <span style="position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:99px;background:{{ d.color }};"></span>
+                      <div style="flex:1 1 auto;min-width:0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+                          <span style="display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;color:{{ d.color }};"><i style="width:7px;height:7px;border-radius:50%;background:{{ d.color }};"></i>{{ d.subjectLabel }}</span>
+                          <span style="display:inline-flex;align-items:center;gap:7px;"><span style="font-size:.72rem;color:var(--faint);">Độ nhớ</span><span style="display:inline-flex;gap:3px;"><sc-for list="{{ d.bars }}" as="b" hint-placeholder-count="3"><i style="width:13px;height:5px;border-radius:3px;background:{{ b.bg }};"></i></sc-for></span></span>
+                        </div>
+                        <h4 style="font-size:1.02rem;font-weight:600;letter-spacing:-.01em;line-height:1.3;">{{ d.title }}</h4>
+                        <div style="font-size:.78rem;color:var(--muted);margin-top:8px;">{{ d.last }}</div>
+                      </div>
+                      <span class="ic" style="width:21px;height:21px;flex:0 0 auto;color:var(--faint);">{{ d.chev }}</span>
+                    </article>
+                  </sc-for>
+                </div>
+                <div style="margin:0 2px 14px;"><h3 style="font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);">Sắp tới</h3></div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <sc-for list="{{ soon }}" as="d" hint-placeholder-count="2">
+                    <article style="position:relative;display:flex;align-items:center;gap:13px;background:var(--paper);border:1px solid var(--border);border-radius:18px;padding:15px 16px 15px 20px;opacity:.62;">
+                      <span style="position:absolute;left:0;top:14px;bottom:14px;width:3px;border-radius:99px;background:{{ d.color }};"></span>
+                      <div style="flex:1 1 auto;min-width:0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;"><span style="display:inline-flex;align-items:center;gap:6px;font-size:.74rem;font-weight:600;color:{{ d.color }};"><i style="width:7px;height:7px;border-radius:50%;background:{{ d.color }};"></i>{{ d.subjectLabel }}</span><span style="font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:6px;color:var(--muted);background:var(--track);white-space:nowrap;">{{ d.when }}</span></div>
+                        <h4 style="font-size:1.02rem;font-weight:600;letter-spacing:-.01em;line-height:1.3;">{{ d.title }}</h4>
+                        <div style="font-size:.78rem;color:var(--muted);margin-top:8px;">Lặp lại theo lịch ôn tập</div>
+                      </div>
+                    </article>
+                  </sc-for>
+                </div>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="max-width:680px;margin:0 auto;">
+                <section style="display:flex;align-items:center;gap:15px;background:var(--paper);border:1px solid var(--border);border-radius:20px;padding:17px;box-shadow:var(--shadow);margin-bottom:16px;">
+                  <span style="flex:0 0 auto;width:62px;height:62px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1.4rem;border:1px solid var(--border);">Hà</span>
+                  <div style="flex:1 1 auto;min-width:0;"><div style="font-family:var(--display);font-weight:600;font-size:1.25rem;letter-spacing:-.01em;line-height:1.2;">Nguyễn Thu Hà</div><div style="font-size:.86rem;color:var(--muted);margin-top:3px;">thuha@email.com</div></div>
+                  <button aria-label="Chỉnh sửa" style="flex:0 0 auto;width:40px;height:40px;border:1px solid var(--border);background:transparent;border-radius:12px;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center;"><span class="ic" style="width:19px;height:19px;">{{ icEdit }}</span></button>
+                </section>
+
+                <section style="position:relative;overflow:hidden;background:var(--paper);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:18px;margin-bottom:24px;">
+                  <span style="position:absolute;inset:0;background:var(--accent-tint);pointer-events:none;"></span>
+                  <div style="position:relative;display:flex;align-items:center;gap:13px;margin-bottom:16px;">
+                    <span class="ic" style="width:46px;height:46px;flex:0 0 auto;padding:11px;border-radius:13px;background:var(--accent);color:#fff;box-shadow:var(--coral-glow);">{{ icSparkleBig }}</span>
+                    <div style="flex:1 1 auto;min-width:0;"><div style="font-size:1.08rem;font-weight:600;letter-spacing:-.01em;">StudyMap Pro</div><div style="font-size:.85rem;color:var(--muted);margin-top:4px;">Gia hạn vào <span style="font-family:var(--mono);">12/07/2026</span></div></div>
+                  </div>
+                  <button style="position:relative;width:100%;height:46px;border:1px solid var(--border);background:var(--paper);color:var(--ink);border-radius:13px;cursor:pointer;font-family:var(--body);font-weight:600;font-size:.92rem;">Quản lý gói đăng ký</button>
+                </section>
+
+                <div style="font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:0 2px 11px;">Cài đặt</div>
+                <section style="background:var(--paper);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px;">
+                  <sc-for list="{{ settings }}" as="r" hint-placeholder-count="4">
+                    <div onClick="{{ r.onClick }}" style="{{ r.rowStyle }}">
+                      <span class="ic" style="width:38px;height:38px;flex:0 0 auto;padding:9px;border-radius:11px;background:var(--accent-soft);color:var(--accent);">{{ r.icon }}</span>
+                      <div style="flex:1 1 auto;min-width:0;"><div style="font-size:.98rem;font-weight:500;color:var(--ink);">{{ r.title }}</div><sc-if value="{{ r.showSub }}" hint-placeholder-val="{{ false }}"><div style="font-size:.8rem;color:var(--muted);margin-top:2px;">{{ r.sub }}</div></sc-if></div>
+                      <sc-if value="{{ r.isToggle }}" hint-placeholder-val="{{ true }}"><button onClick="{{ r.onClick }}" style="{{ r.switchStyle }}"><span style="{{ r.knobStyle }}"></span></button></sc-if>
+                      <sc-if value="{{ r.showVal }}" hint-placeholder-val="{{ false }}"><span style="font-size:.9rem;color:var(--muted);white-space:nowrap;">{{ r.val }}</span><span class="ic" style="width:20px;height:20px;color:var(--faint);">{{ r.chev }}</span></sc-if>
+                    </div>
+                  </sc-for>
+                </section>
+
+                <button onClick="{{ onLogout }}" style="width:100%;height:52px;border:1px solid var(--border);background:transparent;border-radius:15px;cursor:pointer;color:var(--rose);font-family:var(--body);font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:9px;"><span class="ic" style="width:18px;height:18px;">{{ icLogout }}</span>Đăng xuất</button>
+              </section>
+            </sc-if>
+
+            <sc-if value="{{ isStreak }}" hint-placeholder-val="{{ false }}">
+              <section class="sm-fade" style="max-width:760px;margin:0 auto;">
+                <section style="position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;background:var(--paper);border:1px solid var(--border);border-radius:22px;box-shadow:var(--shadow);padding:22px;margin-bottom:16px;">
+                  <span style="position:absolute;inset:0;background:var(--accent-tint);pointer-events:none;"></span>
+                  <span class="ic sm-pulse" style="position:relative;width:58px;height:58px;flex:0 0 auto;padding:14px;border-radius:17px;background:var(--accent);color:#fff;box-shadow:var(--coral-glow);">{{ icFlameBig }}</span>
+                  <div style="position:relative;"><div style="font-family:var(--mono);font-weight:600;color:var(--ink);line-height:1;"><span style="font-size:2.3rem;letter-spacing:-.02em;">12</span><span style="font-size:1rem;color:var(--muted);margin-left:4px;">ngày</span></div><div style="font-size:.86rem;color:var(--muted);margin-top:6px;">Chuỗi học hiện tại — cố lên nhé!</div></div>
+                </section>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+                  <sc-for list="{{ ministats }}" as="s" hint-placeholder-count="2">
+                    <div style="background:var(--paper);border:1px solid var(--border);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);"><div style="font-family:var(--mono);font-weight:600;font-size:1.3rem;color:var(--ink);line-height:1;">{{ s.v }}<span style="font-size:.74rem;color:var(--muted);margin-left:3px;">{{ s.u }}</span></div><div style="font-size:.78rem;color:var(--muted);margin-top:8px;">{{ s.k }}</div></div>
+                  </sc-for>
+                </div>
+                <section style="background:var(--paper);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:20px 18px 16px;">
+                  <h3 style="font-family:var(--display);font-weight:600;font-size:1.05rem;letter-spacing:-.01em;margin-bottom:16px;">Hoạt động học tập</h3>
+                  {{ heatmap }}
+                  <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:14px;font-size:.7rem;color:var(--muted);">Ít<span style="width:12px;height:12px;border-radius:3px;background:var(--track);"></span><span style="width:12px;height:12px;border-radius:3px;background:color-mix(in srgb,var(--accent) 28%,transparent);"></span><span style="width:12px;height:12px;border-radius:3px;background:color-mix(in srgb,var(--accent) 52%,transparent);"></span><span style="width:12px;height:12px;border-radius:3px;background:color-mix(in srgb,var(--accent) 76%,transparent);"></span><span style="width:12px;height:12px;border-radius:3px;background:var(--accent);"></span>Nhiều</div>
+                </section>
+                <section style="margin-top:26px;">
+                  <h3 style="font-family:var(--display);font-weight:600;font-size:1.05rem;letter-spacing:-.01em;margin:0 2px 4px;">Hoạt động gần đây</h3>
+                  <div style="display:flex;align-items:center;gap:8px;font-size:.86rem;font-weight:700;padding:14px 2px 4px;color:var(--ink);">Tháng 6 <span style="color:var(--muted);font-weight:500;">2026</span><span style="flex:1 1 auto;height:1px;background:var(--border);"></span></div>
+                  <div style="position:relative;padding:16px 0 2px;">
+                    <span style="position:absolute;left:17px;top:6px;bottom:14px;width:2px;background:var(--border);"></span>
+                    <sc-for list="{{ timeline }}" as="t" hint-placeholder-count="3">
+                      <div style="position:relative;display:flex;gap:14px;margin-bottom:20px;">
+                        <span class="ic" style="position:relative;z-index:1;width:36px;height:36px;flex:0 0 auto;padding:8px;border-radius:50%;background:var(--paper);border:1px solid var(--border);color:var(--accent);box-shadow:var(--shadow);">{{ t.icon }}</span>
+                        <div style="flex:1 1 auto;min-width:0;padding-top:6px;">
+                          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;">{{ t.titleEl }}<span style="flex:0 0 auto;font-family:var(--mono);font-size:.72rem;color:var(--faint);">{{ t.date }}</span></div>
+                          <div style="font-size:.82rem;color:var(--muted);margin-top:3px;">{{ t.sub }}</div>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </section>
+              </section>
+            </sc-if>
+
+          </div>
+        </div>
+
+        <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+          <nav style="flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 64px 1fr 1fr;align-items:center;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:var(--bar);backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);border-top:1px solid var(--border);">
+            <sc-for list="{{ tabsLeft }}" as="t" hint-placeholder-count="2">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span class="ic" style="width:23px;height:23px;">{{ t.icon }}</span><span style="font-size:.66rem;font-weight:600;">{{ t.label }}</span></button>
+            </sc-for>
+            <button onClick="{{ goEditor }}" aria-label="Bài học mới" style="width:56px;height:56px;justify-self:center;border-radius:18px;border:none;cursor:pointer;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--coral-glow);"><span class="ic" style="width:26px;height:26px;">{{ ico.plus }}</span></button>
+            <sc-for list="{{ tabsRight }}" as="t" hint-placeholder-count="2">
+              <button onClick="{{ t.onClick }}" style="{{ t.style }}"><span class="ic" style="width:23px;height:23px;">{{ t.icon }}</span><span style="font-size:.66rem;font-weight:600;">{{ t.label }}</span></button>
+            </sc-for>
+          </nav>
+        </sc-if>
+      </main>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:820},&quot;collapseBtnPlacement&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;edge&quot;,&quot;header&quot;,&quot;bottom&quot;],&quot;default&quot;:&quot;edge&quot;,&quot;tsType&quot;:&quot;'edge'|'header'|'bottom'&quot;},&quot;sidebarWidth&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:256,&quot;min&quot;:216,&quot;max&quot;:304,&quot;step&quot;:8,&quot;tsType&quot;:&quot;number&quot;},&quot;defaultSort&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;recent&quot;,&quot;subject&quot;],&quot;default&quot;:&quot;recent&quot;,&quot;tsType&quot;:&quot;'recent'|'subject'&quot;}}">
+const h = React.createElement;
+
+const I = {
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15.5H5.5A1.5 1.5 0 0 0 4 21Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v15.5h5.5A1.5 1.5 0 0 1 20 21Z"/></svg>',
+  quiz:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.1-2.5 3.9"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>',
+  review:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5v4h4"/><path d="M4.7 13a7.5 7.5 0 1 0 1.1-5.6L4 9.5"/><path d="M12 8.5v4l2.8 1.6"/></svg>',
+  profile:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>',
+  flame:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.5 2.5-1.8 3.6-1.8 6 0 1.2.7 2 .7 2s-2.4-.6-2.9-2.6C6.4 10.3 6 11.9 6 13.4 6 17 8.7 20 12 20s6-2.7 6-6.3c0-3.8-2.6-5.7-3.8-8.2-.6 1.6-1.7 2.1-2.2 1.1C11.4 5.4 12 4.2 12 3Z"/></svg>',
+  flameFill:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 3-2.1 4.3-2.1 7.1 0 1.4.8 2.4.8 2.4s-2.8-.7-3.4-3C6.4 9.8 6 11.7 6 13.5 6 17.6 8.7 21 12 21s6-3.2 6-7.5c0-4.5-3-6.8-4.4-9.7-.7 1.9-2 2.5-2.6 1.3C10.3 4.4 11 3 12 2Z"/></svg>',
+  notes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H17a2 2 0 0 1 2 2v15a1 1 0 0 1-1.5.87L12 18l-5.5 2.87A1 1 0 0 1 5 20Z"/><path d="M9 8h6M9 12h4"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.52.86l10.5-6.5a1 1 0 0 0 0-1.72L9.52 4.64A1 1 0 0 0 8 5.5Z"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  starFill:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.77l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85Z"/></svg>',
+  starLine:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.77l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85Z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>',
+  moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13.5A8 8 0 1 1 10.5 4a6.5 6.5 0 0 0 9.5 9.5Z"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4.5"/><circle cx="12" cy="8" r=".7" fill="currentColor"/></svg>',
+  trend:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l5-5 4 3 7-8"/><path d="M20 11V7h-4"/></svg>',
+  chevDown:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  chevRight:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3"/><path d="M9 14.5l2 2 4-4"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5"/><path d="M6 9.5V20h12V9.5"/></svg>',
+  edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.83-2.83L5 17.2Z"/><path d="M14.5 7.5l2.8 2.8"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>',
+  sync:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="13" height="10" rx="2"/><path d="M14 17h5a1.5 1.5 0 0 0 1.5-1.5V9.5A1.5 1.5 0 0 0 19 8h-3"/><path d="M8 17v3M5 20h6"/></svg>',
+  globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.4 2.5 14.6 0 17M12 3.5c-2.5 2.4-2.5 14.6 0 17"/></svg>',
+  logout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8"/><path d="M19 12H10M16 9l3 3-3 3"/></svg>',
+  theme:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17"/><path d="M12 20.5a8.5 8.5 0 0 0 0-17" fill="currentColor" stroke="none"/></svg>',
+  image:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 16l-5-5L5 19.5"/></svg>',
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M6 7l1 12.5A1.5 1.5 0 0 0 8.5 21h7a1.5 1.5 0 0 0 1.5-1.5L18 7"/></svg>',
+  sparkle:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.3l1.9 6 6 1.9-6 1.9L12 18l-1.9-6-6-1.9 6-1.9z"/></svg>',
+  eyeOn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16"/><path d="M9.6 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.8 3.4"/><path d="M6 7.4A15.7 15.7 0 0 0 2.5 12S6 18.5 12 18.5a9.3 9.3 0 0 0 3.2-.55"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/></svg>',
+  chevrons:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6l-6 6 6 6M18 6l-6 6 6 6"/></svg>',
+  filter:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6.5 7.5V19l-3 1.5v-8Z"/></svg>',
+};
+
+const SUBJECTS = {
+  toan:{label:'Toán', color:'#E2725B'},
+  ly:{label:'Lý', color:'#C98A2E'},
+  anh:{label:'Tiếng Anh', color:'#5C9E6E'},
+  hoa:{label:'Hóa', color:'#B5677F'},
+};
+const DIFF = {
+  de:{label:'Dễ', kind:'green'},
+  tb:{label:'Trung bình', kind:'amber'},
+  kho:{label:'Khó', kind:'rose'},
+};
+const NOTES = [
+  {subject:'ly', title:'Định luật Kirchhoff', diff:'tb', time:'2 giờ trước', star:true, done:3, total:5, ex:'Định luật dòng điện (KCL) và định luật điện áp (KVL) dùng để phân tích mạch điện nhiều nhánh phức tạp.'},
+  {subject:'anh', title:'Thì hiện tại hoàn thành', diff:'de', time:'5 giờ trước', star:false, done:2, total:6, ex:'Cấu trúc have/has + V3. Diễn tả hành động bắt đầu trong quá khứ và còn liên quan tới hiện tại.'},
+  {subject:'hoa', title:'Cấu hình Electron', diff:'kho', time:'Hôm qua', star:true, done:1, total:8, ex:'Nguyên lý Aufbau, quy tắc Hund và nguyên lý loại trừ Pauli quyết định cách electron sắp xếp vào orbital.'},
+  {subject:'toan', title:'Phương trình lượng giác', diff:'de', time:'3 ngày trước', star:false, done:6, total:6, completed:true, ex:'Nghiệm tổng quát của sin, cos, tan và cách quy về phương trình bậc hai theo một hàm lượng giác.'},
+];
+const FILTERS = [{k:'all',label:'Tất cả'},{k:'todo',label:'Chưa học xong'},{k:'recent',label:'Gần đây'},{k:'star',label:'Đánh dấu'}];
+
+const RECALL = [
+  {html:'Công thức gốc: <span class="m">∫u dv = uv − ∫v du</span>'},
+  {html:'Chọn <b>u</b> theo thứ tự ưu tiên ILATE'},
+  {html:'Luôn cộng hằng số <span class="m">+ C</span> ở kết quả cuối'},
+  {html:'Lặp lại từng phần nếu tích phân vẫn còn phức tạp'},
+];
+
+const BANK = [
+  {topic:'Đạo hàm', q:'Đạo hàm của <span class="m">sin(x)</span> là?', opts:['<span class="mo">cos(x)</span>','<span class="mo">−cos(x)</span>','<span class="mo">−sin(x)</span>','<span class="mo">tan(x)</span>'], correct:0, expl:'Đạo hàm <span class="m">sin(x)′ = cos(x)</span> — một công thức lượng giác cơ bản. Lưu ý ngược lại: <span class="m">cos(x)′ = −sin(x)</span>.'},
+  {topic:'Toán · Nguyên hàm', q:'Nguyên hàm của <span class="m">1/x</span> (với x > 0) là?', opts:['<span class="mo">−1/x² + C</span>','<span class="mo">ln|x| + C</span>','<span class="mo">x·ln x + C</span>','<span class="mo">eˣ + C</span>'], correct:1, expl:'Trên miền x > 0 ta có <span class="m">∫(1/x)dx = ln|x| + C</span>. Đừng quên hằng số tích phân.'},
+  {topic:'Toán · Giới hạn', q:'Giới hạn <span class="m">lim(x→0) sin(x)/x</span> bằng?', opts:['<span class="mo">0</span>','<span class="mo">∞</span>','<span class="mo">1</span>','Không tồn tại'], correct:2, expl:'Đây là giới hạn lượng giác nổi tiếng: <span class="m">lim(x→0) sin(x)/x = 1</span>, nền tảng để tính đạo hàm của sin.'},
+];
+const LETTERS = ['A','B','C','D'];
+
+const MISSED = [
+  {q:'Nguyên hàm của <span class="m">1/x</span> (x > 0)?', you:'−1/x² + C', ok:'ln|x| + C', why:'Vì đạo hàm của <span class="m">ln|x|</span> chính là <span class="m">1/x</span>, nên nguyên hàm là phép đảo lại của nó.'},
+  {q:'Đạo hàm của <span class="m">cos(x)</span>?', you:'sin(x)', ok:'−sin(x)', why:'Quanh điểm 0, cos đang giảm khi x tăng, nên đạo hàm mang dấu âm: <span class="m">−sin(x)</span>.'},
+  {q:'Giới hạn <span class="m">(1 + 1/n)ⁿ</span> khi n→∞?', you:'1', ok:'e ≈ 2,718', why:'Đây chính là một định nghĩa của số <span class="m">e</span> — hằng số nền của logarit tự nhiên.'},
+];
+const SERIES = [44,53,49,58,64,70];
+
+const DUE = [
+  {subject:'toan', title:'Tích phân từng phần', last:'Ôn lần cuối 3 ngày trước', strength:2},
+  {subject:'ly', title:'Định luật Kirchhoff', last:'Ôn lần cuối 5 ngày trước', strength:1},
+  {subject:'hoa', title:'Cấu hình Electron', last:'Ôn lần cuối 1 tuần trước', strength:1},
+];
+const SOON = [
+  {subject:'anh', title:'Thì hiện tại hoàn thành', when:'Sau 2 ngày'},
+  {subject:'toan', title:'Phương trình lượng giác', when:'Sau 5 ngày'},
+];
+
+const LEADER = [
+  {rank:1, av:'MP', name:'Nguyễn Minh Phương', pts:'1.240', top:true},
+  {rank:2, av:'TB', name:'Trần Thái Bảo', pts:'1.080', top:true},
+  {rank:3, av:'Hà', name:'Nguyễn Thu Hà', pts:'960', top:true, me:true},
+  {rank:4, av:'GH', name:'Lê Gia Hân', pts:'820'},
+];
+
+const PUSHED = {study:1, editor:1, result:1, streak:1};
+const TITLES = {dashboard:'Bài học', empty:'Bài học', quiz:'Quiz', review:'Ôn tập', profile:'Hồ sơ', study:'Tích phân từng phần', editor:'Bài học mới', result:'Kết quả Quiz', streak:'Chuỗi học'};
+
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      screen:'dashboard', theme:'light', isDesktop:true,
+      filter:'all', notesStar:{0:true,1:false,2:true,3:false},
+      recall:{0:true,1:true,2:false,3:false},
+      qNum:3, qIndex:0, qAnswered:false, qChoice:null,
+      missedOpen:0,
+      subject:null, difficulty:'de', words:0, saving:false,
+      notify:true, sync:true,
+      loginEmail:'', loginPw:'', showPw:false, emailErr:'', pwErr:'',
+      customTags:[], addingTag:false, newTag:'',
+      sidebarCollapsed:(()=>{try{return localStorage.getItem('sm_sidebar')==='1';}catch(e){return false;}})(),
+      sortSubject:(props&&props.defaultSort)||'recent', sortOpen:false,
+    };
+    this._tagPalette=['#D98F4E','#7A9E5C','#A0688E','#C9772E','#5E8AA0','#C45B6B'];
+    this._saveT=null;
+  }
+  componentDidMount(){
+    this.mq = window.matchMedia('(min-width: 960px)');
+    this._onMq = () => this.setState({isDesktop:this.mq.matches});
+    this._onMq(); this.mq.addEventListener('change', this._onMq);
+  }
+  componentWillUnmount(){ if(this.mq) this.mq.removeEventListener('change', this._onMq); }
+
+  ic(name, size){ return h('span',{className:'ic', style:{width:size||22,height:size||22,flex:'0 0 auto'}, dangerouslySetInnerHTML:{__html:I[name]}}); }
+  htm(html, cls, style){ return h('span',{className:cls||undefined, style:style||undefined, dangerouslySetInnerHTML:{__html:html}}); }
+  inputStyle(err){ return {width:'100%',height:52,border:'1px solid '+(err?'var(--rose)':'var(--border)'),borderRadius:14,background:'var(--surface)',padding:'0 15px',fontFamily:'var(--body)',fontSize:'1rem',color:'var(--ink)',boxShadow:err?'0 0 0 3px var(--rose-soft)':'none',transition:'border-color .16s ease,box-shadow .16s ease'}; }
+
+  go(s){ return () => { this.setState({screen:s}); const el=document.querySelector('[data-scroll]'); if(el) el.scrollTop=0; }; }
+  toggleTheme(){ this.setState(st=>({theme: st.theme==='light'?'dark':'light'})); }
+  loginSubmit(){
+    const em=this.state.loginEmail.trim(), pw=this.state.loginPw;
+    let emErr='', pwErr='';
+    if(!em) emErr='Vui lòng nhập email';
+    else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) emErr='Email không hợp lệ';
+    if(pw.length<8) pwErr='Mật khẩu cần ít nhất 8 ký tự';
+    if(emErr||pwErr){ this.setState({emailErr:emErr, pwErr:pwErr}); return; }
+    this.setState({emailErr:'', pwErr:''}); this.go('dashboard')();
+  }
+
+  ring(pct, size, sw){
+    const r=(size-sw)/2, c=2*Math.PI*r;
+    return h('svg',{width:size,height:size,viewBox:`0 0 ${size} ${size}`,style:{transform:'rotate(-90deg)',display:'block'}},
+      h('circle',{cx:size/2,cy:size/2,r,fill:'none',stroke:'var(--track)','strokeWidth':sw}),
+      h('circle',{cx:size/2,cy:size/2,r,fill:'none',stroke:'var(--accent)','strokeWidth':sw,strokeLinecap:'round','strokeDasharray':c,'strokeDashoffset':c*(1-pct)}));
+  }
+  ringLabel(pct, size, sw, label, fs){
+    return h('div',{style:{position:'relative',width:size,height:size}},
+      this.ring(pct,size,sw),
+      h('span',{style:{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--mono)',fontWeight:700,fontSize:fs||'.92rem',color:'var(--accent)'}},label));
+  }
+
+  growthChart(){
+    const W=560,H=200,padX=18,top=18,bottom=160,n=SERIES.length;
+    const xAt=i=>padX+i*((W-padX*2)/(n-1)), yAt=v=>bottom-(v/100)*(bottom-top);
+    const pts=SERIES.map((v,i)=>({x:xAt(i),y:yAt(v)}));
+    const sm=p=>{let d=`M${p[0].x.toFixed(1)},${p[0].y.toFixed(1)}`;for(let i=0;i<p.length-1;i++){const p0=p[i-1]||p[i],p1=p[i],p2=p[i+1],p3=p[i+2]||p2;const c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6,c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;d+=` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2.x.toFixed(1)},${p2.y.toFixed(1)}`;}return d;};
+    const line=sm(pts), area=`${line} L${pts[n-1].x.toFixed(1)},${bottom} L${pts[0].x.toFixed(1)},${bottom} Z`, last=pts[n-1];
+    const grid=[yAt(30),yAt(60),yAt(90)].map((y,i)=>h('line',{key:i,x1:padX,y1:y,x2:W-padX,y2:y,stroke:'var(--border)','strokeWidth':1}));
+    return h('svg',{viewBox:`0 0 ${W} ${H}`,preserveAspectRatio:'none',style:{width:'100%',height:'auto',display:'block',marginTop:6,overflow:'visible'}},
+      h('defs',null,h('linearGradient',{id:'smgrad',x1:0,y1:0,x2:0,y2:1},h('stop',{offset:'0%',stopColor:'var(--accent)',stopOpacity:.26}),h('stop',{offset:'100%',stopColor:'var(--accent)',stopOpacity:0}))),
+      grid,
+      h('path',{d:area,fill:'url(#smgrad)'}),
+      h('path',{d:line,fill:'none',stroke:'var(--accent)','strokeWidth':2.6,strokeLinecap:'round',strokeLinejoin:'round'}),
+      pts.slice(0,-1).map((p,i)=>h('circle',{key:i,cx:p.x,cy:p.y,r:2.8,fill:'var(--paper)',stroke:'var(--accent)','strokeWidth':2})),
+      h('circle',{className:'sm-halo',cx:last.x,cy:last.y,r:6,fill:'var(--accent)',style:{transformOrigin:`${last.x}px ${last.y}px`,animation:'sm-halo 2.6s ease-in-out infinite'}}),
+      h('circle',{cx:last.x,cy:last.y,r:4.6,fill:'var(--accent)',stroke:'var(--paper)','strokeWidth':2}));
+  }
+
+  heatmap(){
+    const mul=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+    const rng=mul(20260603), WEEKS=17, MONTH=['Th1','Th2','Th3','Th4','Th5','Th6','Th7','Th8','Th9','Th10','Th11','Th12'];
+    const today=new Date(2026,5,3), dow=(today.getDay()+6)%7;
+    const lastMon=new Date(today); lastMon.setDate(today.getDate()-dow);
+    const start=new Date(lastMon); start.setDate(lastMon.getDate()-(WEEKS-1)*7);
+    const streakStart=new Date(today); streakStart.setDate(today.getDate()-11);
+    const cols=[], months=[];
+    for(let w=0;w<WEEKS;w++){const days=[];for(let d=0;d<7;d++){const date=new Date(start);date.setDate(start.getDate()+w*7+d);if(date>today){days.push({future:true});continue;}let level;if(date>=streakStart){level=2+Math.floor(rng()*3);}else{const r=rng();level=r<.42?0:r<.66?1:r<.85?2:r<.96?3:4;}days.push({level});const m=date.getMonth();if(!months.includes(m))months.push(m);}cols.push(days);}
+    const lvlBg=l=>l===0?'var(--track)':l===1?'color-mix(in srgb,var(--accent) 28%,transparent)':l===2?'color-mix(in srgb,var(--accent) 52%,transparent)':l===3?'color-mix(in srgb,var(--accent) 76%,transparent)':'var(--accent)';
+    const dayLabels=['T2','','T4','','T6','',''];
+    return h('div',{style:{display:'flex',gap:8}},
+      h('div',{style:{flex:'0 0 auto',width:18,display:'flex',flexDirection:'column',gap:5,paddingTop:21}},dayLabels.map((l,i)=>h('div',{key:i,style:{height:14,lineHeight:'14px',fontSize:'.6rem',color:'var(--faint)',textAlign:'right'}},l))),
+      h('div',{style:{flex:'1 1 auto',minWidth:0}},
+        h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:'.64rem',color:'var(--muted)',marginBottom:7,padding:'0 1px'}},months.map((m,i)=>h('span',{key:i},MONTH[m]))),
+        h('div',{style:{display:'flex',gap:5}},cols.map((week,wi)=>h('div',{key:wi,style:{display:'flex',flexDirection:'column',gap:5,flex:'1 1 0'}},week.map((c,di)=>h('div',{key:di,style:{width:'100%',aspectRatio:'1 / 1',borderRadius:4,background:c.future?'transparent':lvlBg(c.level)}})))))));
+  }
+
+  emptyIllus(){
+    const star='M12 3.5l2.6 5.27 5.82.85-4.21 4.1.99 5.79L12 16.77l-5.2 2.74.99-5.79-4.21-4.1 5.82-.85Z';
+    return h('svg',{viewBox:'0 0 240 210',style:{width:200,height:'auto',display:'block'}},
+      h('circle',{cx:120,cy:98,r:76,fill:'var(--accent)',opacity:.07}),
+      h('ellipse',{cx:120,cy:188,rx:64,ry:9,fill:'var(--ink)',opacity:.08}),
+      h('g',{transform:'rotate(-8 120 112)',opacity:.5},h('rect',{x:76,y:52,width:90,height:120,rx:16,fill:'var(--surface)',stroke:'var(--border)','strokeWidth':1.5})),
+      h('g',{transform:'rotate(6.5 120 112)',opacity:.8},h('rect',{x:80,y:48,width:90,height:120,rx:16,fill:'var(--surface)',stroke:'var(--border)','strokeWidth':1.5})),
+      h('g',null,
+        h('rect',{x:71,y:42,width:98,height:124,rx:17,fill:'var(--paper)',stroke:'var(--border)','strokeWidth':1.5}),
+        h('rect',{x:80,y:60,width:3.5,height:88,rx:1.75,fill:'var(--accent)'}),
+        h('rect',{x:92,y:63,width:54,height:6,rx:3,fill:'var(--faint)',opacity:.55}),
+        h('rect',{x:92,y:80,width:64,height:6,rx:3,fill:'var(--faint)',opacity:.34}),
+        h('rect',{x:92,y:96,width:42,height:6,rx:3,fill:'var(--faint)',opacity:.34}),
+        h('rect',{x:92,y:120,width:58,height:6,rx:3,fill:'var(--faint)',opacity:.28}),
+        h('rect',{x:92,y:136,width:36,height:6,rx:3,fill:'var(--faint)',opacity:.28}),
+        h('g',{transform:'translate(143 50) scale(0.64)',fill:'var(--accent)'},h('path',{d:star}))));
+  }
+
+  navItem(key, label, icon, screen, badge){
+    const active = this.state.screen===screen || (screen==='dashboard' && this.state.screen==='empty');
+    const collapsed = this.state.sidebarCollapsed;
+    return {key,label,badge:collapsed?'':(badge||''),icon:this.ic(icon),onClick:this.go(screen),
+      labelStyle:{flex:'1 1 auto',textAlign:'left',whiteSpace:'nowrap',overflow:'hidden',display:collapsed?'none':'block'},
+      style:{display:'flex',alignItems:'center',justifyContent:collapsed?'center':'flex-start',gap:collapsed?0:12,padding:collapsed?'12px 0':'12px 14px',border:'none',cursor:'pointer',borderRadius:14,fontFamily:'var(--body)',fontSize:'.95rem',fontWeight:active?600:500,
+        background:active?'var(--accent-soft)':'transparent',color:active?'var(--accent)':'var(--muted)',transition:'background .16s ease,color .16s ease'}};
+  }
+  tab(label, icon, screen){
+    const active=this.state.screen===screen;
+    return {label,icon:this.ic(icon,23),onClick:this.go(screen),
+      style:{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'4px 0',border:'none',background:'none',cursor:'pointer',color:active?'var(--accent)':'var(--faint)'}};
+  }
+
+  diffTag(kind){
+    const map={green:['var(--green)','var(--green-soft)'],amber:['var(--amber)','var(--amber-soft)'],rose:['var(--rose)','var(--rose-soft)']};
+    const [c,bg]=map[kind];
+    return {color:c,background:bg,fontSize:'.74rem',fontWeight:600,padding:'4px 10px',borderRadius:8,whiteSpace:'nowrap'};
+  }
+
+  renderVals(){
+    const st=this.state, screen=st.screen;
+    const isLogin = screen==='login';
+    const showShell = !isLogin;
+    const isDesktop = st.isDesktop, isMobile=!isDesktop;
+    const pushed = !!PUSHED[screen];
+
+    const nav=[ this.navItem('book','Bài học','book','dashboard'),
+      this.navItem('quiz','Quiz','quiz','quiz'),
+      this.navItem('review','Ôn tập','review','review','3'),
+      this.navItem('profile','Hồ sơ','profile','profile') ];
+
+    const filters = FILTERS.map(f=>({label:f.label, onClick:()=>this.setState({filter:f.k}),
+      style:{height:36,padding:'0 15px',borderRadius:99,cursor:'pointer',fontFamily:'var(--body)',fontSize:'.84rem',fontWeight:500,whiteSpace:'nowrap',
+        border:'1px solid '+(st.filter===f.k?'var(--accent)':'var(--border)'),
+        background:st.filter===f.k?'var(--accent)':'var(--paper)', color:st.filter===f.k?'#fff':'var(--ink)',transition:'all .16s ease'}}));
+
+    let noteOrder = NOTES.map((n,i)=>i);
+    if(st.filter==='todo') noteOrder=noteOrder.filter(i=>!NOTES[i].completed);
+    else if(st.filter==='star') noteOrder=noteOrder.filter(i=>st.notesStar[i]);
+    if(st.sortSubject==='subject'){ const so=Object.keys(SUBJECTS); noteOrder=noteOrder.slice().sort((a,b)=>so.indexOf(NOTES[a].subject)-so.indexOf(NOTES[b].subject)); }
+    else if(st.sortSubject!=='recent'){ noteOrder=noteOrder.filter(i=>NOTES[i].subject===st.sortSubject); }
+    const notes = noteOrder.map((i)=>{
+      const n=NOTES[i], s=SUBJECTS[n.subject], d=DIFF[n.diff], starOn=st.notesStar[i], done=n.completed;
+      return {color:s.color, subjectLabel:s.label, title:n.title, ex:n.ex, time:n.time, diffLabel:d.label,
+        count:n.done+'/'+n.total, barPct:Math.round(n.done/n.total*100)+'%',
+        starIcon: done?this.ic('check',20):this.ic(starOn?'starFill':'starLine',20),
+        starColor: done?'var(--accent)':(starOn?'var(--accent)':'var(--faint)'),
+        tagStyle:this.diffTag(d.kind),
+        titleStyle:{fontSize:'1.08rem',fontWeight:600,letterSpacing:'-.01em',marginTop:10,lineHeight:1.3, color:done?'var(--faint)':'var(--ink)', textDecoration:done?'line-through':'none'},
+        onClick:this.go('study'),
+        cardStyle:{position:'relative',background:'var(--paper)',border:'1px solid var(--border)',borderRadius:20,padding:'16px 18px 16px 20px',boxShadow:'var(--shadow)',cursor:'pointer',opacity:done?.6:1,transition:'transform .25s cubic-bezier(.22,.61,.36,1),box-shadow .25s ease'}};
+    });
+
+    const statTiles=[
+      {icon:this.ic('flame',20),num:'12',unit:'ngày',label:'Chuỗi học',onClick:this.go('streak'),
+        style:{background:'var(--paper)',border:'1px solid var(--border)',borderRadius:20,padding:'16px 16px',boxShadow:'var(--shadow)',display:'flex',flexDirection:'column',gap:9,cursor:'pointer',textAlign:'left',fontFamily:'var(--body)'}},
+      {icon:this.ic('notes',20),num:'24',unit:'bài',label:'Tổng số bài',onClick:()=>{},
+        style:{background:'var(--paper)',border:'1px solid var(--border)',borderRadius:20,padding:'16px 16px',boxShadow:'var(--shadow)',display:'flex',flexDirection:'column',gap:9,cursor:'default',textAlign:'left',fontFamily:'var(--body)'}},
+    ];
+
+    // theme
+    const themeIcon = this.ic(st.theme==='light'?'moon':'sun',20);
+    const themeLabel = st.theme==='light'?'Chế độ tối':'Chế độ sáng';
+
+    // header
+    const headerTitle = TITLES[screen]||'';
+    let onBack=null;
+    if(screen==='study') onBack=this.go('dashboard');
+    else if(screen==='editor') onBack=this.go('dashboard');
+    else if(screen==='result') onBack=this.go('quiz');
+    else if(screen==='streak') onBack=this.go('dashboard');
+
+    // responsive styles
+    const contentStyle={maxWidth: isDesktop?'1080px':'100%', margin:'0 auto', width:'100%', padding: isDesktop?'34px 40px 60px':'18px 18px 28px'};
+    const shellStyle={display:'flex', flexDirection:isDesktop?'row':'column', minHeight:'100vh'};
+    const topbarStyle={flex:'0 0 auto',display:'flex',alignItems:'center',gap:10,padding:isDesktop?'20px 40px 0':'14px 18px 6px',minHeight:isDesktop?0:56};
+    const titleStyle = isDesktop
+      ? (pushed?{fontFamily:'var(--display)',fontWeight:600,fontSize:'1.5rem',letterSpacing:'-.02em'}:{display:'none'})
+      : {fontFamily:'var(--display)',fontWeight:600,fontSize:'1.15rem',letterSpacing:'-.01em', display: pushed?'block':'none'};
+    const dashGridStyle={display:'grid', gridTemplateColumns: isDesktop?'minmax(0,1fr) 300px':'1fr', gap: isDesktop?'28px':'24px', alignItems:'start'};
+    const dashAsideStyle={display: isDesktop?'flex':'grid', flexDirection:'column', gridTemplateColumns: isDesktop?'none':'1fr 1fr', gap:14, order: isDesktop?0:-1};
+
+    // sidebar collapse
+    const collapsed = st.sidebarCollapsed;
+    const expandedW = this.props.sidebarWidth || 256;
+    const placement = this.props.collapseBtnPlacement || 'edge';
+    const collapseAtEdge = placement==='edge', collapseAtHeader = placement==='header', collapseAtBottom = placement==='bottom';
+    const asideStyle={flex:'0 0 '+(collapsed?'76px':expandedW+'px'),width:collapsed?76:expandedW,height:'100vh',position:'sticky',top:0,background:'var(--surface)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',padding:collapsed?'26px 14px 22px':'26px 18px 22px',transition:'width .28s cubic-bezier(.4,0,.2,1),flex-basis .28s cubic-bezier(.4,0,.2,1),padding .28s ease'};
+    const brandRowStyle={display:'flex',alignItems:'center',gap:collapsed?0:11,flexDirection:collapsed?'column':'row',padding:collapsed?0:'4px 8px 0',marginBottom:collapsed?22:30};
+    const brandTextStyle={fontFamily:'var(--display)',fontWeight:600,fontSize:'1.5rem',letterSpacing:'-.02em',color:'var(--ink)',display:collapsed?'none':'inline',whiteSpace:'nowrap',overflow:'hidden'};
+    const collapseIconStyle={width:18,height:18,flex:'0 0 auto',transform:collapsed?'rotate(180deg)':'none',transition:'transform .28s ease'};
+    const edgeBtnStyle={position:'absolute',top:31,right:-13,width:28,height:28,borderRadius:'50%',background:'var(--paper)',border:'1px solid var(--border)',boxShadow:'var(--shadow)',cursor:'pointer',color:'var(--muted)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:6,padding:0};
+    const headerBtnStyle={flex:'0 0 auto',width:32,height:32,marginLeft:collapsed?0:'auto',marginTop:collapsed?14:0,border:'none',background:'transparent',borderRadius:9,cursor:'pointer',color:'var(--muted)',display:'flex',alignItems:'center',justifyContent:'center',padding:0};
+    const bottomBtnStyle={display:'flex',alignItems:'center',justifyContent:collapsed?'center':'flex-start',gap:collapsed?0:10,padding:collapsed?'10px 0':'10px 13px',border:'1px solid var(--border)',background:'transparent',borderRadius:14,cursor:'pointer',color:'var(--muted)',fontFamily:'var(--body)',fontSize:'.86rem',fontWeight:500};
+    const bottomLabelStyle={display:collapsed?'none':'inline',whiteSpace:'nowrap'};
+    const newLessonStyle={marginTop:18,height:48,border:'none',cursor:'pointer',background:'var(--accent)',color:'#fff',borderRadius:16,boxShadow:'var(--coral-glow)',fontFamily:'var(--body)',fontWeight:600,fontSize:'.95rem',display:'flex',alignItems:'center',justifyContent:'center',gap:collapsed?0:9,padding:0};
+    const newLessonLabelStyle={display:collapsed?'none':'inline',whiteSpace:'nowrap'};
+    const streakBtnStyle={display:'flex',alignItems:'center',justifyContent:collapsed?'center':'flex-start',gap:collapsed?0:11,padding:collapsed?'11px 0':'11px 13px',border:'1px solid var(--border)',background:'var(--paper)',borderRadius:16,cursor:'pointer',color:'var(--ink)',textAlign:'left',boxShadow:'var(--shadow)'};
+    const streakTextStyle={display:collapsed?'none':'flex',flexDirection:'column',lineHeight:1.1};
+    const sidebarThemeStyle={display:'flex',alignItems:'center',justifyContent:collapsed?'center':'flex-start',gap:collapsed?0:10,padding:collapsed?'10px 0':'10px 13px',border:'1px solid var(--border)',background:'transparent',borderRadius:14,cursor:'pointer',color:'var(--muted)',fontFamily:'var(--body)',fontSize:'.86rem',fontWeight:500};
+    const sidebarThemeTextStyle={display:collapsed?'none':'inline',whiteSpace:'nowrap'};
+
+    // dashboard subject sort
+    const sortDefs=[{k:'recent',label:'Mới nhất'},{k:'subject',label:'Nhóm theo môn'}].concat(Object.keys(SUBJECTS).map(k=>({k,label:SUBJECTS[k].label,color:SUBJECTS[k].color})));
+    const sortLabel = st.sortSubject==='recent'?'Mới nhất':(st.sortSubject==='subject'?'Theo môn':SUBJECTS[st.sortSubject].label);
+    const sortOptions=sortDefs.map(o=>{ const on=st.sortSubject===o.k;
+      return {label:o.label, onClick:()=>this.setState({sortSubject:o.k, sortOpen:false}),
+        style:{display:'flex',alignItems:'center',gap:10,width:'100%',minHeight:40,padding:'8px 10px',border:'none',borderRadius:11,cursor:'pointer',fontFamily:'var(--body)',fontSize:'.88rem',fontWeight:on?600:500,background:on?'var(--accent-tint)':'transparent',color:on?'var(--accent)':'var(--ink)',transition:'background .14s ease'},
+        dotStyle:{flex:'0 0 auto',width:8,height:8,borderRadius:'50%',background:o.color||'var(--faint)',visibility:o.color?'visible':'hidden'},
+        checkStyle:{width:16,height:16,flex:'0 0 auto',color:'var(--accent)',visibility:on?'visible':'hidden'},
+        check:this.ic('check',16)};
+    });
+    const sortActive = st.sortSubject!=='recent';
+    const sortBtnStyle={display:'inline-flex',alignItems:'center',gap:7,height:36,padding:'0 13px',borderRadius:99,cursor:'pointer',fontFamily:'var(--body)',fontSize:'.84rem',fontWeight:600,whiteSpace:'nowrap',border:'1px solid '+(sortActive?'var(--accent)':'var(--border)'),background:sortActive?'var(--accent-soft)':'var(--paper)',color:sortActive?'var(--accent)':'var(--ink)',transition:'all .16s ease'};
+    const sortCaretStyle={width:14,height:14,flex:'0 0 auto',transform:st.sortOpen?'rotate(180deg)':'none',transition:'transform .2s ease',color:'var(--muted)'};
+
+    // STUDY recall
+    const recall = RECALL.map((r,i)=>{
+      const on=st.recall[i];
+      return {html:r.html, onClick:()=>this.setState(s=>({recall:Object.assign({},s.recall,{[i]:!s.recall[i]})})),
+        rowStyle:{display:'flex',alignItems:'flex-start',gap:14,padding:'9px 4px',cursor:'pointer',minHeight:48},
+        boxStyle:{flex:'0 0 auto',width:26,height:26,borderRadius:'50%',border:'2px solid '+(on?'var(--accent)':'var(--border)'),background:on?'var(--accent)':'transparent',color:on?'#fff':'transparent',marginTop:2,display:'flex',alignItems:'center',justifyContent:'center',transition:'all .18s ease'},
+        textEl:this.htm(r.html,'',{fontSize:'1.05rem',lineHeight:1.55,color:on?'var(--muted)':'var(--ink)',paddingTop:3,transition:'color .2s ease'}),
+        check:this.ic('check',15)};
+    });
+
+    // EDITOR
+    const allSubs = Object.keys(SUBJECTS).map(k=>({id:k,label:SUBJECTS[k].label,color:SUBJECTS[k].color}))
+      .concat(st.customTags.map((t,i)=>({id:'c'+i,label:t.label,color:t.color})));
+    const editorSubjects = allSubs.map(s=>{
+      const on=st.subject===s.id;
+      return {label:s.label, onClick:()=>this.setState({subject:on?null:s.id}),
+        style:{display:'inline-flex',alignItems:'center',gap:7,height:38,padding:'0 14px',borderRadius:99,cursor:'pointer',fontFamily:'var(--body)',fontSize:'.85rem',fontWeight:500,whiteSpace:'nowrap',
+          border:'1px solid '+(on?'transparent':'var(--border)'), background:on?s.color:'var(--paper)', color:on?'#fff':'var(--muted)',transition:'all .16s ease'},
+        dotStyle:{width:8,height:8,borderRadius:'50%',background:on?'#fff':s.color}};
+    });
+    const commitTag=()=>{ const v=this.state.newTag.trim(); if(!v){ this.setState({addingTag:false,newTag:''}); return; } const color=this._tagPalette[this.state.customTags.length%this._tagPalette.length]; this.setState(s=>({customTags:s.customTags.concat([{label:v,color}]), subject:'c'+s.customTags.length, addingTag:false, newTag:''})); };
+    const editorDiffs = Object.keys(DIFF).map(k=>{
+      const d=DIFF[k], on=st.difficulty===k, t=this.diffTag(d.kind);
+      return {label:d.label, onClick:()=>this.setState({difficulty:k}),
+        style:{height:38,padding:'0 15px',borderRadius:99,cursor:'pointer',fontFamily:'var(--body)',fontSize:'.84rem',fontWeight:600,
+          border:'1px solid '+(on?'transparent':'var(--border)'), background:on?t.background:'transparent', color:on?t.color:'var(--muted)',transition:'all .16s ease'}};
+    });
+
+    // QUIZ
+    const qitem = BANK[st.qIndex];
+    const answered = st.qAnswered, choice=st.qChoice, correct=qitem.correct;
+    const options = qitem.opts.map((o,idx)=>{
+      let bg='var(--paper)', bd='var(--border)', badgeBg='transparent', badgeBd='var(--border)', badgeColor='var(--muted)', fIcon=null, dim=false;
+      if(answered){
+        if(idx===correct){ bg='var(--accent-soft)'; bd='var(--accent)'; badgeBg='var(--accent)'; badgeBd='var(--accent)'; badgeColor='#fff'; fIcon=this.ic('check',22); }
+        else if(idx===choice){ bg='var(--rose-soft)'; bd='var(--rose)'; badgeBg='var(--rose)'; badgeBd='var(--rose)'; badgeColor='#fff'; fIcon=h('span',{className:'ic',style:{width:22,height:22,color:'var(--rose)'},dangerouslySetInnerHTML:{__html:I.x}}); }
+        else dim=true;
+      }
+      return {htmlEl:this.htm(o,'',{flex:'1 1 auto',fontSize:'1.04rem',lineHeight:1.35}), letter:LETTERS[idx], onClick:()=>{ if(this.state.qAnswered) return; this.setState({qAnswered:true,qChoice:idx}); }, fIcon,
+        style:{width:'100%',minHeight:58,display:'flex',alignItems:'center',gap:13,padding:'10px 16px',border:'1px solid '+bd,borderRadius:16,background:bg,cursor:answered?'default':'pointer',textAlign:'left',fontFamily:'var(--body)',color:'var(--ink)',opacity:dim?.45:1,transition:'all .2s ease'},
+        badgeStyle:{flex:'0 0 auto',width:30,height:30,borderRadius:9,border:'1px solid '+badgeBd,background:badgeBg,color:badgeColor,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.92rem',fontWeight:600,transition:'all .2s ease'}};
+    });
+    const fIconColor = answered ? (choice===correct?'var(--accent)':'var(--rose)') : 'var(--accent)';
+
+    // RESULT missed
+    const missed = MISSED.map((m,i)=>{
+      const open=st.missedOpen===i;
+      return {qEl:this.htm(m.q,'',{flex:'1 1 auto',fontSize:'.97rem',fontWeight:500,color:'var(--ink)',lineHeight:1.35}), whyEl:this.htm(m.why,'',{fontSize:'.92rem',lineHeight:1.6,color:'var(--ink)'}), you:m.you, ok:m.ok, open, onClick:()=>this.setState(s=>({missedOpen:s.missedOpen===i?-1:i})),
+        chevStyle:{flex:'0 0 auto',color:'var(--muted)',display:'flex',transform:open?'rotate(180deg)':'none',transition:'transform .3s ease'},
+        panelStyle:{maxHeight:open?'360px':'0',opacity:open?1:0,overflow:'hidden',transition:'max-height .5s cubic-bezier(.22,.85,.25,1),opacity .35s ease'},
+        chev:this.ic('chevDown',20)};
+    });
+
+    // REVIEW
+    const due = DUE.map((d,i)=>{
+      const s=SUBJECTS[d.subject];
+      let bars=[0,1,2].map(j=>({bg: j<d.strength?'var(--accent)':'var(--track)'}));
+      return {color:s.color, subjectLabel:s.label, title:d.title, last:d.last, bars, chev:this.ic('chevRight',21), onClick:this.go('study'),
+        cardStyle:{position:'relative',display:'flex',alignItems:'center',gap:13,background:'var(--paper)',border:'1px solid var(--border)',borderRadius:18,padding:'15px 16px 15px 20px',boxShadow:'var(--shadow)',cursor:'pointer'}};
+    });
+    const soon = SOON.map(d=>{
+      const s=SUBJECTS[d.subject];
+      return {color:s.color, subjectLabel:s.label, title:d.title, when:d.when};
+    });
+
+    // PROFILE
+    const leaderboard = LEADER.map(l=>({rank:String(l.rank), av:l.av, name:l.name, pts:l.pts,
+      rowStyle:{display:'flex',alignItems:'center',gap:12,minHeight:52,padding:'10px 16px',background:l.me?'var(--accent-tint)':'transparent'},
+      rankStyle:{flex:'0 0 auto',width:18,textAlign:'center',fontFamily:'var(--mono)',fontSize:'.85rem',fontWeight:600,color:l.top?'var(--accent)':'var(--faint)'},
+      nameStyle:{flex:'1 1 auto',minWidth:0,fontSize:'.95rem',fontWeight:l.me?600:500,color:'var(--ink)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'},
+      ptsStyle:{flex:'0 0 auto',fontFamily:'var(--mono)',fontSize:'.9rem',fontWeight:600,color:l.me?'var(--accent)':'var(--ink)'}}));
+    const settings = [
+      {icon:this.ic('theme',20), title:'Giao diện', sub:'', val:st.theme==='light'?'Sáng':'Tối', toggle:false, onClick:()=>this.toggleTheme()},
+      {icon:this.ic('bell',20), title:'Nhắc ôn tập hằng ngày', sub:'20:00 mỗi tối', toggle:true, on:st.notify, onClick:()=>this.setState(s=>({notify:!s.notify}))},
+      {icon:this.ic('sync',20), title:'Đồng bộ thiết bị', sub:'', toggle:true, on:st.sync, onClick:()=>this.setState(s=>({sync:!s.sync}))},
+      {icon:this.ic('globe',20), title:'Ngôn ngữ', sub:'', val:'Tiếng Việt', toggle:false, onClick:()=>{}},
+    ].map(r=>({icon:r.icon,title:r.title,sub:r.sub,val:r.val||'',isToggle:r.toggle,showSub:!!r.sub,showVal:!r.toggle,onClick:r.onClick,
+      rowStyle:{display:'flex',alignItems:'center',gap:13,minHeight:58,padding:'12px 16px',cursor:'pointer'},
+      switchStyle:{flex:'0 0 auto',width:46,height:28,borderRadius:99,border:'none',background:r.on?'var(--accent)':'var(--track)',cursor:'pointer',padding:0,position:'relative',transition:'background .2s ease'},
+      knobStyle:{position:'absolute',top:3,left:3,width:22,height:22,borderRadius:'50%',background:'#fff',boxShadow:'0 1px 3px rgba(0,0,0,.25)',transform:r.on?'translateX(18px)':'none',transition:'transform .22s cubic-bezier(.3,.9,.3,1.2)'},
+      chev:this.ic('chevRight',20)}));
+
+    // STREAK
+    const ministats=[{v:'21',u:'ngày',k:'Chuỗi dài nhất'},{v:'86',u:'ngày',k:'Tổng ngày đã học'}];
+    const timeline=[
+      {icon:this.ic('flame',19), date:'Hôm nay', sub:'Học đều mỗi ngày trong tuần này', titleEl:this.htm('Giữ chuỗi học <b style="color:var(--accent);font-weight:700;">12 ngày</b> liên tiếp','',{fontSize:'.96rem',fontWeight:600,letterSpacing:'-.01em',color:'var(--ink)',lineHeight:1.35})},
+      {icon:this.ic('notes',19), date:'03/06', sub:'Toán · Lý · Hóa', titleEl:this.htm('Tạo 3 bài học mới','',{fontSize:'.96rem',fontWeight:600,letterSpacing:'-.01em',color:'var(--ink)',lineHeight:1.35})},
+      {icon:this.ic('quiz',19), date:'02/06', sub:'Tích phân từng phần · 9/10 đúng', titleEl:this.htm('Hoàn thành quiz với 9/10 câu đúng','',{fontSize:'.96rem',fontWeight:600,letterSpacing:'-.01em',color:'var(--ink)',lineHeight:1.35})},
+      {icon:this.ic('review',19), date:'28/05', sub:'Lặp lại theo lịch ghi nhớ', titleEl:this.htm('Ôn tập 5 bài đến hạn','',{fontSize:'.96rem',fontWeight:600,letterSpacing:'-.01em',color:'var(--ink)',lineHeight:1.35})},
+    ];
+
+    return {
+      theme:st.theme, isLogin, showShell, isDesktop, isMobile,
+      isDashboard: screen==='dashboard', isEmpty: screen==='empty',
+      isStudy: screen==='study', isEditor: screen==='editor', isQuiz: screen==='quiz',
+      isResult: screen==='result', isReview: screen==='review', isProfile: screen==='profile', isStreak: screen==='streak',
+      nav, tabsLeft:[nav[0],nav[1]], tabsRight:[nav[2],nav[3]],
+      filters, notes, statTiles,
+      notesEmpty: notes.length===0,
+      asideStyle, brandRowStyle, brandTextStyle, collapseIcon:this.ic('chevrons',18), collapseIconStyle,
+      collapseAtEdge, collapseAtHeader, collapseAtBottom, edgeBtnStyle, headerBtnStyle, bottomBtnStyle, bottomLabelStyle,
+      bottomLabel: collapsed?'Mở rộng':'Thu gọn',
+      onToggleSidebar:()=>{ this.setState(s=>{ const v=!s.sidebarCollapsed; try{localStorage.setItem('sm_sidebar',v?'1':'0');}catch(e){} return {sidebarCollapsed:v}; }); },
+      newLessonStyle, newLessonLabelStyle, streakBtnStyle, streakTextStyle, sidebarThemeStyle, sidebarThemeTextStyle,
+      sortOptions, sortLabel, sortOpen:st.sortOpen, onSortToggle:()=>this.setState(s=>({sortOpen:!s.sortOpen})), onSortClose:()=>this.setState({sortOpen:false}),
+      sortBtnStyle, sortCaretStyle, icSort:this.ic('filter',15), icChevDown:this.ic('chevDown',14),
+      goalRing: this.ringLabel(5/7, 92, 9, '5/7', '1.15rem'),
+      emptyIllus: this.emptyIllus(),
+      ico:{plus:this.ic('plus',20),arrow:this.ic('arrow',18),play:this.ic('play',15),flame:this.ic('flame',22),back:this.ic('back',24),sparkle:this.ic('sparkle',15)},
+      loginEmail:st.loginEmail, loginPw:st.loginPw, emailErr:st.emailErr, pwErr:st.pwErr,
+      pwType: st.showPw?'text':'password', pwIcon:this.ic(st.showPw?'eyeOn':'eyeOff',20),
+      onLoginEmail:(e)=>this.setState({loginEmail:e.target.value, emailErr:''}),
+      onLoginPw:(e)=>this.setState({loginPw:e.target.value, pwErr:''}),
+      onTogglePw:()=>this.setState(s=>({showPw:!s.showPw})),
+      onLoginSubmit:()=>this.loginSubmit(),
+      emailStyle: this.inputStyle(!!st.emailErr),
+      pwStyle: Object.assign(this.inputStyle(!!st.pwErr), {paddingRight:'52px'}),
+      emailErrStyle:{fontSize:'.82rem',color:'var(--rose)',marginTop:8,display:st.emailErr?'block':'none'},
+      pwErrStyle:{fontSize:'.82rem',color:'var(--rose)',marginTop:8,display:st.pwErr?'block':'none'},
+      loginArtStyle:{flex: isDesktop?'0 0 44%':'0 0 0', width: isDesktop?'44%':0, display: isDesktop?'flex':'none', alignItems:'flex-end', padding:'48px', background:'linear-gradient(160deg,var(--accent) 0%,var(--accent-press) 100%)', position:'relative', overflow:'hidden'},
+      themeIcon, themeLabel, onToggleTheme:()=>this.toggleTheme(),
+      goDashboard:this.go('dashboard'), goEditor:this.go('editor'), goStudy:this.go('study'), goStreak:this.go('streak'), goProfile:this.go('profile'),
+      headerTitle, showBack: pushed, onBack,
+      showBrandMobile: isMobile && !pushed,
+      contentStyle, shellStyle, topbarStyle, titleStyle, dashGridStyle, dashAsideStyle,
+      // study
+      recall, onStartQuiz:this.go('quiz'),
+      icStarFill:this.ic('starFill',20),
+      // editor
+      editorSubjects, editorDiffs,
+      newTag:st.newTag,
+      onNewTagInput:(e)=>this.setState({newTag:e.target.value.replace(/\+$/,'')}),
+      onTagKeyDown:(e)=>{ if(e.key==='Enter'||e.key==='+'){ e.preventDefault(); commitTag(); } else if(e.key==='Escape'){ this.setState({newTag:''}); } },
+      tagInputStyle:{height:38,width:128,padding:'0 14px',borderRadius:99,border:'1px dashed var(--border)',background:'transparent',fontFamily:'var(--body)',fontSize:'.85rem',color:'var(--ink)',transition:'border-color .16s ease'},
+      onEditorInput:(e)=>{ const t=(e.target.innerText||'').trim(); const w=t?t.split(/\s+/).filter(Boolean).length:0; this.setState({words:w, saving:true}); clearTimeout(this._saveT); this._saveT=setTimeout(()=>this.setState({saving:false}),900); },
+      onTitleInput:()=>{ this.setState({saving:true}); clearTimeout(this._saveT); this._saveT=setTimeout(()=>this.setState({saving:false}),900); },
+      words:st.words, saveText: st.saving?'Đang lưu…':'Đã lưu', saving:st.saving,
+      icSave:this.ic('check',14), icImage:this.ic('image',21), icReset:this.ic('reset',21),
+      // quiz
+      qTopic:qitem.topic, qTextEl:this.htm(qitem.q,'',{fontSize:'1.34rem',fontWeight:600,letterSpacing:'-.02em',lineHeight:1.32,color:'var(--ink)',textWrap:'pretty'}), options, answered, qExplEl:this.htm(qitem.expl,'',{fontSize:'.97rem',lineHeight:1.6,color:'var(--ink)'}),
+      qCountText:'Câu '+st.qNum+' / 10', qProgress:Math.min(st.qNum/10*100,100)+'%',
+      explStyle:{maxHeight:answered?'320px':'0',opacity:answered?1:0,marginTop:answered?'16px':'0',overflow:'hidden',borderRadius:16,background:'var(--accent-tint)',border:'1px solid '+(answered?'var(--border)':'transparent'),transition:'max-height .55s cubic-bezier(.2,.85,.25,1),opacity .45s ease,margin .45s ease,border-color .45s ease'},
+      dockStyle:{transform:answered?'none':'translateY(140%)',opacity:answered?1:0,transition:'transform .5s cubic-bezier(.2,.9,.3,1.25),opacity .35s ease',marginTop:'36px',display:'flex',flexDirection:'column',gap:'16px',alignItems:'center'},
+      onQuizNext:()=>{ this.setState(s=>({qNum:s.qNum+1, qIndex:(s.qIndex+1)%BANK.length, qAnswered:false, qChoice:null})); const el=document.querySelector('[data-scroll]'); if(el) el.scrollTop=0; },
+      onQuizClose:this.go('dashboard'), fIconColor, icInfo:this.ic('info',17), icArrow18:this.ic('arrow',18),
+      // result
+      growthChart:this.growthChart(), missed,
+      icTrend:this.ic('trend',14), icCal:this.ic('cal',23), icCheckBtn:this.ic('check',17), icHome:this.ic('home',17),
+      goReview:this.go('review'), goResultFromQuiz:this.go('result'),
+      // review
+      reviewRing:this.ringLabel(1/4, 64, 6, '1/4', '.85rem'), due, soon, icPlay:this.ic('play',17),
+      // profile
+      leaderboard, settings, onLogout:this.go('login'), icEdit:this.ic('edit',19), icLogout:this.ic('logout',18), icSparkleBig:this.ic('sparkle',24),
+      // streak
+      heatmap:this.heatmap(), ministats, timeline, icFlameBig:this.ic('flameFill',30),
+    };
+  }
+}
+</script>
+</body>
+</html>

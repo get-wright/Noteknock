@@ -57,6 +57,36 @@ async def test_register_duplicate_email_409(client: AsyncClient):
 
 
 @pytest.mark.asyncio
+async def test_register_duplicate_email_case_insensitive_409(client: AsyncClient):
+    r1 = await client.post(
+        "/api/register",
+        json={"name": "A", "email": "Dup@Test.com", "password": "secret123"},
+    )
+    assert r1.status_code == 200
+
+    r2 = await client.post(
+        "/api/register",
+        json={"name": "B", "email": "dup@test.com", "password": "secret123"},
+    )
+    assert r2.status_code == 409
+    assert r2.json()["detail"] == "An account with this email already exists."
+
+
+@pytest.mark.asyncio
+async def test_token_accepts_email_case_insensitive(client: AsyncClient):
+    await client.post(
+        "/api/register",
+        json={"name": "Case", "email": "case@test.com", "password": "secret123"},
+    )
+    r = await client.post(
+        "/api/token",
+        data={"username": "CASE@Test.com", "password": "secret123"},
+    )
+    assert r.status_code == 200
+    assert "access_token" in r.json()
+
+
+@pytest.mark.asyncio
 async def test_token_bad_creds_401(client: AsyncClient):
     await client.post(
         "/api/register",

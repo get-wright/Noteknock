@@ -1,0 +1,11 @@
+/* Peeky — Radius tokens. Generous, pillowy corners. 24px is the signature. */
+
+:root {
+  --radius-xs:   8px;
+  --radius-sm:   12px;
+  --radius-md:   16px;
+  --radius-lg:   24px;   /* SIGNATURE — cards, sheets, buttons */
+  --radius-xl:   32px;   /* photo cards, modals */
+  --radius-2xl:  40px;   /* full-bleed widgets */
+  --radius-pill: 999px;  /* chips, pills, round buttons */
+}

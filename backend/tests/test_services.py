@@ -1,4 +1,5 @@
 from app.services.content import blocks_to_text
+from app.services.search import parse_search
 from app.services.tags import extract_tags
 
 BLOCKS = [
@@ -90,6 +91,46 @@ def test_extract_tags_lowercase():
         {"type": "paragraph", "content": [{"type": "text", "text": "#ToÁn #LÝ", "styles": {}}]},
     ]
     assert extract_tags(blocks) == ["toán", "lý"]
+
+
+def test_extract_tags_followed_by_punctuation():
+    blocks = [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Ôn #toán, #lý. #hoá! (#vật-lý?)",
+                    "styles": {},
+                }
+            ],
+        },
+    ]
+    assert extract_tags(blocks) == ["toán", "lý", "hoá", "vật-lý"]
+
+
+def test_extract_tags_ignores_url_fragments():
+    blocks = [
+        {
+            "type": "paragraph",
+            "content": [
+                {
+                    "type": "text",
+                    "text": "Xem https://example.test/#section và #toán.",
+                    "styles": {},
+                }
+            ],
+        },
+    ]
+    assert extract_tags(blocks) == ["toán"]
+
+
+def test_parse_search_not_attaches_dash_to_next_term():
+    assert parse_search("tích NOT phương") == {
+        "match_all": False,
+        "tag": None,
+        "text": "tích -phương",
+    }
 
 
 def test_blocks_to_text_non_list_input_returns_empty():
