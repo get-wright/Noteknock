@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
+import { motion } from "motion/react";
 import { getAuthConfig } from "../api/auth";
 import { startGoogleSignIn } from "../auth/googleOAuth";
 
@@ -21,9 +22,10 @@ const buttonStyle: CSSProperties = {
 
 type Props = {
   returnTo?: string;
+  reduced?: boolean;
 };
 
-export default function GoogleSignInButton({ returnTo }: Props) {
+export default function GoogleSignInButton({ returnTo, reduced }: Props) {
   const [clientId, setClientId] = useState<string | null>(null);
   const [redirectUri, setRedirectUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,6 +44,7 @@ export default function GoogleSignInButton({ returnTo }: Props) {
           setRedirectUri(config.googleRedirectUri);
         }
       } catch {
+        /* config optional */
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -55,11 +58,22 @@ export default function GoogleSignInButton({ returnTo }: Props) {
     return null;
   }
 
+  const motionAllowed = !reduced;
+
   return (
-    <button
+    <motion.button
       type="button"
       style={buttonStyle}
       onClick={() => startGoogleSignIn(clientId, redirectUri, returnTo)}
+      whileHover={
+        motionAllowed ? { y: -2, scale: 1.01 } : undefined
+      }
+      whileTap={motionAllowed ? { scale: 0.98 } : undefined}
+      transition={
+        motionAllowed
+          ? { type: "spring", stiffness: 120, damping: 18 }
+          : undefined
+      }
     >
       <span
         style={{
@@ -78,6 +92,6 @@ export default function GoogleSignInButton({ returnTo }: Props) {
         G
       </span>
       Tiếp tục với Google
-    </button>
+    </motion.button>
   );
 }

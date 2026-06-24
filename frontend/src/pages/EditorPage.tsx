@@ -390,7 +390,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
       try {
         const items = await getRecall(savedTitle);
         setRecallItems(sortRecallItems(items));
-      } catch {}
+      } catch {
+        /* ignore */
+      }
       setRecallError(
         e instanceof Error ? e.message : "Không sắp xếp được điểm cần nhớ",
       );
