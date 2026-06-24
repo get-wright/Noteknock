@@ -313,10 +313,25 @@ function NoteRow({
 }) {
   const sub = subjectMeta(item.subject);
   const diff = diffMeta(item.difficulty);
-  const titleHtml = item.titleHighlights ?? item.title;
-  const excerptHtml =
-    item.contentHighlights ??
-    (item.excerpt ? item.excerpt : null);
+  const titleStyle: CSSProperties = {
+    fontFamily: "var(--display)",
+    fontSize: "1.08rem",
+    fontWeight: 600,
+    letterSpacing: "-.01em",
+    marginTop: 10,
+    lineHeight: 1.3,
+    color: "var(--ink)",
+  };
+  const excerptStyle: CSSProperties = {
+    color: "var(--muted)",
+    fontSize: ".92rem",
+    lineHeight: 1.5,
+    marginTop: 6,
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+  };
 
   return (
     <article
@@ -380,32 +395,21 @@ function NoteRow({
           {sub.label}
         </span>
       </div>
-      <h4
-        style={{
-          fontFamily: "var(--display)",
-          fontSize: "1.08rem",
-          fontWeight: 600,
-          letterSpacing: "-.01em",
-          marginTop: 10,
-          lineHeight: 1.3,
-          color: "var(--ink)",
-        }}
-        dangerouslySetInnerHTML={{ __html: titleHtml }}
-      />
-      {excerptHtml ? (
-        <p
-          style={{
-            color: "var(--muted)",
-            fontSize: ".92rem",
-            lineHeight: 1.5,
-            marginTop: 6,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-          dangerouslySetInnerHTML={{ __html: excerptHtml }}
+      {item.titleHighlights ? (
+        <h4
+          style={titleStyle}
+          dangerouslySetInnerHTML={{ __html: item.titleHighlights }}
         />
+      ) : (
+        <h4 style={titleStyle}>{item.title}</h4>
+      )}
+      {item.contentHighlights ? (
+        <p
+          style={excerptStyle}
+          dangerouslySetInnerHTML={{ __html: item.contentHighlights }}
+        />
+      ) : item.excerpt ? (
+        <p style={excerptStyle}>{item.excerpt}</p>
       ) : null}
       <div
         style={{
