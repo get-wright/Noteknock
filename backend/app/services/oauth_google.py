@@ -22,6 +22,16 @@ class GoogleProfile:
     email_verified: bool
 
 
+def _parse_json_response(resp: httpx.Response, *, context: str) -> dict[str, Any]:
+    try:
+        body = resp.json()
+    except ValueError as exc:
+        raise GoogleOAuthError(f"{context} returned invalid JSON.") from exc
+    if not isinstance(body, dict):
+        raise GoogleOAuthError(f"{context} returned an unexpected response.")
+    return body
+
+
 def _pick_signing_key(jwks: dict[str, Any], kid: str | None) -> dict[str, Any]:
     keys = jwks.get("keys") or []
     if kid:
@@ -42,6 +52,9 @@ def verify_google_id_token(id_token: str, client_id: str, jwks: dict[str, Any]) 
     key_data = _pick_signing_key(jwks, header.get("kid"))
     try:
         public_key = jwk.construct(key_data)
+    except Exception as exc:
+        raise GoogleOAuthError("Invalid Google signing key.") from exc
+    try:
         claims = jwt.decode(
             id_token,
             public_key,
@@ -75,11 +88,17 @@ def verify_google_id_token(id_token: str, client_id: str, jwks: dict[str, Any]) 
 
 
 async def fetch_google_jwks() -> dict[str, Any]:
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.get(GOOGLE_JWKS_URL)
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(GOOGLE_JWKS_URL)
+    except httpx.HTTPError as exc:
+        raise GoogleOAuthError("Failed to fetch Google signing keys.") from exc
     if resp.status_code != 200:
         raise GoogleOAuthError("Failed to fetch Google signing keys.")
-    return resp.json()
+    body = _parse_json_response(resp, context="Google signing keys")
+    if not isinstance(body.get("keys"), list):
+        raise GoogleOAuthError("Google signing keys response is malformed.")
+    return body
 
 
 async def exchange_code_for_tokens(
@@ -89,23 +108,26 @@ async def exchange_code_for_tokens(
     client_secret: str,
     redirect_uri: str,
 ) -> dict[str, Any]:
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.post(
-            GOOGLE_TOKEN_URL,
-            data={
-                "code": code,
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "redirect_uri": redirect_uri,
-                "grant_type": "authorization_code",
-            },
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                GOOGLE_TOKEN_URL,
+                data={
+                    "code": code,
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+    except httpx.HTTPError as exc:
+        raise GoogleOAuthError("Google sign-in could not be completed.") from exc
     if resp.status_code != 200:
         raise GoogleOAuthError("Google sign-in could not be completed.")
-    body = resp.json()
+    body = _parse_json_response(resp, context="Google token endpoint")
     id_token = body.get("id_token")
-    if not id_token:
+    if not isinstance(id_token, str) or not id_token.strip():
         raise GoogleOAuthError("Google did not return an ID token.")
     return body
 

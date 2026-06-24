@@ -5,6 +5,7 @@ export type Me = { id: string; name: string; email: string };
 export type AuthConfig = {
   authType: string;
   googleClientId?: string | null;
+  googleRedirectUri?: string | null;
 };
 
 export function register(data: {

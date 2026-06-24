@@ -58,6 +58,11 @@ def test_verify_google_id_token_accepts_valid_claims():
     assert profile.name == "Test User"
 
 
+def test_verify_google_id_token_rejects_malformed_jwks():
+    with pytest.raises(GoogleOAuthError):
+        verify_google_id_token("token", "client-id.apps.googleusercontent.com", {"keys": "bad"})
+
+
 def test_verify_google_id_token_rejects_unverified_email():
     key, private_pem, jwks = _rsa_jwk_for_tests()
     now = int(time.time())

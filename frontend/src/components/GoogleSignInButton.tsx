@@ -25,6 +25,7 @@ type Props = {
 
 export default function GoogleSignInButton({ returnTo }: Props) {
   const [clientId, setClientId] = useState<string | null>(null);
+  const [redirectUri, setRedirectUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,8 +33,13 @@ export default function GoogleSignInButton({ returnTo }: Props) {
     (async () => {
       try {
         const config = await getAuthConfig();
-        if (!cancelled && config.googleClientId) {
+        if (
+          !cancelled &&
+          config.googleClientId &&
+          config.googleRedirectUri
+        ) {
           setClientId(config.googleClientId);
+          setRedirectUri(config.googleRedirectUri);
         }
       } catch {
       } finally {
@@ -45,7 +51,7 @@ export default function GoogleSignInButton({ returnTo }: Props) {
     };
   }, []);
 
-  if (loading || !clientId) {
+  if (loading || !clientId || !redirectUri) {
     return null;
   }
 
@@ -53,7 +59,7 @@ export default function GoogleSignInButton({ returnTo }: Props) {
     <button
       type="button"
       style={buttonStyle}
-      onClick={() => startGoogleSignIn(clientId, returnTo)}
+      onClick={() => startGoogleSignIn(clientId, redirectUri, returnTo)}
     >
       <span
         style={{

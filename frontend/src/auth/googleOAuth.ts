@@ -9,11 +9,11 @@ function randomState(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export function getGoogleRedirectUri(): string {
-  return `${window.location.origin}/auth/google/callback`;
-}
-
-export function startGoogleSignIn(clientId: string, returnTo?: string): void {
+export function startGoogleSignIn(
+  clientId: string,
+  redirectUri: string,
+  returnTo?: string,
+): void {
   const state = randomState();
   sessionStorage.setItem(OAUTH_STATE_KEY, state);
   if (returnTo) {
@@ -23,7 +23,7 @@ export function startGoogleSignIn(clientId: string, returnTo?: string): void {
   }
   const params = new URLSearchParams({
     client_id: clientId,
-    redirect_uri: getGoogleRedirectUri(),
+    redirect_uri: redirectUri,
     response_type: "code",
     scope: GOOGLE_SCOPE,
     state,

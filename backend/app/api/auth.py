@@ -137,5 +137,10 @@ async def config() -> AuthConfigOut:
         return AuthConfigOut(
             auth_type="password+google",
             google_client_id=settings.google_client_id,
+            google_redirect_uri=settings.google_redirect_uri,
         )
-    return AuthConfigOut(auth_type="password", google_client_id=None)
+    return AuthConfigOut(
+        auth_type="password",
+        google_client_id=None,
+        google_redirect_uri=None,
+    )

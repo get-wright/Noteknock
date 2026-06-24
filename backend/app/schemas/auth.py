@@ -51,3 +51,4 @@ class GoogleOAuthRequest(CamelModel):
 class AuthConfigOut(CamelModel):
     auth_type: str
     google_client_id: str | None = None
+    google_redirect_uri: str | None = None

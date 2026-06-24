@@ -15,31 +15,49 @@ export default function OAuthCallback() {
   const started = useRef(false);
 
   useEffect(() => {
+    let active = true;
+
     if (token) {
       navigate("/app", { replace: true });
-      return;
+      return () => {
+        active = false;
+      };
     }
-    if (started.current) return;
+    if (started.current) {
+      return () => {
+        active = false;
+      };
+    }
     started.current = true;
 
     const oauthError = searchParams.get("error");
     if (oauthError) {
-      setError("Đăng nhập Google đã bị hủy hoặc thất bại.");
-      return;
+      if (active) {
+        setError("Đăng nhập Google đã bị hủy hoặc thất bại.");
+      }
+      return () => {
+        active = false;
+      };
     }
 
     const code = searchParams.get("code");
     const state = searchParams.get("state");
     if (!code || !consumeGoogleOAuthState(state)) {
-      setError("Phiên đăng nhập Google không hợp lệ. Vui lòng thử lại.");
-      return;
+      if (active) {
+        setError("Phiên đăng nhập Google không hợp lệ. Vui lòng thử lại.");
+      }
+      return () => {
+        active = false;
+      };
     }
 
     (async () => {
       try {
         await completeOAuth(code);
+        if (!active) return;
         navigate(consumeGoogleOAuthReturnTo(), { replace: true });
       } catch (err) {
+        if (!active) return;
         setError(
           err instanceof ApiError
             ? err.message
@@ -47,6 +65,10 @@ export default function OAuthCallback() {
         );
       }
     })();
+
+    return () => {
+      active = false;
+    };
   }, [completeOAuth, navigate, searchParams, token]);
 
   return (

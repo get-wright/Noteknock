@@ -119,6 +119,7 @@ async def test_config_password_only_when_google_unconfigured(client: AsyncClient
     body = r.json()
     assert body["authType"] == "password"
     assert body.get("googleClientId") in (None, "")
+    assert body.get("googleRedirectUri") in (None, "")
 
 
 @pytest.mark.asyncio
