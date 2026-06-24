@@ -211,7 +211,8 @@ async def test_html_extension_rejected_even_with_allowed_content_type(
 async def test_extension_content_type_mismatch_rejected(client, auth_token, fake_storage):
     resp = await client.post(
         "/api/attachments",
-        files={"file": ("evil.html", b"plain text", "text/plain")},
+        files={"file": ("notes.pdf", b"not a jpeg", "image/jpeg")},
         headers={"Authorization": f"Bearer {auth_token}"},
     )
     assert resp.status_code == 400
+    assert resp.json()["detail"] == "File extension does not match content type"
