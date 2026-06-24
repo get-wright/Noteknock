@@ -49,7 +49,7 @@ export function insertPdfItem(editor: Editor) {
         "after",
       );
     },
-    aliases: ["pdf", "tài liệu", "tai lieu"],
+    aliases: ["pdf", "xem trước pdf", "xem truoc pdf", "preview pdf"],
     icon: createElement(FileText, { size: 18 }),
   };
 }

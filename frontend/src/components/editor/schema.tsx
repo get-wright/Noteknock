@@ -25,33 +25,80 @@ function formatBytes(bytes: number): string {
   return `${rounded} ${units[unitIndex]}`;
 }
 
+function isAttachmentAppUrl(url: string): boolean {
+  return url.includes("/api/attachments/");
+}
+
+type ResolvedAttachmentUrlState = {
+  sourceUrl: string;
+  previewUrl: string | null;
+  downloadUrl: string | null;
+  isResolving: boolean;
+  hasError: boolean;
+};
+
+const emptyResolvedAttachmentUrlState: ResolvedAttachmentUrlState = {
+  sourceUrl: "",
+  previewUrl: null,
+  downloadUrl: null,
+  isResolving: false,
+  hasError: false,
+};
+
 function useResolvedAttachmentUrls(url: string) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [state, setState] = useState<ResolvedAttachmentUrlState>(
+    emptyResolvedAttachmentUrlState,
+  );
 
   useEffect(() => {
     if (!url) {
-      setPreviewUrl(null);
-      setDownloadUrl(null);
+      setState(emptyResolvedAttachmentUrlState);
+      return;
+    }
+
+    if (!isAttachmentAppUrl(url)) {
+      setState({
+        ...emptyResolvedAttachmentUrlState,
+        sourceUrl: url,
+      });
       return;
     }
 
     let cancelled = false;
 
-    void resolveAttachmentPreviewUrl(url)
-      .then((resolved) => {
-        if (!cancelled) setPreviewUrl(resolved);
-      })
-      .catch(() => {
-        if (!cancelled) setPreviewUrl(url);
-      });
+    setState({
+      sourceUrl: url,
+      previewUrl: null,
+      downloadUrl: null,
+      isResolving: true,
+      hasError: false,
+    });
 
-    void resolveAttachmentDownloadUrl(url)
-      .then((resolved) => {
-        if (!cancelled) setDownloadUrl(resolved);
+    void Promise.all([
+      resolveAttachmentPreviewUrl(url),
+      resolveAttachmentDownloadUrl(url),
+    ])
+      .then(([previewUrl, downloadUrl]) => {
+        if (!cancelled) {
+          setState({
+            sourceUrl: url,
+            previewUrl,
+            downloadUrl,
+            isResolving: false,
+            hasError: false,
+          });
+        }
       })
       .catch(() => {
-        if (!cancelled) setDownloadUrl(url);
+        if (!cancelled) {
+          setState({
+            sourceUrl: url,
+            previewUrl: null,
+            downloadUrl: null,
+            isResolving: false,
+            hasError: true,
+          });
+        }
       });
 
     return () => {
@@ -59,7 +106,43 @@ function useResolvedAttachmentUrls(url: string) {
     };
   }, [url]);
 
-  return { previewUrl, downloadUrl };
+  if (!url) {
+    return {
+      previewUrl: null,
+      downloadUrl: null,
+      isAttachmentUrl: false,
+      isResolving: false,
+      hasError: false,
+    };
+  }
+
+  if (!isAttachmentAppUrl(url)) {
+    return {
+      previewUrl: null,
+      downloadUrl: null,
+      isAttachmentUrl: false,
+      isResolving: false,
+      hasError: false,
+    };
+  }
+
+  if (state.sourceUrl !== url) {
+    return {
+      previewUrl: null,
+      downloadUrl: null,
+      isAttachmentUrl: true,
+      isResolving: true,
+      hasError: false,
+    };
+  }
+
+  return {
+    previewUrl: state.previewUrl,
+    downloadUrl: state.downloadUrl,
+    isAttachmentUrl: true,
+    isResolving: state.isResolving,
+    hasError: state.hasError,
+  };
 }
 
 type PdfBlockProps = {
@@ -72,7 +155,13 @@ type PdfBlockProps = {
 
 function PdfBlockView({ props }: { props: PdfBlockProps }) {
   const { url, name, caption, showPreview, previewWidth } = props;
-  const { previewUrl, downloadUrl } = useResolvedAttachmentUrls(url);
+  const {
+    previewUrl,
+    downloadUrl,
+    isAttachmentUrl,
+    isResolving,
+    hasError,
+  } = useResolvedAttachmentUrls(url);
   const displayName = name || "PDF";
 
   if (!url) {
@@ -100,7 +189,15 @@ function PdfBlockView({ props }: { props: PdfBlockProps }) {
               <ExternalLink size={16} />
               Mở
             </a>
-          ) : null}
+          ) : (
+            <span
+              className="bn-pdf-action bn-attachment-action--disabled"
+              aria-disabled="true"
+            >
+              <ExternalLink size={16} />
+              Mở
+            </span>
+          )}
           {downloadUrl ? (
             <a
               className="bn-pdf-action"
@@ -112,10 +209,31 @@ function PdfBlockView({ props }: { props: PdfBlockProps }) {
               <Download size={16} />
               Tải xuống
             </a>
-          ) : null}
+          ) : (
+            <span
+              className="bn-pdf-action bn-attachment-action--disabled"
+              aria-disabled="true"
+            >
+              <Download size={16} />
+              Tải xuống
+            </span>
+          )}
         </div>
       </div>
-      {showPreview && previewUrl ? (
+      {!isAttachmentUrl ? (
+        <p className="bn-attachment-status bn-attachment-status--error">
+          URL này không phải tệp đính kèm đã tải lên.
+        </p>
+      ) : null}
+      {isAttachmentUrl && isResolving ? (
+        <p className="bn-attachment-status">Đang chuẩn bị xem trước…</p>
+      ) : null}
+      {isAttachmentUrl && hasError ? (
+        <p className="bn-attachment-status bn-attachment-status--error">
+          Không thể tạo liên kết xem trước hoặc tải xuống.
+        </p>
+      ) : null}
+      {isAttachmentUrl && showPreview && previewUrl ? (
         <iframe
           className="bn-pdf-frame"
           src={previewUrl}
@@ -137,7 +255,13 @@ type MaterialBlockProps = {
 
 function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
   const { url, name, contentType, sizeBytes } = props;
-  const { previewUrl, downloadUrl } = useResolvedAttachmentUrls(url);
+  const {
+    previewUrl,
+    downloadUrl,
+    isAttachmentUrl,
+    isResolving,
+    hasError,
+  } = useResolvedAttachmentUrls(url);
   const displayName = name || "Tài liệu";
   const metaParts = [contentType, formatBytes(sizeBytes)].filter(Boolean);
 
@@ -164,6 +288,19 @@ function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
         {metaParts.length > 0 ? (
           <span className="bn-material-meta">{metaParts.join(" · ")}</span>
         ) : null}
+        {!isAttachmentUrl ? (
+          <span className="bn-attachment-status bn-attachment-status--error">
+            URL này không phải tệp đính kèm đã tải lên.
+          </span>
+        ) : null}
+        {isAttachmentUrl && isResolving ? (
+          <span className="bn-attachment-status">Đang chuẩn bị liên kết…</span>
+        ) : null}
+        {isAttachmentUrl && hasError ? (
+          <span className="bn-attachment-status bn-attachment-status--error">
+            Không thể tạo liên kết xem trước hoặc tải xuống.
+          </span>
+        ) : null}
       </div>
       <div className="bn-material-actions">
         {previewUrl ? (
@@ -176,7 +313,15 @@ function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
             <ExternalLink size={16} />
             Mở
           </a>
-        ) : null}
+        ) : (
+          <span
+            className="bn-material-action bn-attachment-action--disabled"
+            aria-disabled="true"
+          >
+            <ExternalLink size={16} />
+            Mở
+          </span>
+        )}
         {downloadUrl ? (
           <a
             className="bn-material-action"
@@ -188,7 +333,15 @@ function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
             <Download size={16} />
             Tải xuống
           </a>
-        ) : null}
+        ) : (
+          <span
+            className="bn-material-action bn-attachment-action--disabled"
+            aria-disabled="true"
+          >
+            <Download size={16} />
+            Tải xuống
+          </span>
+        )}
       </div>
     </div>
   );
