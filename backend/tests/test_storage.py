@@ -1,6 +1,8 @@
 import pytest
 
+import app.services.storage as storage_module
 from app.services.storage import (
+    StorageService,
     UploadValidationError,
     build_object_key,
     classify_content_disposition,
@@ -35,8 +37,75 @@ def test_validate_upload_rejects_oversized_file():
         validate_upload("huge.pdf", "application/pdf", 26 * 1024 * 1024)
 
 
+def test_validate_upload_rejects_negative_size():
+    with pytest.raises(UploadValidationError):
+        validate_upload("negative.pdf", "application/pdf", -1)
+
+
+def test_validate_upload_rejects_unsupported_mime_type():
+    with pytest.raises(UploadValidationError):
+        validate_upload("script.html", "text/html", 1024)
+
+
 def test_risky_types_force_attachment():
     assert classify_content_disposition("image/png") == "inline"
     assert classify_content_disposition("application/pdf") == "inline"
     assert classify_content_disposition("image/svg+xml") == "attachment"
     assert classify_content_disposition("text/html") == "attachment"
+
+
+class FakeMinioClient:
+    def __init__(self):
+        self.response_headers = None
+
+    def presigned_get_object(self, *_args, response_headers=None, **_kwargs):
+        self.response_headers = response_headers
+        return "https://storage.invalid/presigned"
+
+
+def test_presigned_get_url_sanitizes_content_disposition_filename():
+    service = StorageService()
+    client = FakeMinioClient()
+    service._client = client
+
+    service.presigned_get_url(
+        "owner-id/key",
+        'notes"; filename="evil.exe',
+        "application/pdf",
+    )
+
+    header = client.response_headers["response-content-disposition"]
+    assert header.startswith("inline; ")
+    assert 'filename="notes filename=evil.exe"' in header
+    assert '; filename="evil.exe"' not in header
+    assert header.count('filename="') == 1
+
+
+def test_presigned_get_url_download_forces_attachment_for_inline_type():
+    service = StorageService()
+    client = FakeMinioClient()
+    service._client = client
+
+    service.presigned_get_url(
+        "owner-id/key",
+        "image.png",
+        "image/png",
+        download=True,
+    )
+
+    header = client.response_headers["response-content-disposition"]
+    assert header.startswith("attachment; ")
+
+
+def test_storage_service_uses_default_region_to_avoid_presign_lookup(monkeypatch):
+    init_kwargs = {}
+
+    class FakeMinio:
+        def __init__(self, *_args, **kwargs):
+            init_kwargs.update(kwargs)
+
+    monkeypatch.setattr(storage_module, "Minio", FakeMinio)
+
+    StorageService()
+
+    assert init_kwargs["region"] == "us-east-1"
