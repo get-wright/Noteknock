@@ -20,6 +20,7 @@ import {
   insertFormulaItem,
   insertMaterialItem,
   insertPdfItem,
+  type UploadAttachmentForBlock,
 } from "./slashMenu";
 import "./theme.css";
 
@@ -29,6 +30,7 @@ export type EditorProps = {
   readOnly?: boolean;
   noteId?: string;
   onUploadError?: (file: File, error: Error) => void;
+  onUploadSuccess?: (file: File) => void;
 };
 
 function toPartialBlocks(initialContent: unknown[] | undefined) {
@@ -44,16 +46,19 @@ function EditorEditable({
   onChange,
   noteId,
   onUploadError,
+  onUploadSuccess,
 }: {
   initialContent?: unknown[];
   onChange?: (blocks: unknown[]) => void;
   noteId?: string;
   onUploadError?: (file: File, error: Error) => void;
+  onUploadSuccess?: (file: File) => void;
 }) {
   const { theme } = useTheme();
 
   const noteIdRef = useRef(noteId);
   const onUploadErrorRef = useRef(onUploadError);
+  const onUploadSuccessRef = useRef(onUploadSuccess);
 
   useEffect(() => {
     noteIdRef.current = noteId;
@@ -63,13 +68,16 @@ function EditorEditable({
     onUploadErrorRef.current = onUploadError;
   }, [onUploadError]);
 
-  const editor = useCreateBlockNote({
-    schema,
-    initialContent: toPartialBlocks(initialContent),
-    uploadFile: async (file) => {
+  useEffect(() => {
+    onUploadSuccessRef.current = onUploadSuccess;
+  }, [onUploadSuccess]);
+
+  const uploadAttachmentForBlock = useCallback<UploadAttachmentForBlock>(
+    async (file) => {
       try {
         const attachment = await uploadAttachment(file, noteIdRef.current);
-        return attachment.url;
+        onUploadSuccessRef.current?.(file);
+        return attachment;
       } catch (error) {
         onUploadErrorRef.current?.(
           file,
@@ -77,6 +85,16 @@ function EditorEditable({
         );
         throw error;
       }
+    },
+    [],
+  );
+
+  const editor = useCreateBlockNote({
+    schema,
+    initialContent: toPartialBlocks(initialContent),
+    uploadFile: async (file) => {
+      const attachment = await uploadAttachmentForBlock(file);
+      return attachment.url;
     },
     resolveFileUrl: resolveAttachmentPreviewUrl,
   });
@@ -108,8 +126,8 @@ function EditorEditable({
           filterSuggestionItems(
             [
               insertFormulaItem(editor),
-              insertPdfItem(editor),
-              insertMaterialItem(editor),
+              insertPdfItem(editor, uploadAttachmentForBlock),
+              insertMaterialItem(editor, uploadAttachmentForBlock),
               ...getDefaultReactSlashMenuItems(editor),
             ],
             query,
@@ -154,6 +172,7 @@ export function Editor({
   readOnly,
   noteId,
   onUploadError,
+  onUploadSuccess,
 }: EditorProps) {
   if (readOnly) {
     return <EditorReadOnly initialContent={initialContent} />;
@@ -164,6 +183,7 @@ export function Editor({
       onChange={onChange}
       noteId={noteId}
       onUploadError={onUploadError}
+      onUploadSuccess={onUploadSuccess}
     />
   );
 }

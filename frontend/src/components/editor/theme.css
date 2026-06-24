@@ -233,3 +233,42 @@
 .bn-material-body .bn-attachment-status {
   padding: 0;
 }
+
+.editor-upload-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--rose) 35%, var(--border));
+  background: color-mix(in srgb, var(--rose) 8%, var(--paper));
+}
+
+.editor-upload-error__text {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--rose);
+}
+
+.editor-upload-error__dismiss {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: -2px -2px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--rose);
+  cursor: pointer;
+}
+
+.editor-upload-error__dismiss:hover {
+  background: color-mix(in srgb, var(--rose) 12%, transparent);
+}
