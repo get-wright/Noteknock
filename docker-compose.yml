@@ -15,6 +15,24 @@ services:
       timeout: 5s
       retries: 10
 
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: noteknock
+      MINIO_ROOT_PASSWORD: noteknock-secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   backend:
     build: ./backend
     env_file:
@@ -23,6 +41,8 @@ services:
       - "8000:8000"
     depends_on:
       postgres:
+        condition: service_healthy
+      minio:
         condition: service_healthy
 
   frontend:
@@ -35,3 +55,4 @@ services:
 
 volumes:
   pgdata:
+  miniodata:
