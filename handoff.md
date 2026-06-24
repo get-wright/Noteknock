@@ -1,6 +1,18 @@
 # Noteknock — Handoff
 
-StudyMap (Vietnamese study/notes app, Peeky design system) ported to a real web app, with flatnotes' note functionality on a Postgres backend. This doc is the baseline: decisions, specs, and the build order. **Nothing is built yet** — research + design direction only.
+StudyMap (Vietnamese study/notes app, Peeky design system) ported to a real web app, with flatnotes' note functionality on a Postgres backend. This doc started as the baseline research/design handoff; the active implementation source of truth is now `docs/plans/2026-06-23-noteknock-full-build.md`, which supersedes older details here when they conflict.
+
+## Handoff Maintenance
+
+- After finishing any implementation task from `docs/plans/2026-06-23-noteknock-full-build.md`, update this file before moving to the next task.
+- Record the completed task, commit SHA(s), verification run, spec/code review status, blockers, and the next planned task.
+- Keep this section concise; do not duplicate the full plan. Prefer links/commit IDs plus high-signal notes future agents would otherwise miss.
+
+## Current Status
+
+- Phase 3 backend through P3.3 is complete and reviewed: recall items/generation, quiz models/migration `0004`, quiz generation API, quiz attempts, review events, activity, and streak APIs.
+- Latest completed plan task: P3.3 `Add quiz attempts and activity APIs` (`e02acf3`), with spec-review and code-review gates passed.
+- Next plan task: P3.4 frontend quiz screens unless the user redirects.
 
 ---
 
