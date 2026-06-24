@@ -86,10 +86,17 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
     initialDifficulty,
     loadedAt = 0,
     hydrateKey = 0,
-    onSaved,
-    onError,
-    onPromotedFromNew,
   } = opts;
+
+  const onSavedRef = useRef(opts.onSaved);
+  const onErrorRef = useRef(opts.onError);
+  const onPromotedFromNewRef = useRef(opts.onPromotedFromNew);
+
+  useEffect(() => {
+    onSavedRef.current = opts.onSaved;
+    onErrorRef.current = opts.onError;
+    onPromotedFromNewRef.current = opts.onPromotedFromNew;
+  });
 
   const [content, setContentState] = useState<unknown[]>(initialContent);
   const [subject, setSubjectState] = useState<string | null>(initialSubject);
@@ -183,7 +190,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
           });
           isNewRef.current = false;
           originalTitleRef.current = note.title;
-          onPromotedFromNew?.(note);
+          onPromotedFromNewRef.current?.(note);
         } else {
           const patch: Parameters<typeof updateNote>[1] = {
             newContent: contentRef.current,
@@ -202,7 +209,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
           clearDraft(draftKey);
           setDirty(false);
           setSaveText("Đã lưu");
-          onSaved?.(note);
+          onSavedRef.current?.(note);
         }
       } while (pendingSaveRef.current);
     } catch (e) {
@@ -214,12 +221,12 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
             ? e.message
             : "Lưu thất bại";
       setSaveText("Lỗi lưu");
-      onError?.(message);
+      onErrorRef.current?.(message);
     } finally {
       savingRef.current = false;
       setSaving(false);
     }
-  }, [draftKey, onError, onPromotedFromNew, onSaved]);
+  }, [draftKey]);
 
   const scheduleSave = useCallback(() => {
     setDirty(true);
