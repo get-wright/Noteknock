@@ -1,8 +1,16 @@
+import json
+
 import httpx
 
 from app.config import LLMSettings
 
 llm_settings = LLMSettings()
+
+
+def parse_chat_completion(raw: str) -> str:
+    decoder = json.JSONDecoder()
+    data, _ = decoder.raw_decode(raw.strip())
+    return data["choices"][0]["message"]["content"]
 
 
 async def call_llm(prompt: str, system: str = "") -> str:
@@ -19,5 +27,4 @@ async def call_llm(prompt: str, system: str = "") -> str:
             json={"model": llm_settings.llm_model, "messages": messages},
         )
         response.raise_for_status()
-        data = response.json()
-    return data["choices"][0]["message"]["content"]
+        return parse_chat_completion(response.text)
