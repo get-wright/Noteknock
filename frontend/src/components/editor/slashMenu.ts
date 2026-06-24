@@ -1,5 +1,5 @@
 import type { BlockNoteEditor } from "@blocknote/core";
-import { Sigma } from "lucide-react";
+import { File, FileText, Sigma } from "lucide-react";
 import { createElement } from "react";
 
 import type { schema } from "./schema";
@@ -24,5 +24,59 @@ export function insertFormulaItem(editor: Editor) {
     },
     aliases: ["formula", "công thức", "cong thuc"],
     icon: createElement(Sigma, { size: 18 }),
+  };
+}
+
+export function insertPdfItem(editor: Editor) {
+  return {
+    title: "PDF",
+    subtext: "Chèn khối xem trước PDF",
+    onItemClick: () => {
+      const pos = editor.getTextCursorPosition();
+      editor.insertBlocks(
+        [
+          {
+            type: "pdf",
+            props: {
+              url: "",
+              name: "",
+              caption: "",
+              showPreview: true,
+            },
+          },
+        ],
+        pos.block,
+        "after",
+      );
+    },
+    aliases: ["pdf", "tài liệu", "tai lieu"],
+    icon: createElement(FileText, { size: 18 }),
+  };
+}
+
+export function insertMaterialItem(editor: Editor) {
+  return {
+    title: "Tệp tài liệu",
+    subtext: "Chèn thẻ tệp DOCX và tài liệu học",
+    onItemClick: () => {
+      const pos = editor.getTextCursorPosition();
+      editor.insertBlocks(
+        [
+          {
+            type: "material",
+            props: {
+              url: "",
+              name: "",
+              contentType: "",
+              sizeBytes: 0,
+            },
+          },
+        ],
+        pos.block,
+        "after",
+      );
+    },
+    aliases: ["file", "docx", "material", "tài liệu", "tai lieu"],
+    icon: createElement(File, { size: 18 }),
   };
 }

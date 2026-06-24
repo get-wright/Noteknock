@@ -16,7 +16,11 @@ import {
 } from "../../api/attachments";
 import { useTheme } from "../../hooks/useTheme";
 import { schema } from "./schema";
-import { insertFormulaItem } from "./slashMenu";
+import {
+  insertFormulaItem,
+  insertMaterialItem,
+  insertPdfItem,
+} from "./slashMenu";
 import "./theme.css";
 
 export type EditorProps = {
@@ -104,6 +108,8 @@ function EditorEditable({
           filterSuggestionItems(
             [
               insertFormulaItem(editor),
+              insertPdfItem(editor),
+              insertMaterialItem(editor),
               ...getDefaultReactSlashMenuItems(editor),
             ],
             query,
