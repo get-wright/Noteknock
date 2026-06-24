@@ -24,17 +24,27 @@ async function throwApiError(res: Response): Promise<never> {
   throw new ApiError(res.status, message);
 }
 
-function parseAttachmentId(url: string): string | null {
-  if (!url.includes("/api/attachments/")) {
-    return null;
-  }
+export function parseAttachmentId(url: string): string | null {
   try {
-    const pathname = new URL(url, API_BASE).pathname;
-    const match = pathname.match(ATTACHMENT_PATH);
-    return match?.[1] ?? null;
+    const apiBase = new URL(API_BASE);
+    const parsedUrl = new URL(url, apiBase);
+    if (parsedUrl.origin !== apiBase.origin) {
+      return null;
+    }
+
+    const match = parsedUrl.pathname.match(ATTACHMENT_PATH);
+    if (!match || parsedUrl.search || parsedUrl.hash) {
+      return null;
+    }
+
+    return match[1];
   } catch {
     return null;
   }
+}
+
+export function isAttachmentAppUrl(url: string): boolean {
+  return parseAttachmentId(url) !== null;
 }
 
 async function resolveAttachmentUrl(

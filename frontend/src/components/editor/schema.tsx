@@ -7,6 +7,7 @@ import { Download, ExternalLink, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import {
+  isAttachmentAppUrl,
   resolveAttachmentDownloadUrl,
   resolveAttachmentPreviewUrl,
 } from "../../api/attachments";
@@ -23,10 +24,6 @@ function formatBytes(bytes: number): string {
   const rounded =
     size < 10 && unitIndex > 0 ? size.toFixed(1) : String(Math.round(size));
   return `${rounded} ${units[unitIndex]}`;
-}
-
-function isAttachmentAppUrl(url: string): boolean {
-  return url.includes("/api/attachments/");
 }
 
 type ResolvedAttachmentUrlState = {
