@@ -156,12 +156,19 @@ export default function EditorPage({ mode }: EditorPageProps) {
       setIsNew(false);
       setOriginalTitle(note.title);
       setTitle(note.title);
-      navigate(`/app/notes/${note.title}`, {
+      navigate(`/app/notes/${encodeURIComponent(note.title)}`, {
         replace: true,
       });
     },
-    onSaved: () => {
+    onSaved: (note) => {
       setTitleError(null);
+      if (note.title !== originalTitle) {
+        setOriginalTitle(note.title);
+        setTitle(note.title);
+        navigate(`/app/notes/${encodeURIComponent(note.title)}/edit`, {
+          replace: true,
+        });
+      }
     },
   });
 
