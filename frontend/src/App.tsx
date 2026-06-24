@@ -14,6 +14,7 @@ import QuizResultPage from "./pages/QuizResult";
 import ReviewPage from "./pages/Review";
 import StreakPage from "./pages/Streak";
 import ProfilePage from "./pages/Profile";
+import AppShell from "./components/AppShell";
 
 export default function App() {
   useTheme();
@@ -29,74 +30,20 @@ export default function App() {
             path="/app"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <AppShell />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/app/new"
-            element={
-              <ProtectedRoute>
-                <EditorPage mode="new" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/notes/:title/edit"
-            element={
-              <ProtectedRoute>
-                <EditorPage mode="edit" />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/notes/:title/quiz/result"
-            element={
-              <ProtectedRoute>
-                <QuizResultPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/notes/:title/quiz"
-            element={
-              <ProtectedRoute>
-                <QuizPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/notes/:title"
-            element={
-              <ProtectedRoute>
-                <Study />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/review"
-            element={
-              <ProtectedRoute>
-                <ReviewPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/streak"
-            element={
-              <ProtectedRoute>
-                <StreakPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/app/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="new" element={<EditorPage mode="new" />} />
+            <Route path="notes/:title/edit" element={<EditorPage mode="edit" />} />
+            <Route path="notes/:title/quiz/result" element={<QuizResultPage />} />
+            <Route path="notes/:title/quiz" element={<QuizPage />} />
+            <Route path="notes/:title" element={<Study />} />
+            <Route path="review" element={<ReviewPage />} />
+            <Route path="streak" element={<StreakPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

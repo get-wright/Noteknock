@@ -1,0 +1,226 @@
+.sm-shell {
+  min-height: 100vh;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+.sm-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 252px;
+  padding: 22px 16px;
+  border-right: 1px solid var(--border);
+  background: color-mix(in srgb, var(--canvas) 88%, var(--paper));
+  backdrop-filter: blur(18px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 20;
+}
+
+.sm-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  padding: 4px 2px 10px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--body);
+}
+
+.sm-brand-tile {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 1.28rem;
+  font-weight: 700;
+  box-shadow: var(--coral-glow);
+}
+
+.sm-brand-name {
+  display: block;
+  font-family: var(--display);
+  font-size: 1.24rem;
+  font-weight: 700;
+  letter-spacing: -.03em;
+}
+
+.sm-brand-sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: .76rem;
+  font-weight: 500;
+}
+
+.sm-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sm-side-link,
+.sm-theme-toggle,
+.sm-new-lesson {
+  min-height: 44px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 13px;
+  font-family: var(--body);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.sm-side-link {
+  color: var(--muted);
+  border: 1px solid transparent;
+}
+
+.sm-side-link:hover,
+.sm-side-link.is-active {
+  color: var(--ink);
+  background: var(--paper);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+
+.sm-side-link.is-active svg {
+  color: var(--accent);
+}
+
+.sm-new-lesson {
+  margin-top: 2px;
+  border: 0;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--coral-glow);
+}
+
+.sm-sidebar-spacer {
+  flex: 1;
+}
+
+.sm-streak-pill {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 650;
+}
+
+.sm-flame-dot {
+  width: 27px;
+  height: 27px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  animation: sm-breathe 2.8s ease-in-out infinite;
+}
+
+.sm-theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.sm-shell-main {
+  min-height: 100vh;
+  margin-left: 252px;
+}
+
+.sm-bottom-tabs,
+.sm-mobile-fab {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .sm-sidebar {
+    display: none;
+  }
+
+  .sm-shell-main {
+    margin-left: 0;
+    padding-bottom: 88px;
+  }
+
+  .sm-bottom-tabs {
+    position: fixed;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    height: 64px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: var(--bar);
+    backdrop-filter: blur(18px);
+    box-shadow: var(--shadow-lift);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    z-index: 30;
+    overflow: hidden;
+  }
+
+  .sm-bottom-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: .68rem;
+    font-weight: 700;
+  }
+
+  .sm-bottom-link.is-active {
+    color: var(--accent);
+    background: var(--accent-tint);
+  }
+
+  .sm-mobile-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 92px;
+    width: 54px;
+    height: 54px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--coral-glow);
+    z-index: 31;
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sm-flame-dot {
+    animation: none;
+  }
+}
