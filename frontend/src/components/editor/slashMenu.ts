@@ -12,6 +12,7 @@ type Editor = BlockNoteEditor<
 >;
 
 export type UploadAttachmentForBlock = (file: File) => Promise<Attachment>;
+export type ReportUploadError = (file: File, error: Error) => void;
 
 const MATERIAL_ACCEPT =
   ".doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.pdf";
@@ -40,6 +41,10 @@ export function formatContentType(file: File): string {
   return ext ? (CONTENT_TYPE_BY_EXT[ext] ?? "") : "";
 }
 
+function toError(error: unknown, fallbackMessage: string): Error {
+  return error instanceof Error ? error : new Error(fallbackMessage);
+}
+
 export function pickFile(accept: string): Promise<File | null> {
   return new Promise((resolve) => {
     const input = document.createElement("input");
@@ -48,6 +53,7 @@ export function pickFile(accept: string): Promise<File | null> {
     input.style.display = "none";
 
     let settled = false;
+    let pickerOpenedAt = 0;
     const finish = (file: File | null) => {
       if (settled) return;
       settled = true;
@@ -61,25 +67,59 @@ export function pickFile(accept: string): Promise<File | null> {
     });
 
     const onWindowFocus = () => {
-      window.setTimeout(() => finish(input.files?.[0] ?? null), 300);
+      const elapsed = Date.now() - pickerOpenedAt;
+      const settleDelay = elapsed < 600 ? 800 : 350;
+      window.setTimeout(() => {
+        if (input.files?.length) {
+          finish(input.files[0]);
+          return;
+        }
+        finish(null);
+      }, settleDelay);
     };
 
     document.body.appendChild(input);
     window.addEventListener("focus", onWindowFocus);
+    pickerOpenedAt = Date.now();
     input.click();
   });
 }
 
-export function insertAfterCursor(
+type InsertionAnchor = ReturnType<Editor["getTextCursorPosition"]>["block"];
+
+export function insertAfterAnchor(
   editor: Editor,
+  anchor: InsertionAnchor,
   blocks: PartialBlock<
     (typeof schema)["blockSchema"],
     (typeof schema)["inlineContentSchema"],
     (typeof schema)["styleSchema"]
   >[],
 ) {
-  const pos = editor.getTextCursorPosition();
-  editor.insertBlocks(blocks, pos.block, "after");
+  editor.insertBlocks(blocks, anchor, "after");
+}
+
+function tryInsertAfterAnchor(
+  editor: Editor,
+  anchor: InsertionAnchor,
+  blocks: PartialBlock<
+    (typeof schema)["blockSchema"],
+    (typeof schema)["inlineContentSchema"],
+    (typeof schema)["styleSchema"]
+  >[],
+  file?: File,
+  reportUploadError?: ReportUploadError,
+) {
+  try {
+    insertAfterAnchor(editor, anchor, blocks);
+  } catch (error) {
+    if (file && reportUploadError) {
+      reportUploadError(
+        file,
+        toError(error, "Could not insert uploaded attachment"),
+      );
+    }
+  }
 }
 
 function emptyPdfBlock(): PartialBlock<
@@ -143,7 +183,10 @@ export function insertFormulaItem(editor: Editor) {
     title: "Công thức",
     subtext: "Chèn khối công thức",
     onItemClick: () => {
-      insertAfterCursor(editor, [{ type: "formula", props: { formula: "" } }]);
+      const anchor = editor.getTextCursorPosition().block;
+      insertAfterAnchor(editor, anchor, [
+        { type: "formula", props: { formula: "" } },
+      ]);
     },
     aliases: ["formula", "công thức", "cong thuc"],
     icon: createElement(Sigma, { size: 18 }),
@@ -153,29 +196,40 @@ export function insertFormulaItem(editor: Editor) {
 export function insertPdfItem(
   editor: Editor,
   uploadAttachmentForBlock?: UploadAttachmentForBlock,
+  reportUploadError?: ReportUploadError,
 ) {
   return {
     title: "PDF",
     subtext: "Chèn khối xem trước PDF",
     onItemClick: () => {
+      const anchor = editor.getTextCursorPosition().block;
       void (async () => {
         if (!uploadAttachmentForBlock) {
-          insertAfterCursor(editor, [emptyPdfBlock()]);
+          tryInsertAfterAnchor(editor, anchor, [emptyPdfBlock()]);
           return;
         }
 
         const file = await pickFile(".pdf,application/pdf");
         if (!file) {
-          insertAfterCursor(editor, [emptyPdfBlock()]);
+          tryInsertAfterAnchor(editor, anchor, [emptyPdfBlock()]);
           return;
         }
 
+        let attachment: Attachment;
         try {
-          const attachment = await uploadAttachmentForBlock(file);
-          insertAfterCursor(editor, [populatedPdfBlock(attachment)]);
+          attachment = await uploadAttachmentForBlock(file);
         } catch {
           // Error reported via onUploadError callback.
+          return;
         }
+
+        tryInsertAfterAnchor(
+          editor,
+          anchor,
+          [populatedPdfBlock(attachment)],
+          file,
+          reportUploadError,
+        );
       })();
     },
     aliases: ["pdf", "xem trước pdf", "xem truoc pdf", "preview pdf"],
@@ -186,35 +240,37 @@ export function insertPdfItem(
 export function insertMaterialItem(
   editor: Editor,
   uploadAttachmentForBlock?: UploadAttachmentForBlock,
+  reportUploadError?: ReportUploadError,
 ) {
   return {
     title: "Tệp tài liệu",
     subtext: "Chèn thẻ tệp DOCX và tài liệu học",
     onItemClick: () => {
+      const anchor = editor.getTextCursorPosition().block;
       void (async () => {
         if (!uploadAttachmentForBlock) {
-          insertAfterCursor(editor, [emptyMaterialBlock()]);
+          tryInsertAfterAnchor(editor, anchor, [emptyMaterialBlock()]);
           return;
         }
 
         const file = await pickFile(MATERIAL_ACCEPT);
         if (!file) {
-          insertAfterCursor(editor, [emptyMaterialBlock()]);
+          tryInsertAfterAnchor(editor, anchor, [emptyMaterialBlock()]);
           return;
         }
 
+        let attachment: Attachment;
         try {
-          const attachment = await uploadAttachmentForBlock(file);
-          if (isPdfFile(file)) {
-            insertAfterCursor(editor, [populatedPdfBlock(attachment)]);
-          } else {
-            insertAfterCursor(editor, [
-              populatedMaterialBlock(attachment, file),
-            ]);
-          }
+          attachment = await uploadAttachmentForBlock(file);
         } catch {
           // Error reported via onUploadError callback.
+          return;
         }
+
+        const block = isPdfFile(file)
+          ? populatedPdfBlock(attachment)
+          : populatedMaterialBlock(attachment, file);
+        tryInsertAfterAnchor(editor, anchor, [block], file, reportUploadError);
       })();
     },
     aliases: ["file", "docx", "material", "tài liệu", "tai lieu"],

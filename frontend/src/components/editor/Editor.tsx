@@ -20,6 +20,7 @@ import {
   insertFormulaItem,
   insertMaterialItem,
   insertPdfItem,
+  type ReportUploadError,
   type UploadAttachmentForBlock,
 } from "./slashMenu";
 import "./theme.css";
@@ -72,6 +73,10 @@ function EditorEditable({
     onUploadSuccessRef.current = onUploadSuccess;
   }, [onUploadSuccess]);
 
+  const reportUploadError = useCallback<ReportUploadError>((file, error) => {
+    onUploadErrorRef.current?.(file, error);
+  }, []);
+
   const uploadAttachmentForBlock = useCallback<UploadAttachmentForBlock>(
     async (file) => {
       try {
@@ -79,14 +84,14 @@ function EditorEditable({
         onUploadSuccessRef.current?.(file);
         return attachment;
       } catch (error) {
-        onUploadErrorRef.current?.(
+        reportUploadError(
           file,
           error instanceof Error ? error : new Error("Upload failed"),
         );
         throw error;
       }
     },
-    [],
+    [reportUploadError],
   );
 
   const editor = useCreateBlockNote({
@@ -126,8 +131,12 @@ function EditorEditable({
           filterSuggestionItems(
             [
               insertFormulaItem(editor),
-              insertPdfItem(editor, uploadAttachmentForBlock),
-              insertMaterialItem(editor, uploadAttachmentForBlock),
+              insertPdfItem(editor, uploadAttachmentForBlock, reportUploadError),
+              insertMaterialItem(
+                editor,
+                uploadAttachmentForBlock,
+                reportUploadError,
+              ),
               ...getDefaultReactSlashMenuItems(editor),
             ],
             query,
