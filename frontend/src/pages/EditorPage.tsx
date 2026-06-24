@@ -88,6 +88,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
   const [titleError, setTitleError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [editorEpoch, setEditorEpoch] = useState(0);
+  const [editorDocument, setEditorDocument] = useState<unknown[]>(() =>
+    emptyBlocks(),
+  );
 
   const draftKey = mode === "new" ? "__new__" : routeTitle;
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -108,6 +111,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
         setIsNew(false);
         setCustomTags(subjectToCustomTags(note.subject));
         setLoadedAt(note.lastModified * 1000);
+        setEditorDocument(
+          note.content?.length ? note.content : emptyBlocks(),
+        );
         setLoadState("ready");
         setEditorEpoch((e) => e + 1);
       } catch (e) {
@@ -429,8 +435,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
         />
 
         <Editor
-          key={`${draftKey}-${editorEpoch}`}
-          initialContent={autosave.content}
+          initialContent={editorDocument}
           onChange={autosave.setContent}
         />
 
@@ -465,7 +470,11 @@ export default function EditorPage({ mode }: EditorPageProps) {
             type="button"
             title="Xóa nội dung"
             style={toolbarBtnIcon}
-            onClick={() => autosave.setContent(emptyBlocks())}
+            onClick={() => {
+              const blank = emptyBlocks();
+              setEditorDocument(blank);
+              autosave.setContent(blank);
+            }}
           >
             <RotateCcw size={20} />
           </button>
@@ -546,8 +555,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
               <button
                 type="button"
                 onClick={() => {
+                  const draft = autosave.pendingDraft;
                   autosave.acceptDraft();
-                  setEditorEpoch((e) => e + 1);
+                  if (draft) setEditorDocument(draft.content);
                 }}
                 style={{
                   height: 42,

@@ -7,7 +7,7 @@ import {
   useCreateBlockNote,
   useEditorChange,
 } from "@blocknote/react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useTheme } from "../../hooks/useTheme";
 import { schema } from "./schema";
@@ -19,17 +19,29 @@ export type EditorProps = {
   onChange?: (blocks: unknown[]) => void;
 };
 
+function toPartialBlocks(initialContent: unknown[] | undefined) {
+  return (initialContent ?? []) as PartialBlock<
+    typeof schema.blockSchema,
+    typeof schema.inlineContentSchema,
+    typeof schema.styleSchema
+  >[];
+}
+
 export function Editor({ initialContent, onChange }: EditorProps) {
   const { theme } = useTheme();
 
   const editor = useCreateBlockNote({
     schema,
-    initialContent: (initialContent ?? []) as PartialBlock<
-      typeof schema.blockSchema,
-      typeof schema.inlineContentSchema,
-      typeof schema.styleSchema
-    >[],
+    initialContent: toPartialBlocks(initialContent),
   });
+
+  const appliedContentRef = useRef<unknown[] | undefined>(initialContent);
+
+  useEffect(() => {
+    if (initialContent === appliedContentRef.current) return;
+    appliedContentRef.current = initialContent;
+    editor.replaceBlocks(editor.document, toPartialBlocks(initialContent));
+  }, [editor, initialContent]);
 
   const handleChange = useCallback(() => {
     onChange?.(editor.document as unknown[]);
