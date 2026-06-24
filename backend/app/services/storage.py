@@ -102,6 +102,13 @@ class StorageService:
             secure=settings.storage_secure,
             region=DEFAULT_STORAGE_REGION,
         )
+        self._presign_client = Minio(
+            settings.storage_public_endpoint or settings.storage_endpoint,
+            access_key=settings.storage_access_key,
+            secret_key=settings.storage_secret_key,
+            secure=settings.storage_secure,
+            region=DEFAULT_STORAGE_REGION,
+        )
         self._bucket = settings.storage_bucket
 
     def ensure_bucket(self) -> None:
@@ -131,7 +138,7 @@ class StorageService:
         else:
             content_disposition = _content_disposition_header("inline", filename)
 
-        return self._client.presigned_get_object(
+        return self._presign_client.presigned_get_object(
             self._bucket,
             key,
             expires=timedelta(seconds=settings.storage_presigned_expiry_seconds),

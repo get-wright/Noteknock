@@ -3,6 +3,7 @@ import os
 os.environ.setdefault("LLM_BASE_URL", "http://llm.invalid/v1")
 os.environ.setdefault("LLM_API_KEY", "test-key")
 os.environ.setdefault("LLM_MODEL", "test-model")
+os.environ.setdefault("STORAGE_ENSURE_BUCKET_ON_STARTUP", "false")
 
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient

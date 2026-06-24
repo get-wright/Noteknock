@@ -66,7 +66,7 @@ class FakeMinioClient:
 def test_presigned_get_url_sanitizes_content_disposition_filename():
     service = StorageService()
     client = FakeMinioClient()
-    service._client = client
+    service._presign_client = client
 
     service.presigned_get_url(
         "owner-id/key",
@@ -84,7 +84,7 @@ def test_presigned_get_url_sanitizes_content_disposition_filename():
 def test_presigned_get_url_download_forces_attachment_for_inline_type():
     service = StorageService()
     client = FakeMinioClient()
-    service._client = client
+    service._presign_client = client
 
     service.presigned_get_url(
         "owner-id/key",
@@ -98,14 +98,50 @@ def test_presigned_get_url_download_forces_attachment_for_inline_type():
 
 
 def test_storage_service_uses_default_region_to_avoid_presign_lookup(monkeypatch):
-    init_kwargs = {}
+    init_kwargs = []
 
     class FakeMinio:
         def __init__(self, *_args, **kwargs):
-            init_kwargs.update(kwargs)
+            init_kwargs.append(kwargs)
 
     monkeypatch.setattr(storage_module, "Minio", FakeMinio)
 
     StorageService()
 
-    assert init_kwargs["region"] == "us-east-1"
+    assert init_kwargs[0]["region"] == "us-east-1"
+    assert init_kwargs[1]["region"] == "us-east-1"
+
+
+def test_storage_service_uses_public_endpoint_for_presigned_urls(monkeypatch):
+    endpoints = []
+
+    class FakeMinio:
+        def __init__(self, endpoint, *_args, **_kwargs):
+            endpoints.append(endpoint)
+
+    monkeypatch.setattr(storage_module.settings, "storage_endpoint", "minio:9000")
+    monkeypatch.setattr(
+        storage_module.settings, "storage_public_endpoint", "localhost:9000"
+    )
+    monkeypatch.setattr(storage_module, "Minio", FakeMinio)
+
+    StorageService()
+
+    assert endpoints == ["minio:9000", "localhost:9000"]
+
+
+def test_app_startup_ensures_bucket_when_enabled(monkeypatch):
+    from app import main as main_module
+
+    calls = []
+
+    class FakeStorageService:
+        def ensure_bucket(self):
+            calls.append("ensure_bucket")
+
+    monkeypatch.setattr(main_module.settings, "storage_ensure_bucket_on_startup", True)
+    monkeypatch.setattr(main_module, "StorageService", lambda: FakeStorageService())
+
+    main_module.ensure_attachment_bucket()
+
+    assert calls == ["ensure_bucket"]
