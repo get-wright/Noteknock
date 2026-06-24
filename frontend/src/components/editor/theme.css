@@ -1,0 +1,65 @@
+.bn-editor {
+  font-size: 1.0625rem;
+  line-height: 1.78;
+  color: var(--ink);
+  caret-color: var(--accent);
+}
+
+.bn-editor:empty::before {
+  content: attr(data-ph);
+  color: var(--faint);
+}
+
+.bn-editor p {
+  margin: 0 0 1.05em;
+}
+
+.bn-editor b,
+.bn-editor strong {
+  font-weight: 600;
+}
+
+.bn-suggestion-menu {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lift);
+}
+
+.bn-suggestion-menu-item {
+  border-radius: 10px;
+}
+
+.bn-suggestion-menu-item:hover,
+.bn-suggestion-menu-item[aria-selected="true"] {
+  background: var(--accent-tint);
+}
+
+.bn-formatting-toolbar {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lift);
+}
+
+.bn-side-menu .bn-button:hover,
+.bn-side-menu [data-test="dragHandle"]:hover {
+  color: var(--accent);
+  background: var(--accent-tint);
+}
+
+.bn-formula-block {
+  font-family: var(--mono);
+  font-size: 0.98rem;
+  color: var(--accent);
+  background: var(--accent-tint);
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin: 0 0 1.05em;
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+
+.bn-formula-block--empty {
+  color: var(--faint);
+}
