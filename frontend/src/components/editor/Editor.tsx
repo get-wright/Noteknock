@@ -1,7 +1,8 @@
 import type { PartialBlock } from "@blocknote/core";
 import { filterSuggestionItems } from "@blocknote/core";
+import { BlockNoteView } from "@blocknote/mantine";
+import "@blocknote/mantine/style.css";
 import {
-  BlockNoteViewRaw,
   getDefaultReactSlashMenuItems,
   SuggestionMenuController,
   useCreateBlockNote,
@@ -57,7 +58,7 @@ function EditorEditable({
   useEditorChange(handleChange, editor);
 
   return (
-    <BlockNoteViewRaw
+    <BlockNoteView
       editor={editor}
       slashMenu={false}
       theme={theme}
@@ -75,7 +76,7 @@ function EditorEditable({
           )
         }
       />
-    </BlockNoteViewRaw>
+    </BlockNoteView>
   );
 }
 
@@ -96,7 +97,7 @@ function EditorReadOnly({ initialContent }: { initialContent?: unknown[] }) {
   }, [editor, initialContent]);
 
   return (
-    <BlockNoteViewRaw
+    <BlockNoteView
       editor={editor}
       slashMenu={false}
       editable={false}
