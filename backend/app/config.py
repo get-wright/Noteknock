@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_expiry_days: int = 30
     jwt_algorithm: str = "HS256"
+    cors_origins: str = "http://localhost:5173"
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = ""
