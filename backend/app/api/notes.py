@@ -120,12 +120,16 @@ async def search_notes(
         params["text"] = parsed["text"]
         sql_parts.append(", ts_rank(n.search_vec, q) AS score")
         sql_parts.append(
-            ", ts_headline('simple', n.title, q,"
-            " 'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=10') AS title_hl"
+            ", ts_headline('simple',"
+            " regexp_replace(regexp_replace(regexp_replace(n.title, '&', '&amp;', 'g'),"
+            " '<', '&lt;', 'g'), '>', '&gt;', 'g'),"
+            " q, 'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=10') AS title_hl"
         )
         sql_parts.append(
-            ", ts_headline('simple', n.content_text, q,"
-            " 'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=10') AS content_hl"
+            ", ts_headline('simple',"
+            " regexp_replace(regexp_replace(regexp_replace(n.content_text, '&', '&amp;', 'g'),"
+            " '<', '&lt;', 'g'), '>', '&gt;', 'g'),"
+            " q, 'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=10') AS content_hl"
         )
     else:
         sql_parts.append(", 0::float8 AS score, NULL::text AS title_hl, NULL::text AS content_hl")

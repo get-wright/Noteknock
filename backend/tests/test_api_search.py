@@ -226,3 +226,38 @@ async def test_search_parens(client, auth_token):
     )
     assert resp.status_code == 200
     assert isinstance(resp.json(), list)
+
+
+@pytest.mark.asyncio
+async def test_search_highlights_escape_html_in_content(client, auth_token):
+    await _create(
+        client,
+        auth_token,
+        "XSS test",
+        [
+            {
+                "type": "paragraph",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "<img src=x onerror=alert(1)> tích phân",
+                        "styles": {},
+                    }
+                ],
+            }
+        ],
+    )
+    resp = await client.get(
+        "/api/search",
+        params={"term": "tích"},
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    assert resp.status_code == 200
+    results = resp.json()
+    found = [r for r in results if r["title"] == "XSS test"]
+    assert len(found) == 1
+    ch = found[0]["contentHighlights"]
+    assert ch is not None
+    assert "<img" not in ch
+    assert "&lt;img" in ch
+    assert "<b>" in ch
