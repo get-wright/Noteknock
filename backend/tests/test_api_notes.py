@@ -251,6 +251,42 @@ async def test_notes_isolated_per_user(client, auth_token):
 
 
 @pytest.mark.asyncio
+async def test_patch_note_can_clear_subject_and_difficulty(client, auth_token):
+    await client.post(
+        "/api/notes",
+        json={"title": "Clear", "subject": "toan", "difficulty": "de"},
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    resp = await client.patch(
+        "/api/notes/Clear",
+        json={"subject": None, "difficulty": None},
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    assert resp.status_code == 200
+    note = resp.json()
+    assert note["subject"] is None
+    assert note["difficulty"] is None
+
+
+@pytest.mark.asyncio
+async def test_patch_note_empty_body_preserves_fields(client, auth_token):
+    await client.post(
+        "/api/notes",
+        json={"title": "Keep", "subject": "ly", "difficulty": "tb"},
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    resp = await client.patch(
+        "/api/notes/Keep",
+        json={},
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    assert resp.status_code == 200
+    note = resp.json()
+    assert note["subject"] == "ly"
+    assert note["difficulty"] == "tb"
+
+
+@pytest.mark.asyncio
 async def test_notes_no_token_401(client):
     resp = await client.post("/api/notes", json={"title": "X"})
     assert resp.status_code == 401

@@ -123,9 +123,9 @@ async def update_note(
     if body.newContent is not None:
         note.content = body.newContent
         note.content_text = blocks_to_text(body.newContent)
-    if body.subject is not None:
+    if "subject" in body.model_fields_set:
         note.subject = body.subject
-    if body.difficulty is not None:
+    if "difficulty" in body.model_fields_set:
         note.difficulty = body.difficulty
     note.updated_at = datetime.now(timezone.utc)
     tags = extract_tags(note.content)
