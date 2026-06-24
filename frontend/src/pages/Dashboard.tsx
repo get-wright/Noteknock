@@ -1156,6 +1156,7 @@ export default function Dashboard() {
                     </span>
                     <button
                       type="button"
+                      onClick={() => navigate("/app/profile")}
                       style={{
                         border: "none",
                         background: "none",
