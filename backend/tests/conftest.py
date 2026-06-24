@@ -1,5 +1,9 @@
 import os
 
+os.environ.setdefault("LLM_BASE_URL", "http://llm.invalid/v1")
+os.environ.setdefault("LLM_API_KEY", "test-key")
+os.environ.setdefault("LLM_MODEL", "test-model")
+
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
@@ -10,6 +14,7 @@ from app.db.base import Base
 from app.db.session import get_db
 import app.models.user  # noqa: F401
 import app.models.note  # noqa: F401
+import app.models.quiz  # noqa: F401
 from app.main import app as fastapi_app
 
 TEST_DB_URL = os.getenv("TEST_DATABASE_URL", settings.database_url + "_test")

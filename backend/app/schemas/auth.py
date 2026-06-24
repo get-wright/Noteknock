@@ -42,3 +42,13 @@ class UserOut(CamelModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+class GoogleOAuthRequest(CamelModel):
+    code: str
+
+
+class AuthConfigOut(CamelModel):
+    auth_type: str
+    google_client_id: str | None = None
+    google_redirect_uri: str | None = None

@@ -39,7 +39,13 @@ const LEADER = [
 ] as const;
 
 const STAT_TILES = [
-  { icon: Flame, num: "12", unit: "ngày", label: "Chuỗi học" },
+  {
+    icon: Flame,
+    num: "12",
+    unit: "ngày",
+    label: "Chuỗi học",
+    path: "/app/streak" as const,
+  },
   { icon: NotebookPen, num: "24", unit: "bài", label: "Tổng số bài" },
   { icon: HelpCircle, num: "24", unit: "quiz", label: "Đã làm quiz" },
 ] as const;
@@ -1016,22 +1022,20 @@ export default function Dashboard() {
               <aside style={dashAsideStyle}>
                 {STAT_TILES.map((t) => {
                   const Icon = t.icon;
-                  return (
-                    <div
-                      key={t.label}
-                      style={{
-                        background: "var(--paper)",
-                        border: "1px solid var(--border)",
-                        borderRadius: 20,
-                        padding: "16px 16px",
-                        boxShadow: "var(--shadow)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 9,
-                        textAlign: "left",
-                        fontFamily: "var(--body)",
-                      }}
-                    >
+                  const tileStyle: CSSProperties = {
+                    background: "var(--paper)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 20,
+                    padding: "16px 16px",
+                    boxShadow: "var(--shadow)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 9,
+                    textAlign: "left",
+                    fontFamily: "var(--body)",
+                  };
+                  const body = (
+                    <>
                       <Icon size={20} color="var(--accent)" />
                       <span
                         style={{
@@ -1064,6 +1068,28 @@ export default function Dashboard() {
                       >
                         {t.label}
                       </span>
+                    </>
+                  );
+                  if ("path" in t && t.path) {
+                    return (
+                      <button
+                        key={t.label}
+                        type="button"
+                        onClick={() => navigate(t.path)}
+                        style={{
+                          ...tileStyle,
+                          cursor: "pointer",
+                          border: "1px solid var(--border)",
+                          width: "100%",
+                        }}
+                      >
+                        {body}
+                      </button>
+                    );
+                  }
+                  return (
+                    <div key={t.label} style={tileStyle}>
+                      {body}
                     </div>
                   );
                 })}
@@ -1130,6 +1156,7 @@ export default function Dashboard() {
                     </span>
                     <button
                       type="button"
+                      onClick={() => navigate("/app/profile")}
                       style={{
                         border: "none",
                         background: "none",

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import DateTime, ForeignKey, Index, Text, UniqueConstraint, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -41,3 +41,24 @@ class NoteTag(Base):
         UUID(as_uuid=True), ForeignKey("notes.id", ondelete="CASCADE"), primary_key=True
     )
     tag: Mapped[str] = mapped_column(Text, primary_key=True)
+
+
+class RecallItem(Base):
+    __tablename__ = "recall_items"
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()")
+    )
+    note_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("notes.id", ondelete="CASCADE"), nullable=False
+    )
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    position: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
+    checked: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    source: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("'manual'"))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("now()")
+    )
+    __table_args__ = (Index("ix_recall_items_note_id_position", "note_id", "position"),)

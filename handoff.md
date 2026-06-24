@@ -1,6 +1,20 @@
 # Noteknock — Handoff
 
-StudyMap (Vietnamese study/notes app, Peeky design system) ported to a real web app, with flatnotes' note functionality on a Postgres backend. This doc is the baseline: decisions, specs, and the build order. **Nothing is built yet** — research + design direction only.
+StudyMap (Vietnamese study/notes app, Peeky design system) ported to a real web app, with flatnotes' note functionality on a Postgres backend. This doc started as the baseline research/design handoff; the active implementation source of truth is now `docs/plans/2026-06-23-noteknock-full-build.md`, which supersedes older details here when they conflict.
+
+## Handoff Maintenance
+
+- After finishing any implementation task from `docs/plans/2026-06-23-noteknock-full-build.md`, update this file before moving to the next task.
+- Record the completed task, commit SHA(s), verification run, spec/code review status, blockers, and the next planned task.
+- Keep this section concise; do not duplicate the full plan. Prefer links/commit IDs plus high-signal notes future agents would otherwise miss.
+
+## Current Status
+
+- Phase 3 backend through P3.3 and frontend through P3.7 are complete and reviewed: recall items/generation, quiz/review/activity/streak APIs, quiz/review/streak/profile screens, and StudyMap phase-3 navigation.
+- Latest completed plan task: P4.1 `Google OAuth` (`01156bb`, fix `7ff9e13`): added Google OAuth config/env docs, backend code exchange and verified ID-token flow, `/api/oauth/google`, `/api/config` `password+google` metadata, frontend Google consent redirect/callback, Login/Register Google buttons, and local `.env` Google credentials (gitignored).
+- Verification/review: `npm run build` from `frontend/` passed after implementation and after the fix; focused backend tests could not run on host because `pytest_asyncio` is not installed. P4.1 spec-review passed; code-review initially found OAuth upstream error handling, redirect URI mismatch risk, and callback unmount issues, fixed in `7ff9e13`, then code-review passed.
+- Blockers: none for P4.1. Important: the Google client secret was pasted in chat and should be rotated in Google Cloud Console if this transcript is stored/shared; `GOOGLE_REDIRECT_URI` must exactly match a Google Console authorized redirect URI and the SPA callback route.
+- Next plan task: P4.2 attachments model + storage unless the user redirects.
 
 ---
 

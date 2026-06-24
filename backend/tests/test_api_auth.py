@@ -110,3 +110,19 @@ async def test_auth_check_no_token_401(client: AsyncClient):
 async def test_me_no_token_401(client: AsyncClient):
     r = await client.get("/api/me")
     assert r.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_config_password_only_when_google_unconfigured(client: AsyncClient):
+    r = await client.get("/api/config")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["authType"] == "password"
+    assert body.get("googleClientId") in (None, "")
+    assert body.get("googleRedirectUri") in (None, "")
+
+
+@pytest.mark.asyncio
+async def test_google_oauth_not_configured_503(client: AsyncClient):
+    r = await client.post("/api/oauth/google", json={"code": "dummy-code"})
+    assert r.status_code == 503

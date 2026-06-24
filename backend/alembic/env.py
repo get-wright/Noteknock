@@ -10,6 +10,7 @@ from app.config import settings
 from app.db.base import Base
 from app.models import user  # noqa: F401
 import app.models.note  # noqa: F401
+import app.models.quiz  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:

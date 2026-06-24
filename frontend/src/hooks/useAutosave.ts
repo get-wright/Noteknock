@@ -36,10 +36,15 @@ export type UseAutosaveReturn = {
   setDifficulty: (d: string | null) => void;
   saveText: string;
   saving: boolean;
-  forceSave: () => Promise<void>;
+  forceSave: () => Promise<Note | null>;
   pendingDraft: DraftPayload | null;
   acceptDraft: () => void;
   discardDraft: () => void;
+};
+
+type SaveResult = {
+  note: Note | null;
+  error: Error | null;
 };
 
 function draftStorageKey(draftKey: string): string {
@@ -119,6 +124,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savingRef = useRef(false);
   const pendingSaveRef = useRef(false);
+  const savePromiseRef = useRef<Promise<SaveResult> | null>(null);
 
   titleRef.current = title;
   originalTitleRef.current = originalTitle;
@@ -172,65 +178,75 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
     );
   }, [draftKey]);
 
-  const runSave = useCallback(async () => {
+  const runSave = useCallback(async (): Promise<SaveResult> => {
     if (savingRef.current) {
       pendingSaveRef.current = true;
-      return;
+      return savePromiseRef.current ?? { note: null, error: null };
     }
     savingRef.current = true;
     setSaving(true);
     setSaveText("Đang lưu…");
-    try {
-      do {
-        pendingSaveRef.current = false;
-        const trimmed = titleRef.current.trim();
-        if (!trimmed) break;
-        let note: Note;
-        if (isNewRef.current) {
-          note = await createNote({
-            title: trimmed,
-            content: contentRef.current,
-            subject: subjectRef.current,
-            difficulty: difficultyRef.current,
-          });
-          isNewRef.current = false;
-          originalTitleRef.current = note.title;
-          onPromotedFromNewRef.current?.(note);
-        } else {
-          const patch: Parameters<typeof updateNote>[1] = {
-            newContent: contentRef.current,
-            subject: subjectRef.current,
-            difficulty: difficultyRef.current,
-          };
-          if (trimmed !== originalTitleRef.current) {
-            patch.newTitle = trimmed;
-          }
-          note = await updateNote(originalTitleRef.current, patch);
-          if (patch.newTitle) {
+    const savePromise = (async (): Promise<SaveResult> => {
+      let savedNote: Note | null = null;
+      try {
+        do {
+          pendingSaveRef.current = false;
+          const trimmed = titleRef.current.trim();
+          if (!trimmed) return { note: null, error: null };
+          let note: Note;
+          if (isNewRef.current) {
+            note = await createNote({
+              title: trimmed,
+              content: contentRef.current,
+              subject: subjectRef.current,
+              difficulty: difficultyRef.current,
+            });
+            isNewRef.current = false;
             originalTitleRef.current = note.title;
+            onPromotedFromNewRef.current?.(note);
+          } else {
+            const patch: Parameters<typeof updateNote>[1] = {
+              newContent: contentRef.current,
+              subject: subjectRef.current,
+              difficulty: difficultyRef.current,
+            };
+            if (trimmed !== originalTitleRef.current) {
+              patch.newTitle = trimmed;
+            }
+            note = await updateNote(originalTitleRef.current, patch);
+            if (patch.newTitle) {
+              originalTitleRef.current = note.title;
+            }
           }
-        }
-        if (!pendingSaveRef.current) {
-          clearDraft(draftKey);
-          setDirty(false);
-          setSaveText("Đã lưu");
-          onSavedRef.current?.(note);
-        }
-      } while (pendingSaveRef.current);
-    } catch (e) {
-      pendingSaveRef.current = false;
-      const message =
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
+          if (!pendingSaveRef.current) {
+            clearDraft(draftKey);
+            setDirty(false);
+            setSaveText("Đã lưu");
+            onSavedRef.current?.(note);
+          }
+          savedNote = note;
+        } while (pendingSaveRef.current);
+        return { note: savedNote, error: null };
+      } catch (e) {
+        pendingSaveRef.current = false;
+        const message =
+          e instanceof ApiError
             ? e.message
-            : "Lưu thất bại";
-      setSaveText("Lỗi lưu");
-      onErrorRef.current?.(message);
-    } finally {
-      savingRef.current = false;
-      setSaving(false);
-    }
+            : e instanceof Error
+              ? e.message
+              : "Lưu thất bại";
+        const error = e instanceof Error ? e : new Error(message);
+        setSaveText("Lỗi lưu");
+        onErrorRef.current?.(message);
+        return { note: null, error };
+      } finally {
+        savingRef.current = false;
+        savePromiseRef.current = null;
+        setSaving(false);
+      }
+    })();
+    savePromiseRef.current = savePromise;
+    return savePromise;
   }, [draftKey]);
 
   const scheduleSave = useCallback(() => {
@@ -270,12 +286,14 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
     [scheduleSave],
   );
 
-  const forceSave = useCallback(async () => {
+  const forceSave = useCallback(async (): Promise<Note | null> => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
     }
-    await runSave();
+    const result = await runSave();
+    if (result.error) throw result.error;
+    return result.note;
   }, [runSave]);
 
   useEffect(() => {
