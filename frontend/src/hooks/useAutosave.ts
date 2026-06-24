@@ -138,13 +138,18 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
     setDirty(false);
   }, [draftKey]);
 
+  const didDraftCheckRef = useRef(false);
+
   useEffect(() => {
+    if (didDraftCheckRef.current) return;
+    if (loadedAt === 0 && !isNew) return;
+    didDraftCheckRef.current = true;
     const draft = readDraft(draftKey);
     if (!draft) return;
     if (draft.ts > loadedAt) {
       setPendingDraft(draft);
     }
-  }, [draftKey, loadedAt]);
+  }, [draftKey, loadedAt, isNew]);
 
   useEffect(() => {
     if (hydrateKey === 0) return;
