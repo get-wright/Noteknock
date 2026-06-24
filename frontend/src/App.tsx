@@ -11,6 +11,7 @@ import Study from "./pages/Study";
 import QuizPage from "./pages/Quiz";
 import QuizResultPage from "./pages/QuizResult";
 import ReviewPage from "./pages/Review";
+import StreakPage from "./pages/Streak";
 
 export default function App() {
   useTheme();
@@ -74,6 +75,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ReviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/streak"
+            element={
+              <ProtectedRoute>
+                <StreakPage />
               </ProtectedRoute>
             }
           />
