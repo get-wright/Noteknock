@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowLeft, ArrowUp, Save, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
@@ -100,6 +100,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
   const [titleError, setTitleError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [recallError, setRecallError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [recallItems, setRecallItems] = useState<RecallItem[]>([]);
   const [newRecallContent, setNewRecallContent] = useState("");
   const [isCreatingRecall, setIsCreatingRecall] = useState(false);
@@ -597,9 +598,29 @@ export default function EditorPage({ mode }: EditorPageProps) {
           onAddTag={handleAddTag}
         />
 
+        {uploadError ? (
+          <div className="editor-upload-error" role="alert">
+            <p className="editor-upload-error__text">{uploadError}</p>
+            <button
+              type="button"
+              className="editor-upload-error__dismiss"
+              aria-label="Đóng"
+              onClick={() => setUploadError(null)}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ) : null}
+
         <Editor
           initialContent={editorDocument}
           onChange={autosave.setContent}
+          onUploadError={(file, error) => {
+            setUploadError(`${file.name}: ${error.message}`);
+          }}
+          onUploadSuccess={() => {
+            setUploadError(null);
+          }}
         />
 
         <section

@@ -18,6 +18,15 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
     google_redirect_uri: str = ""
+    storage_endpoint: str = "minio:9000"
+    storage_public_endpoint: str = ""
+    storage_access_key: str = "noteknock"
+    storage_secret_key: str = "noteknock-secret"
+    storage_bucket: str = "noteknock-attachments"
+    storage_secure: bool = False
+    storage_ensure_bucket_on_startup: bool = True
+    storage_presigned_expiry_seconds: int = 600
+    max_upload_bytes: int = 25 * 1024 * 1024
 
 
 def google_oauth_configured() -> bool:
