@@ -68,6 +68,7 @@ export async function apiRequest<T>(
       const data = (await res.json()) as { detail?: string; message?: string };
       message = data.detail ?? data.message ?? message;
     } catch {
+      /* non-JSON error body */
     }
     throw new ApiError(res.status, message);
   }

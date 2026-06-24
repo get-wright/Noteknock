@@ -20,6 +20,7 @@ async function throwApiError(res: Response): Promise<never> {
     const data = (await res.json()) as { detail?: string; message?: string };
     message = data.detail ?? data.message ?? message;
   } catch {
+    // Keep the HTTP status text when the response body is not JSON.
   }
   throw new ApiError(res.status, message);
 }

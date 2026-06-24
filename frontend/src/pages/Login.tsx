@@ -1,57 +1,22 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type FormEvent,
-} from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Moon, Sparkles, Sun } from "lucide-react";
-import GoogleSignInButton from "../components/GoogleSignInButton";
+import AuthArtPanel from "../components/AuthArtPanel";
+import AuthFormShell from "../components/AuthFormShell";
+import AuthInput from "../components/AuthInput";
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../api/client";
-import { useTheme } from "../hooks/useTheme";
 import { useMediaQuery } from "../hooks/useMediaQuery";
-
-function inputStyle(err: boolean): CSSProperties {
-  return {
-    width: "100%",
-    height: 52,
-    border: `1px solid ${err ? "var(--rose)" : "var(--border)"}`,
-    borderRadius: 14,
-    background: "var(--surface)",
-    padding: "0 15px",
-    fontFamily: "var(--body)",
-    fontSize: "1rem",
-    color: "var(--ink)",
-    boxShadow: err ? "0 0 0 3px var(--rose-soft)" : "none",
-    transition: "border-color .16s ease, box-shadow .16s ease",
-  };
-}
-
-const loginArtDesktop: CSSProperties = {
-  flex: "0 0 44%",
-  width: "44%",
-  display: "flex",
-  alignItems: "flex-end",
-  padding: "48px",
-  background: "linear-gradient(160deg,var(--accent) 0%,var(--accent-press) 100%)",
-  position: "relative",
-  overflow: "hidden",
-};
-
-const loginArtMobile: CSSProperties = {
-  display: "none",
-  width: 0,
-  flex: "0 0 0",
-};
+import { motion, useReducedMotion } from "motion/react";
+import { authFormMotion } from "./authMotion";
+import { validateLoginForm } from "./authValidation";
 
 export default function Login() {
   const { login, token } = useAuth();
-  const { theme, toggle } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const isDesktop = useMediaQuery("(min-width: 961px)");
+  const reduced = useReducedMotion() ?? false;
+  const { item: formItem } = authFormMotion(reduced);
 
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -62,6 +27,10 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
   const didInitialCheck = useRef(false);
 
+  const returnTo =
+    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ??
+    "/app";
+
   useEffect(() => {
     if (didInitialCheck.current) return;
     didInitialCheck.current = true;
@@ -69,16 +38,10 @@ export default function Login() {
   }, [token, navigate]);
 
   const validate = () => {
-    let ok = true;
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setEmailErr("Email không hợp lệ.");
-      ok = false;
-    } else setEmailErr("");
-    if (pw.length < 8) {
-      setPwErr("Mật khẩu phải có ít nhất 8 ký tự.");
-      ok = false;
-    } else setPwErr("");
-    return ok;
+    const errors = validateLoginForm({ email, password: pw });
+    setEmailErr(errors.email ?? "");
+    setPwErr(errors.password ?? "");
+    return Object.keys(errors).length === 0;
   };
 
   const submit = async (e: FormEvent) => {
@@ -88,10 +51,7 @@ export default function Login() {
     setSubmitting(true);
     try {
       await login(email, pw);
-      const dest =
-        (location.state as { from?: { pathname?: string } } | null)?.from
-          ?.pathname ?? "/app";
-      navigate(dest, { replace: true });
+      navigate(returnTo, { replace: true });
     } catch (err) {
       setFormErr(
         err instanceof ApiError
@@ -103,8 +63,6 @@ export default function Login() {
     }
   };
 
-  const loginArtStyle = isDesktop ? loginArtDesktop : loginArtMobile;
-
   return (
     <div
       style={{
@@ -113,293 +71,19 @@ export default function Login() {
         alignItems: "stretch",
       }}
     >
-      <div style={loginArtStyle}>
-        <div style={{ position: "relative", zIndex: 1, maxWidth: 380 }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              fontSize: ".74rem",
-              fontWeight: 700,
-              letterSpacing: ".1em",
-              textTransform: "uppercase",
-              color: "#fff",
-              opacity: 0.85,
-              marginBottom: 22,
-            }}
-          >
-            <Sparkles size={15} color="#fff" /> Sổ tay học tập
-          </span>
-          <h2
-            style={{
-              fontFamily: "var(--display)",
-              fontWeight: 600,
-              fontSize: "2.7rem",
-              lineHeight: 1.1,
-              letterSpacing: "-.02em",
-              color: "#fff",
-              margin: 0,
-            }}
-          >
-            Học chậm lại, nhớ lâu hơn.
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,.82)",
-              fontSize: "1.05rem",
-              lineHeight: 1.6,
-              marginTop: 16,
-              marginBottom: 0,
-            }}
-          >
-            Ghi chú, ôn tập theo lịch ghi nhớ và theo dõi tiến bộ mỗi ngày —
-            nhẹ nhàng trước mỗi kỳ thi.
-          </p>
-        </div>
-      </div>
+      <AuthArtPanel
+        headline="Học chậm lại, nhớ lâu hơn."
+        subcopy="Ghi chú, ôn tập theo lịch ghi nhớ và theo dõi tiến bộ mỗi ngày — nhẹ nhàng trước mỗi kỳ thi."
+        isDesktop={isDesktop}
+        reduced={reduced}
+      />
 
-      <div
-        className="sm-scroll"
-        style={{
-          flex: "1 1 auto",
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          overflowY: "auto",
-          padding: "40px 28px",
-          position: "relative",
-        }}
-      >
-        <button
-          type="button"
-          aria-label="Đổi giao diện"
-          onClick={toggle}
-          style={{
-            position: "absolute",
-            top: 22,
-            right: 22,
-            width: 42,
-            height: 42,
-            border: "1px solid var(--border)",
-            background: "var(--paper)",
-            borderRadius: 13,
-            cursor: "pointer",
-            color: "var(--ink)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
-
-        <div style={{ width: "100%", maxWidth: 380 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 11,
-              marginBottom: 10,
-            }}
-          >
-            <span
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                background: "var(--accent)",
-                boxShadow: "var(--coral-glow)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontFamily: "var(--display)",
-                fontWeight: 600,
-                fontSize: "1.35rem",
-              }}
-            >
-              S
-            </span>
-            <span
-              style={{
-                fontFamily: "var(--display)",
-                fontWeight: 600,
-                fontSize: "2rem",
-                letterSpacing: "-.025em",
-              }}
-            >
-              Study
-              <em style={{ fontStyle: "normal", color: "var(--accent)" }}>
-                Map
-              </em>
-            </span>
-          </div>
-          <p
-            style={{
-              color: "var(--muted)",
-              fontSize: "1rem",
-              lineHeight: 1.5,
-              marginBottom: 30,
-              marginTop: 0,
-            }}
-          >
-            Đăng nhập để tiếp tục ôn tập.
-          </p>
-
-          <form onSubmit={submit}>
-            <label
-              style={{
-                display: "block",
-                fontSize: ".86rem",
-                fontWeight: 500,
-                marginBottom: 8,
-              }}
-            >
-              Email
-            </label>
-            <input
-              className="sm-in"
-              type="email"
-              inputMode="email"
-              placeholder="ban@email.com"
-              autoComplete="email"
-              value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
-              style={inputStyle(!!emailErr)}
-            />
-            <div
-              style={{
-                fontSize: ".82rem",
-                color: "var(--rose)",
-                marginTop: 8,
-                display: emailErr ? "block" : "none",
-              }}
-            >
-              {emailErr}
-            </div>
-
-            <label
-              style={{
-                display: "block",
-                fontSize: ".86rem",
-                fontWeight: 500,
-                margin: "18px 0 8px",
-              }}
-            >
-              Mật khẩu
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                className="sm-in"
-                type={showPw ? "text" : "password"}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                value={pw}
-                onChange={(ev) => setPw(ev.target.value)}
-                style={{ ...inputStyle(!!pwErr), paddingRight: 52 }}
-              />
-              <button
-                type="button"
-                aria-label="Hiện mật khẩu"
-                onClick={() => setShowPw((v) => !v)}
-                style={{
-                  position: "absolute",
-                  right: 8,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: 38,
-                  height: 38,
-                  border: "none",
-                  background: "none",
-                  cursor: "pointer",
-                  color: "var(--muted)",
-                  borderRadius: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                {showPw ? <Eye size={20} /> : <EyeOff size={20} />}
-              </button>
-            </div>
-            <div
-              style={{
-                fontSize: ".82rem",
-                color: "var(--rose)",
-                marginTop: 8,
-                display: pwErr ? "block" : "none",
-              }}
-            >
-              {pwErr}
-            </div>
-
-            {formErr ? (
-              <div
-                style={{
-                  fontSize: ".82rem",
-                  color: "var(--rose)",
-                  marginTop: 16,
-                }}
-              >
-                {formErr}
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                width: "100%",
-                height: 54,
-                marginTop: 22,
-                border: "none",
-                cursor: submitting ? "wait" : "pointer",
-                background: "var(--accent)",
-                color: "#fff",
-                borderRadius: 15,
-                boxShadow: "var(--coral-glow)",
-                fontFamily: "var(--body)",
-                fontWeight: 600,
-                fontSize: "1rem",
-                opacity: submitting ? 0.85 : 1,
-              }}
-            >
-              {submitting ? "Đang đăng nhập…" : "Đăng nhập"}
-            </button>
-          </form>
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              margin: "22px 0",
-              color: "var(--faint)",
-              fontSize: ".82rem",
-            }}
-          >
-            <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
-            hoặc
-            <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
-          </div>
-
-          <GoogleSignInButton
-            returnTo={
-              (location.state as { from?: { pathname?: string } } | null)?.from
-                ?.pathname ?? "/app"
-            }
-          />
-
-          <p
-            style={{
-              marginTop: 26,
-              fontSize: ".94rem",
-              color: "var(--muted)",
-            }}
-          >
+      <AuthFormShell
+        mode="login"
+        subtitle="Đăng nhập để tiếp tục ôn tập."
+        googleReturnTo={returnTo}
+        footerLink={
+          <>
             Chưa có tài khoản?{" "}
             <Link
               to="/register"
@@ -407,9 +91,76 @@ export default function Login() {
             >
               Đăng ký
             </Link>
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      >
+        <motion.form variants={formItem} onSubmit={submit}>
+          <AuthInput
+            id="login-email"
+            label="Email"
+            type="email"
+            inputMode="email"
+            placeholder="ban@email.com"
+            autoComplete="email"
+            value={email}
+            onChange={setEmail}
+            error={emailErr}
+            first
+          />
+
+          <AuthInput
+            id="login-password"
+            label="Mật khẩu"
+            type="password"
+            placeholder="••••••••"
+            autoComplete="current-password"
+            value={pw}
+            onChange={setPw}
+            error={pwErr}
+            passwordToggle={{
+              show: showPw,
+              onToggle: () => setShowPw((v) => !v),
+            }}
+          />
+
+          {formErr ? (
+            <div
+              role="alert"
+              style={{
+                fontSize: ".82rem",
+                color: "var(--rose)",
+                marginTop: 16,
+              }}
+            >
+              {formErr}
+            </div>
+          ) : null}
+
+          <motion.button
+            type="submit"
+            disabled={submitting}
+            whileHover={reduced || submitting ? undefined : { scale: 1.02 }}
+            whileTap={reduced || submitting ? undefined : { scale: 0.98 }}
+            style={{
+              width: "100%",
+              height: 54,
+              marginTop: 22,
+              border: "none",
+              cursor: submitting ? "wait" : "pointer",
+              background: "var(--accent)",
+              color: "#fff",
+              borderRadius: 15,
+              boxShadow: "var(--coral-glow)",
+              fontFamily: "var(--body)",
+              fontWeight: 600,
+              fontSize: "1rem",
+              opacity: submitting ? 0.85 : 1,
+            }}
+          >
+            {submitting ? "Đang đăng nhập…" : "Đăng nhập"}
+          </motion.button>
+        </motion.form>
+      </AuthFormShell>
     </div>
   );
 }
