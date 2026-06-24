@@ -3,14 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { getNote, type Note } from "../api/notes";
+import { getRecall, updateRecallItem, type RecallItem } from "../api/recall";
 import { Editor } from "../components/editor/Editor";
 import { DIFF, SUBJECTS, TAG_PALETTE } from "../components/PageProperties";
-
-const RECALL_SEED = [
-  "Công thức ∫u dv = uv − ∫v du",
-  "Quy tắc ILATE khi chọn u",
-  "Luôn cộng hằng số + C vào kết quả",
-] as const;
 
 function blocksToPlainText(blocks: unknown[]): string {
   const parts: string[] = [];
@@ -69,6 +64,13 @@ function difficultyLabel(difficulty: string | null | undefined): string | null {
   return DIFF[difficulty as keyof typeof DIFF].label;
 }
 
+function sortRecallItems(items: RecallItem[]): RecallItem[] {
+  return [...items].sort((a, b) => {
+    if (a.position !== b.position) return a.position - b.position;
+    return a.createdAt - b.createdAt;
+  });
+}
+
 export default function Study() {
   const params = useParams();
   const navigate = useNavigate();
@@ -78,10 +80,9 @@ export default function Study() {
     "loading" | "ready" | "notfound" | "error"
   >("loading");
   const [note, setNote] = useState<Note | null>(null);
+  const [recallItems, setRecallItems] = useState<RecallItem[]>([]);
   const [loadError, setLoadError] = useState("");
-  const [checkedRecall, setCheckedRecall] = useState<Record<number, boolean>>(
-    {},
-  );
+  const [recallError, setRecallError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -92,9 +93,13 @@ export default function Study() {
       }
       setLoadState("loading");
       try {
-        const n = await getNote(titleParam);
+        const [n, recall] = await Promise.all([
+          getNote(titleParam),
+          getRecall(titleParam),
+        ]);
         if (cancelled) return;
         setNote(n);
+        setRecallItems(sortRecallItems(recall));
         setLoadState("ready");
       } catch (e) {
         if (cancelled) return;
@@ -112,20 +117,43 @@ export default function Study() {
     };
   }, [titleParam]);
 
-  const subject = useMemo(
-    () => subjectMeta(note?.subject),
-    [note?.subject],
-  );
+  const subject = useMemo(() => subjectMeta(note?.subject), [note?.subject]);
   const diffLabel = useMemo(
     () => difficultyLabel(note?.difficulty),
     [note?.difficulty],
   );
-  const minutes = useMemo(
-    () => (note ? readMinutes(note.content) : 1),
-    [note],
-  );
+  const minutes = useMemo(() => (note ? readMinutes(note.content) : 1), [note]);
 
   const editPath = `/app/notes/${encodeURIComponent(note?.title ?? titleParam)}/edit`;
+
+  const toggleRecallChecked = async (item: RecallItem) => {
+    const checked = !item.checked;
+    setRecallItems((prev) =>
+      prev.map((x) => (x.id === item.id ? { ...x, checked } : x)),
+    );
+    try {
+      const updated = await updateRecallItem(
+        note?.title ?? titleParam,
+        item.id,
+        {
+          checked,
+        },
+      );
+      setRecallItems((prev) =>
+        sortRecallItems(prev.map((x) => (x.id === updated.id ? updated : x))),
+      );
+      setRecallError(null);
+    } catch (e) {
+      setRecallItems((prev) =>
+        prev.map((x) =>
+          x.id === item.id ? { ...x, checked: item.checked } : x,
+        ),
+      );
+      setRecallError(
+        e instanceof Error ? e.message : "Không cập nhật được cần nhớ",
+      );
+    }
+  };
 
   if (loadState === "loading") {
     return (
@@ -161,10 +189,7 @@ export default function Study() {
         <p style={{ fontFamily: "var(--display)", fontSize: "1.25rem" }}>
           Không tìm thấy bài học
         </p>
-        <Link
-          to="/app"
-          style={{ color: "var(--accent)", fontWeight: 600 }}
-        >
+        <Link to="/app" style={{ color: "var(--accent)", fontWeight: 600 }}>
           Về trang chủ
         </Link>
       </div>
@@ -277,9 +302,7 @@ export default function Study() {
             </>
           ) : null}
           <span style={{ opacity: 0.5 }}>·</span>
-          <span>
-            {minutes} phút đọc
-          </span>
+          <span>{minutes} phút đọc</span>
           <button
             type="button"
             onClick={() => navigate(editPath)}
@@ -322,83 +345,115 @@ export default function Study() {
           <Editor initialContent={note.content} readOnly />
         </div>
 
-        <section
-          style={{
-            marginTop: 18,
-            paddingTop: 28,
-            borderTop: "1px solid var(--border)",
-          }}
-        >
-          <h3
+        {recallItems.length ? (
+          <section
             style={{
-              fontSize: ".78rem",
-              fontWeight: 700,
-              letterSpacing: ".06em",
-              textTransform: "uppercase",
-              color: "var(--muted)",
-              marginBottom: 10,
+              marginTop: 18,
+              paddingTop: 28,
+              borderTop: "1px solid var(--border)",
             }}
           >
-            Cần nhớ
-          </h3>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {RECALL_SEED.map((text, i) => {
-              const done = checkedRecall[i];
-              return (
-                <li key={text}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCheckedRecall((prev) => ({
-                        ...prev,
-                        [i]: !prev[i],
-                      }))
-                    }
-                    style={{
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 12,
-                      padding: "12px 0",
-                      border: "none",
-                      background: "none",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      fontFamily: "var(--body)",
-                      fontSize: "1rem",
-                      lineHeight: 1.5,
-                      color: done ? "var(--muted)" : "var(--ink)",
-                    }}
-                  >
-                    <span
+            <h3
+              style={{
+                fontSize: ".78rem",
+                fontWeight: 700,
+                letterSpacing: ".06em",
+                textTransform: "uppercase",
+                color: "var(--muted)",
+                marginBottom: 10,
+              }}
+            >
+              Cần nhớ
+            </h3>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {recallItems.map((item) => {
+                const done = item.checked;
+                return (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => void toggleRecallChecked(item)}
                       style={{
-                        flexShrink: 0,
-                        width: 22,
-                        height: 22,
-                        borderRadius: 8,
-                        border: `1.5px solid ${done ? "var(--accent)" : "var(--border)"}`,
-                        background: done ? "var(--accent-tint)" : "var(--paper)",
+                        width: "100%",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "var(--accent)",
+                        alignItems: "flex-start",
+                        gap: 12,
+                        padding: "12px 0",
+                        border: "none",
+                        background: "none",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontFamily: "var(--body)",
+                        fontSize: "1rem",
+                        lineHeight: 1.5,
+                        color: done ? "var(--muted)" : "var(--ink)",
                       }}
                     >
-                      {done ? <Check size={15} /> : null}
-                    </span>
-                    <span
-                      style={{
-                        textDecoration: done ? "line-through" : "none",
-                      }}
-                    >
-                      {text}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+                      <span
+                        style={{
+                          flexShrink: 0,
+                          width: 22,
+                          height: 22,
+                          borderRadius: 8,
+                          border: `1.5px solid ${done ? "var(--accent)" : "var(--border)"}`,
+                          background: done
+                            ? "var(--accent-tint)"
+                            : "var(--paper)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "var(--accent)",
+                        }}
+                      >
+                        {done ? <Check size={15} /> : null}
+                      </span>
+                      <span style={{ flex: "1 1 auto", minWidth: 0 }}>
+                        <span
+                          style={{
+                            textDecoration: done ? "line-through" : "none",
+                          }}
+                        >
+                          {item.content}
+                        </span>
+                        {item.source === "ai" ? (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              height: 18,
+                              marginLeft: 8,
+                              padding: "0 6px",
+                              borderRadius: 99,
+                              background: "var(--accent-tint)",
+                              color: "var(--accent)",
+                              fontFamily: "var(--mono)",
+                              fontSize: ".68rem",
+                              fontWeight: 700,
+                              verticalAlign: "middle",
+                            }}
+                          >
+                            AI
+                          </span>
+                        ) : null}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            {recallError ? (
+              <p
+                style={{
+                  margin: "10px 0 0",
+                  color: "var(--rose)",
+                  fontSize: ".88rem",
+                }}
+              >
+                {recallError}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
 
         <div style={{ marginTop: 34 }}>
           <button

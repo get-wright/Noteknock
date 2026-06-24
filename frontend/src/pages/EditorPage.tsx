@@ -1,8 +1,15 @@
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { getNote, type Note } from "../api/notes";
+import {
+  createRecallItem,
+  deleteRecallItem,
+  getRecall,
+  updateRecallItem,
+  type RecallItem,
+} from "../api/recall";
 import { Editor } from "../components/editor/Editor";
 import {
   PageProperties,
@@ -62,6 +69,13 @@ function subjectToCustomTags(subject: string | null): CustomTag[] {
   ];
 }
 
+function sortRecallItems(items: RecallItem[]): RecallItem[] {
+  return [...items].sort((a, b) => {
+    if (a.position !== b.position) return a.position - b.position;
+    return a.createdAt - b.createdAt;
+  });
+}
+
 type EditorPageProps = {
   mode: "new" | "edit";
 };
@@ -84,6 +98,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
   const [customTags, setCustomTags] = useState<CustomTag[]>([]);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [recallError, setRecallError] = useState<string | null>(null);
+  const [recallItems, setRecallItems] = useState<RecallItem[]>([]);
+  const [newRecallContent, setNewRecallContent] = useState("");
   const [editorEpoch, setEditorEpoch] = useState(0);
   const [editorDocument, setEditorDocument] = useState<unknown[]>(() =>
     emptyBlocks(),
@@ -109,9 +126,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
         setIsNew(false);
         setCustomTags(subjectToCustomTags(note.subject));
         setLoadedAt(note.lastModified * 1000);
-        setEditorDocument(
-          note.content?.length ? note.content : emptyBlocks(),
-        );
+        setEditorDocument(note.content?.length ? note.content : emptyBlocks());
         setLoadState("ready");
         setEditorEpoch((e) => e + 1);
       } catch (e) {
@@ -131,11 +146,37 @@ export default function EditorPage({ mode }: EditorPageProps) {
     };
   }, [mode, routeTitle]);
 
+  const savedTitle = !isNew && originalTitle.trim() ? originalTitle : null;
+
+  useEffect(() => {
+    if (!savedTitle) {
+      setRecallItems([]);
+      setRecallError(null);
+      return;
+    }
+    let ignore = false;
+    (async () => {
+      try {
+        const items = await getRecall(savedTitle);
+        if (!ignore) {
+          setRecallItems(sortRecallItems(items));
+          setRecallError(null);
+        }
+      } catch (e) {
+        if (!ignore) {
+          setRecallError(
+            e instanceof Error ? e.message : "Không tải được điểm cần nhớ",
+          );
+        }
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, [savedTitle]);
+
   const initialContent = useMemo(
-    () =>
-      loadedNote?.content?.length
-        ? loadedNote.content
-        : emptyBlocks(),
+    () => (loadedNote?.content?.length ? loadedNote.content : emptyBlocks()),
     [loadedNote],
   );
 
@@ -211,13 +252,84 @@ export default function EditorPage({ mode }: EditorPageProps) {
     [autosave, customTags.length],
   );
 
+  const handleCreateRecall = async () => {
+    const content = newRecallContent.trim();
+    if (!savedTitle || !content) return;
+    try {
+      const item = await createRecallItem(savedTitle, { content });
+      setRecallItems((prev) => sortRecallItems(prev.concat(item)));
+      setNewRecallContent("");
+      setRecallError(null);
+    } catch (e) {
+      setRecallError(
+        e instanceof Error ? e.message : "Không thêm được điểm cần nhớ",
+      );
+    }
+  };
+
+  const handleUpdateRecallContent = async (item: RecallItem) => {
+    const content = item.content.trim();
+    if (!savedTitle || !content) return;
+    try {
+      const updated = await updateRecallItem(savedTitle, item.id, { content });
+      setRecallItems((prev) =>
+        sortRecallItems(prev.map((x) => (x.id === updated.id ? updated : x))),
+      );
+      setRecallError(null);
+    } catch (e) {
+      setRecallError(
+        e instanceof Error ? e.message : "Không lưu được điểm cần nhớ",
+      );
+    }
+  };
+
+  const handleDeleteRecall = async (id: string) => {
+    if (!savedTitle) return;
+    try {
+      await deleteRecallItem(savedTitle, id);
+      setRecallItems((prev) => prev.filter((item) => item.id !== id));
+      setRecallError(null);
+    } catch (e) {
+      setRecallError(
+        e instanceof Error ? e.message : "Không xóa được điểm cần nhớ",
+      );
+    }
+  };
+
+  const handleMoveRecall = async (index: number, direction: -1 | 1) => {
+    if (!savedTitle) return;
+    const ordered = sortRecallItems(recallItems);
+    const nextIndex = index + direction;
+    const item = ordered[index];
+    const other = ordered[nextIndex];
+    if (!item || !other) return;
+    try {
+      const [updatedItem, updatedOther] = await Promise.all([
+        updateRecallItem(savedTitle, item.id, { position: other.position }),
+        updateRecallItem(savedTitle, other.id, { position: item.position }),
+      ]);
+      setRecallItems((prev) =>
+        sortRecallItems(
+          prev.map((x) => {
+            if (x.id === updatedItem.id) return updatedItem;
+            if (x.id === updatedOther.id) return updatedOther;
+            return x;
+          }),
+        ),
+      );
+      setRecallError(null);
+    } catch (e) {
+      setRecallError(
+        e instanceof Error ? e.message : "Không sắp xếp được điểm cần nhớ",
+      );
+    }
+  };
+
   const plainText = useMemo(
     () => blocksToPlainText(autosave.content),
     [autosave.content],
   );
   const words = countWords(plainText);
-
-
 
   if (loadState === "loading") {
     return (
@@ -253,10 +365,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
         <p style={{ fontFamily: "var(--display)", fontSize: "1.25rem" }}>
           Không tìm thấy bài học
         </p>
-        <Link
-          to="/app"
-          style={{ color: "var(--accent)", fontWeight: 600 }}
-        >
+        <Link to="/app" style={{ color: "var(--accent)", fontWeight: 600 }}>
           Về trang chủ
         </Link>
       </div>
@@ -336,10 +445,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
         </span>
       </header>
 
-      <section
-        className="sm-fade"
-        style={{ maxWidth: 760, margin: "0 auto" }}
-      >
+      <section className="sm-fade" style={{ maxWidth: 760, margin: "0 auto" }}>
         <div
           style={{
             display: "flex",
@@ -419,6 +525,168 @@ export default function EditorPage({ mode }: EditorPageProps) {
           onChange={autosave.setContent}
         />
 
+        <section
+          style={{
+            marginTop: 20,
+            paddingTop: 22,
+            borderTop: "1px solid var(--border)",
+          }}
+        >
+          <h3
+            style={{
+              fontSize: ".78rem",
+              fontWeight: 700,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+              color: "var(--muted)",
+              margin: "0 0 12px",
+            }}
+          >
+            Cần nhớ
+          </h3>
+          {savedTitle ? (
+            <>
+              {recallItems.length ? (
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {sortRecallItems(recallItems).map((item, index) => (
+                    <li
+                      key={item.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "8px 0",
+                      }}
+                    >
+                      <input
+                        className="sm-in"
+                        type="text"
+                        value={item.content}
+                        onChange={(e) => {
+                          const content = e.target.value;
+                          setRecallItems((prev) =>
+                            prev.map((x) =>
+                              x.id === item.id ? { ...x, content } : x,
+                            ),
+                          );
+                        }}
+                        onBlur={() => void handleUpdateRecallContent(item)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") e.currentTarget.blur();
+                        }}
+                        style={{
+                          flex: "1 1 auto",
+                          minWidth: 0,
+                          height: 40,
+                          border: "1px solid var(--border)",
+                          borderRadius: 12,
+                          background: "var(--paper)",
+                          color: "var(--ink)",
+                          padding: "0 12px",
+                          fontFamily: "var(--body)",
+                          fontSize: ".95rem",
+                        }}
+                      />
+                      <button
+                        type="button"
+                        aria-label="Đưa lên"
+                        disabled={index === 0}
+                        onClick={() => void handleMoveRecall(index, -1)}
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 10,
+                          border: "1px solid var(--border)",
+                          background: "var(--paper)",
+                          color: "var(--muted)",
+                          cursor: index === 0 ? "default" : "pointer",
+                          opacity: index === 0 ? 0.45 : 1,
+                        }}
+                      >
+                        <ArrowUp size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Đưa xuống"
+                        disabled={index === recallItems.length - 1}
+                        onClick={() => void handleMoveRecall(index, 1)}
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 10,
+                          border: "1px solid var(--border)",
+                          background: "var(--paper)",
+                          color: "var(--muted)",
+                          cursor:
+                            index === recallItems.length - 1
+                              ? "default"
+                              : "pointer",
+                          opacity: index === recallItems.length - 1 ? 0.45 : 1,
+                        }}
+                      >
+                        <ArrowDown size={15} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Xóa"
+                        onClick={() => void handleDeleteRecall(item.id)}
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: 10,
+                          border: "1px solid var(--border)",
+                          background: "var(--paper)",
+                          color: "var(--rose)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <input
+                className="sm-in"
+                type="text"
+                placeholder="+ Thêm điểm cần nhớ"
+                value={newRecallContent}
+                onChange={(e) => setNewRecallContent(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void handleCreateRecall();
+                }}
+                style={{
+                  width: "100%",
+                  height: 42,
+                  marginTop: recallItems.length ? 8 : 0,
+                  border: "1px dashed var(--border)",
+                  borderRadius: 14,
+                  background: "var(--paper)",
+                  color: "var(--ink)",
+                  padding: "0 13px",
+                  fontFamily: "var(--body)",
+                  fontSize: ".95rem",
+                }}
+              />
+            </>
+          ) : (
+            <p style={{ margin: 0, color: "var(--muted)", fontSize: ".92rem" }}>
+              Lưu bài học để thêm điểm cần nhớ.
+            </p>
+          )}
+          {recallError ? (
+            <p
+              style={{
+                margin: "10px 0 0",
+                color: "var(--rose)",
+                fontSize: ".88rem",
+              }}
+            >
+              {recallError}
+            </p>
+          ) : null}
+        </section>
+
         <div
           style={{
             display: "flex",
@@ -485,7 +753,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
             >
               Tiếp tục soạn thảo nháp?
             </p>
-            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <div
+              style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}
+            >
               <button
                 type="button"
                 onClick={autosave.discardDraft}
