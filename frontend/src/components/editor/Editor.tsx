@@ -101,6 +101,7 @@ function EditorReadOnly({ initialContent }: { initialContent?: unknown[] }) {
       slashMenu={false}
       editable={false}
       theme={theme}
+      data-ph="Bắt đầu viết bài học của bạn…"
     />
   );
 }
