@@ -33,6 +33,7 @@ async def engine():
         """
             )
         )
+        await conn.execute(text("DROP TRIGGER IF EXISTS trg_notes_refresh_search_vec ON notes"))
         await conn.execute(
             text(
                 """
