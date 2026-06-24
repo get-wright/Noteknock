@@ -101,6 +101,8 @@ export default function EditorPage({ mode }: EditorPageProps) {
   const [recallError, setRecallError] = useState<string | null>(null);
   const [recallItems, setRecallItems] = useState<RecallItem[]>([]);
   const [newRecallContent, setNewRecallContent] = useState("");
+  const [isCreatingRecall, setIsCreatingRecall] = useState(false);
+  const [isReorderingRecall, setIsReorderingRecall] = useState(false);
   const [editorEpoch, setEditorEpoch] = useState(0);
   const [editorDocument, setEditorDocument] = useState<unknown[]>(() =>
     emptyBlocks(),
@@ -108,6 +110,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
 
   const draftKey = mode === "new" ? "__new__" : routeTitle;
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recallEditOriginalsRef = useRef<Record<string, string>>({});
+  const isCreatingRecallRef = useRef(false);
+  const isReorderingRecallRef = useRef(false);
 
   useEffect(() => {
     if (mode !== "edit") return;
@@ -254,7 +259,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
 
   const handleCreateRecall = async () => {
     const content = newRecallContent.trim();
-    if (!savedTitle || !content) return;
+    if (!savedTitle || !content || isCreatingRecallRef.current) return;
+    isCreatingRecallRef.current = true;
+    setIsCreatingRecall(true);
     try {
       const item = await createRecallItem(savedTitle, { content });
       setRecallItems((prev) => sortRecallItems(prev.concat(item)));
@@ -264,22 +271,46 @@ export default function EditorPage({ mode }: EditorPageProps) {
       setRecallError(
         e instanceof Error ? e.message : "Không thêm được điểm cần nhớ",
       );
+    } finally {
+      isCreatingRecallRef.current = false;
+      setIsCreatingRecall(false);
     }
   };
 
-  const handleUpdateRecallContent = async (item: RecallItem) => {
+  const handleUpdateRecallContent = async (
+    item: RecallItem,
+    serverContent: string,
+  ) => {
     const content = item.content.trim();
-    if (!savedTitle || !content) return;
+    if (!savedTitle) return;
+    if (!content) {
+      setRecallItems((prev) =>
+        prev.map((x) =>
+          x.id === item.id ? { ...x, content: serverContent } : x,
+        ),
+      );
+      setRecallError("Điểm cần nhớ không được để trống.");
+      delete recallEditOriginalsRef.current[item.id];
+      return;
+    }
     try {
       const updated = await updateRecallItem(savedTitle, item.id, { content });
       setRecallItems((prev) =>
         sortRecallItems(prev.map((x) => (x.id === updated.id ? updated : x))),
       );
       setRecallError(null);
+      recallEditOriginalsRef.current[item.id] = updated.content;
     } catch (e) {
+      setRecallItems((prev) =>
+        prev.map((x) =>
+          x.id === item.id ? { ...x, content: serverContent } : x,
+        ),
+      );
       setRecallError(
         e instanceof Error ? e.message : "Không lưu được điểm cần nhớ",
       );
+    } finally {
+      delete recallEditOriginalsRef.current[item.id];
     }
   };
 
@@ -297,17 +328,21 @@ export default function EditorPage({ mode }: EditorPageProps) {
   };
 
   const handleMoveRecall = async (index: number, direction: -1 | 1) => {
-    if (!savedTitle) return;
+    if (!savedTitle || isReorderingRecallRef.current) return;
     const ordered = sortRecallItems(recallItems);
     const nextIndex = index + direction;
     const item = ordered[index];
     const other = ordered[nextIndex];
     if (!item || !other) return;
+    isReorderingRecallRef.current = true;
+    setIsReorderingRecall(true);
     try {
-      const [updatedItem, updatedOther] = await Promise.all([
-        updateRecallItem(savedTitle, item.id, { position: other.position }),
-        updateRecallItem(savedTitle, other.id, { position: item.position }),
-      ]);
+      const updatedItem = await updateRecallItem(savedTitle, item.id, {
+        position: other.position,
+      });
+      const updatedOther = await updateRecallItem(savedTitle, other.id, {
+        position: item.position,
+      });
       setRecallItems((prev) =>
         sortRecallItems(
           prev.map((x) => {
@@ -319,9 +354,16 @@ export default function EditorPage({ mode }: EditorPageProps) {
       );
       setRecallError(null);
     } catch (e) {
+      try {
+        const items = await getRecall(savedTitle);
+        setRecallItems(sortRecallItems(items));
+      } catch {}
       setRecallError(
         e instanceof Error ? e.message : "Không sắp xếp được điểm cần nhớ",
       );
+    } finally {
+      isReorderingRecallRef.current = false;
+      setIsReorderingRecall(false);
     }
   };
 
@@ -562,15 +604,26 @@ export default function EditorPage({ mode }: EditorPageProps) {
                         className="sm-in"
                         type="text"
                         value={item.content}
+                        onFocus={() => {
+                          recallEditOriginalsRef.current[item.id] =
+                            item.content;
+                        }}
                         onChange={(e) => {
                           const content = e.target.value;
+                          setRecallError(null);
                           setRecallItems((prev) =>
                             prev.map((x) =>
                               x.id === item.id ? { ...x, content } : x,
                             ),
                           );
                         }}
-                        onBlur={() => void handleUpdateRecallContent(item)}
+                        onBlur={() =>
+                          void handleUpdateRecallContent(
+                            item,
+                            recallEditOriginalsRef.current[item.id] ??
+                              item.content,
+                          )
+                        }
                         onKeyDown={(e) => {
                           if (e.key === "Enter") e.currentTarget.blur();
                         }}
@@ -590,7 +643,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
                       <button
                         type="button"
                         aria-label="Đưa lên"
-                        disabled={index === 0}
+                        disabled={index === 0 || isReorderingRecall}
                         onClick={() => void handleMoveRecall(index, -1)}
                         style={{
                           width: 34,
@@ -599,8 +652,11 @@ export default function EditorPage({ mode }: EditorPageProps) {
                           border: "1px solid var(--border)",
                           background: "var(--paper)",
                           color: "var(--muted)",
-                          cursor: index === 0 ? "default" : "pointer",
-                          opacity: index === 0 ? 0.45 : 1,
+                          cursor:
+                            index === 0 || isReorderingRecall
+                              ? "default"
+                              : "pointer",
+                          opacity: index === 0 || isReorderingRecall ? 0.45 : 1,
                         }}
                       >
                         <ArrowUp size={15} />
@@ -608,7 +664,9 @@ export default function EditorPage({ mode }: EditorPageProps) {
                       <button
                         type="button"
                         aria-label="Đưa xuống"
-                        disabled={index === recallItems.length - 1}
+                        disabled={
+                          index === recallItems.length - 1 || isReorderingRecall
+                        }
                         onClick={() => void handleMoveRecall(index, 1)}
                         style={{
                           width: 34,
@@ -618,10 +676,15 @@ export default function EditorPage({ mode }: EditorPageProps) {
                           background: "var(--paper)",
                           color: "var(--muted)",
                           cursor:
-                            index === recallItems.length - 1
+                            index === recallItems.length - 1 ||
+                            isReorderingRecall
                               ? "default"
                               : "pointer",
-                          opacity: index === recallItems.length - 1 ? 0.45 : 1,
+                          opacity:
+                            index === recallItems.length - 1 ||
+                            isReorderingRecall
+                              ? 0.45
+                              : 1,
                         }}
                       >
                         <ArrowDown size={15} />
@@ -652,8 +715,12 @@ export default function EditorPage({ mode }: EditorPageProps) {
                 placeholder="+ Thêm điểm cần nhớ"
                 value={newRecallContent}
                 onChange={(e) => setNewRecallContent(e.target.value)}
+                disabled={isCreatingRecall}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") void handleCreateRecall();
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void handleCreateRecall();
+                  }
                 }}
                 style={{
                   width: "100%",

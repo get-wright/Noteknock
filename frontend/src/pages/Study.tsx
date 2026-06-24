@@ -1,5 +1,5 @@
 import { ArrowLeft, Check, Edit, Play } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { getNote, type Note } from "../api/notes";
@@ -83,6 +83,10 @@ export default function Study() {
   const [recallItems, setRecallItems] = useState<RecallItem[]>([]);
   const [loadError, setLoadError] = useState("");
   const [recallError, setRecallError] = useState<string | null>(null);
+  const [updatingRecallIds, setUpdatingRecallIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const updatingRecallIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -127,7 +131,10 @@ export default function Study() {
   const editPath = `/app/notes/${encodeURIComponent(note?.title ?? titleParam)}/edit`;
 
   const toggleRecallChecked = async (item: RecallItem) => {
+    if (updatingRecallIdsRef.current.has(item.id)) return;
     const checked = !item.checked;
+    updatingRecallIdsRef.current.add(item.id);
+    setUpdatingRecallIds((prev) => new Set(prev).add(item.id));
     setRecallItems((prev) =>
       prev.map((x) => (x.id === item.id ? { ...x, checked } : x)),
     );
@@ -152,6 +159,13 @@ export default function Study() {
       setRecallError(
         e instanceof Error ? e.message : "Không cập nhật được cần nhớ",
       );
+    } finally {
+      updatingRecallIdsRef.current.delete(item.id);
+      setUpdatingRecallIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
     }
   };
 
@@ -368,10 +382,13 @@ export default function Study() {
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {recallItems.map((item) => {
                 const done = item.checked;
+                const isUpdating = updatingRecallIds.has(item.id);
                 return (
                   <li key={item.id}>
                     <button
                       type="button"
+                      aria-pressed={done}
+                      disabled={isUpdating}
                       onClick={() => void toggleRecallChecked(item)}
                       style={{
                         width: "100%",
@@ -381,7 +398,8 @@ export default function Study() {
                         padding: "12px 0",
                         border: "none",
                         background: "none",
-                        cursor: "pointer",
+                        cursor: isUpdating ? "default" : "pointer",
+                        opacity: isUpdating ? 0.7 : 1,
                         textAlign: "left",
                         fontFamily: "var(--body)",
                         fontSize: "1rem",
