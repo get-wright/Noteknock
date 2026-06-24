@@ -7,6 +7,7 @@ import {
 } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Moon, Sparkles, Sun } from "lucide-react";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../api/client";
 import { useTheme } from "../hooks/useTheme";
@@ -385,43 +386,12 @@ export default function Login() {
             <span style={{ flex: 1, height: 1, background: "var(--border)" }} />
           </div>
 
-          <button
-            type="button"
-            style={{
-              width: "100%",
-              height: 54,
-              border: "1px solid var(--border)",
-              background: "var(--paper)",
-              color: "var(--ink)",
-              borderRadius: 15,
-              cursor: "pointer",
-              fontFamily: "var(--body)",
-              fontWeight: 600,
-              fontSize: "1rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            }}
-          >
-            <span
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: "50%",
-                border: "1.5px solid var(--border)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 700,
-                fontSize: ".86rem",
-                color: "var(--muted)",
-              }}
-            >
-              G
-            </span>
-            Tiếp tục với Google
-          </button>
+          <GoogleSignInButton
+            returnTo={
+              (location.state as { from?: { pathname?: string } } | null)?.from
+                ?.pathname ?? "/app"
+            }
+          />
 
           <p
             style={{

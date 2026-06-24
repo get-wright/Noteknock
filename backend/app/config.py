@@ -14,6 +14,17 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_expiry_days: int = 30
     jwt_algorithm: str = "HS256"
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""
+
+
+def google_oauth_configured() -> bool:
+    return bool(
+        settings.google_client_id.strip()
+        and settings.google_client_secret.strip()
+        and settings.google_redirect_uri.strip()
+    )
 
 
 class LLMSettings(BaseSettings):

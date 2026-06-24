@@ -20,6 +20,7 @@ type AuthContextValue = {
     email: string;
     password: string;
   }) => Promise<void>;
+  completeOAuth: (code: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -88,6 +89,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const completeOAuth = async (code: string) => {
+    const t = await authApi.loginWithGoogleCode(code);
+    setToken(t.access_token);
+    setTokenState(t.access_token);
+    try {
+      const me = await authApi.getMe();
+      setUser(me);
+    } catch (err) {
+      clearToken();
+      setTokenState(null);
+      setUser(null);
+      throw err;
+    }
+  };
+
   const logout = () => {
     clearToken();
     setTokenState(null);
@@ -96,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, logout }}
+      value={{ user, token, loading, login, register, completeOAuth, logout }}
     >
       {children}
     </AuthContext.Provider>

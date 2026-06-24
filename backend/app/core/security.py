@@ -37,3 +37,7 @@ def decode_token(token: str) -> dict:
         )
     except JWTError:
         raise
+
+
+def oauth_google_password_hash(sub: str) -> str:
+    return f"google-oauth:{sub}"

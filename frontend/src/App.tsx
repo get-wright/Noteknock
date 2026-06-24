@@ -3,6 +3,7 @@ import { useTheme } from "./hooks/useTheme";
 import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import Login from "./pages/Login";
+import OAuthCallback from "./pages/OAuthCallback";
 import Register from "./pages/Register";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/auth/google/callback" element={<OAuthCallback />} />
           <Route
             path="/app"
             element={
