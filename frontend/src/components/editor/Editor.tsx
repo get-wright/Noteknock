@@ -10,6 +10,10 @@ import {
 } from "@blocknote/react";
 import { useCallback, useEffect, useRef } from "react";
 
+import {
+  resolveAttachmentPreviewUrl,
+  uploadAttachment,
+} from "../../api/attachments";
 import { useTheme } from "../../hooks/useTheme";
 import { schema } from "./schema";
 import { insertFormulaItem } from "./slashMenu";
@@ -19,6 +23,8 @@ export type EditorProps = {
   initialContent?: unknown[];
   onChange?: (blocks: unknown[]) => void;
   readOnly?: boolean;
+  noteId?: string;
+  onUploadError?: (file: File, error: Error) => void;
 };
 
 function toPartialBlocks(initialContent: unknown[] | undefined) {
@@ -32,15 +38,43 @@ function toPartialBlocks(initialContent: unknown[] | undefined) {
 function EditorEditable({
   initialContent,
   onChange,
+  noteId,
+  onUploadError,
 }: {
   initialContent?: unknown[];
   onChange?: (blocks: unknown[]) => void;
+  noteId?: string;
+  onUploadError?: (file: File, error: Error) => void;
 }) {
   const { theme } = useTheme();
+
+  const noteIdRef = useRef(noteId);
+  const onUploadErrorRef = useRef(onUploadError);
+
+  useEffect(() => {
+    noteIdRef.current = noteId;
+  }, [noteId]);
+
+  useEffect(() => {
+    onUploadErrorRef.current = onUploadError;
+  }, [onUploadError]);
 
   const editor = useCreateBlockNote({
     schema,
     initialContent: toPartialBlocks(initialContent),
+    uploadFile: async (file) => {
+      try {
+        const attachment = await uploadAttachment(file, noteIdRef.current);
+        return attachment.url;
+      } catch (error) {
+        onUploadErrorRef.current?.(
+          file,
+          error instanceof Error ? error : new Error("Upload failed"),
+        );
+        throw error;
+      }
+    },
+    resolveFileUrl: resolveAttachmentPreviewUrl,
   });
 
   const appliedContentRef = useRef<unknown[] | undefined>(initialContent);
@@ -86,6 +120,7 @@ function EditorReadOnly({ initialContent }: { initialContent?: unknown[] }) {
   const editor = useCreateBlockNote({
     schema,
     initialContent: toPartialBlocks(initialContent),
+    resolveFileUrl: resolveAttachmentPreviewUrl,
   });
 
   const appliedContentRef = useRef<unknown[] | undefined>(initialContent);
@@ -107,9 +142,22 @@ function EditorReadOnly({ initialContent }: { initialContent?: unknown[] }) {
   );
 }
 
-export function Editor({ initialContent, onChange, readOnly }: EditorProps) {
+export function Editor({
+  initialContent,
+  onChange,
+  readOnly,
+  noteId,
+  onUploadError,
+}: EditorProps) {
   if (readOnly) {
     return <EditorReadOnly initialContent={initialContent} />;
   }
-  return <EditorEditable initialContent={initialContent} onChange={onChange} />;
+  return (
+    <EditorEditable
+      initialContent={initialContent}
+      onChange={onChange}
+      noteId={noteId}
+      onUploadError={onUploadError}
+    />
+  );
 }
