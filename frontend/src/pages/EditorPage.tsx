@@ -228,7 +228,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
     setTitleError(null);
     if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
     titleDebounceRef.current = setTimeout(() => {
-      void forceSave();
+      void forceSave().catch(() => {});
     }, 900);
   };
 
@@ -243,7 +243,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
         e.preventDefault();
-        void forceSave();
+        void forceSave().catch(() => {});
       }
     };
     window.addEventListener("keydown", onKey);
@@ -285,8 +285,11 @@ export default function EditorPage({ mode }: EditorPageProps) {
     isGeneratingRecallRef.current = true;
     setIsGeneratingRecall(true);
     try {
-      await forceSave();
-      const items = await generateRecall(savedTitle);
+      const savedNote = await forceSave();
+      if (!savedNote) {
+        throw new Error("Không lưu được bài học");
+      }
+      const items = await generateRecall(savedNote.title);
       setRecallItems(sortRecallItems(items));
       setRecallError(null);
     } catch (e) {
