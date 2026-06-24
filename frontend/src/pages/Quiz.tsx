@@ -3,6 +3,7 @@ import {
   ArrowRight,
   Check,
   Info,
+  RefreshCcw,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +11,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { getNote } from "../api/notes";
 import {
+  generateQuiz,
   loadOrGenerateQuiz,
   submitQuizAttempt,
   type Quiz,
@@ -43,7 +45,7 @@ export default function QuizPage() {
   const titleParam = params.title ?? "";
 
   const [loadState, setLoadState] = useState<
-    "loading" | "ready" | "error" | "submitting"
+    "loading" | "ready" | "error" | "submitting" | "regenerating"
   >("loading");
   const [loadMessage, setLoadMessage] = useState("Đang tải quiz…");
   const [loadError, setLoadError] = useState("");
@@ -190,6 +192,40 @@ export default function QuizPage() {
     void finishQuiz(recordCurrentAnswer());
   };
 
+  const onRegenerate = async () => {
+    if (!titleParam || loadState === "regenerating" || loadState === "submitting") {
+      return;
+    }
+    setLoadState("regenerating");
+    setLoadError("");
+    try {
+      const nextQuiz = await generateQuiz(titleParam);
+      if (!mountedRef.current) return;
+      if (!nextQuiz.questions.length) {
+        setLoadError("Quiz không có câu hỏi.");
+        setLoadState("error");
+        return;
+      }
+      setQuiz(nextQuiz);
+      setQIndex(0);
+      setAnswered(false);
+      setChoice(null);
+      setAnswers([]);
+      setLoadState("ready");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      if (!mountedRef.current) return;
+      setLoadState("ready");
+      setLoadError(
+        e instanceof ApiError && e.status === 502
+          ? "Không tạo lại được quiz. Thử lại sau."
+          : e instanceof Error
+            ? e.message
+            : "Không tạo lại được quiz",
+      );
+    }
+  };
+
   const correctIndex = current?.correctIndex ?? -1;
 
   const optionNodes = useMemo(() => {
@@ -286,7 +322,11 @@ export default function QuizPage() {
     });
   }, [answered, choice, correctIndex, current]);
 
-  if (loadState === "loading" || loadState === "submitting") {
+  if (
+    loadState === "loading" ||
+    loadState === "submitting" ||
+    loadState === "regenerating"
+  ) {
     return (
       <div
         style={{
@@ -299,7 +339,11 @@ export default function QuizPage() {
           padding: 24,
         }}
       >
-        {loadState === "submitting" ? "Đang nộp bài…" : loadMessage}
+        {loadState === "submitting"
+          ? "Đang nộp bài…"
+          : loadState === "regenerating"
+            ? "Đang tạo lại quiz…"
+            : loadMessage}
       </div>
     );
   }
@@ -376,6 +420,29 @@ export default function QuizPage() {
           >
             Câu {qIndex + 1} / {total}
           </span>
+          <button
+            type="button"
+            onClick={() => void onRegenerate()}
+            style={{
+              minHeight: 38,
+              border: "1px solid var(--border)",
+              borderRadius: 999,
+              background: "var(--paper)",
+              color: "var(--muted)",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "0 12px",
+              fontFamily: "var(--body)",
+              fontSize: ".84rem",
+              fontWeight: 650,
+              boxShadow: "var(--shadow)",
+            }}
+          >
+            <RefreshCcw size={15} />
+            Tạo lại quiz
+          </button>
         </div>
 
         <div

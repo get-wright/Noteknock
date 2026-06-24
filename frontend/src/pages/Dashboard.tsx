@@ -26,10 +26,10 @@ import {
   type Note,
   type SearchResult,
 } from "../api/notes";
+import { getRecall } from "../api/recall";
 import { DIFF, SUBJECTS, TAG_PALETTE } from "../components/PageProperties";
 
 const DUE_COUNT = 0;
-const CONTINUE_PROGRESS = 4 / 7;
 
 const LEADER = [
   { rank: 1, av: "MP", name: "Nguyễn Minh Phương", pts: "1.240", top: true, me: false },
@@ -172,6 +172,11 @@ type EnrichedNote = SearchResult & {
   subject: string | null;
   difficulty: string | null;
   excerpt: string | null;
+};
+
+type RecallProgress = {
+  done: number;
+  total: number;
 };
 
 type SearchBoxProps = {
@@ -447,6 +452,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [continueNote, setContinueNote] = useState<Note | null>(null);
+  const [continueProgress, setContinueProgress] =
+    useState<RecallProgress | null>(null);
 
   const enrich = useCallback(async (rows: SearchResult[]): Promise<EnrichedNote[]> => {
     const notes = await Promise.all(
@@ -481,16 +488,28 @@ export default function Dashboard() {
         try {
           const full = await getNote(enriched[0].title);
           setContinueNote(full);
+          const recall = await getRecall(full.title);
+          setContinueProgress(
+            recall.length
+              ? {
+                  done: recall.filter((item) => item.checked).length,
+                  total: recall.length,
+                }
+              : null,
+          );
         } catch {
           setContinueNote(null);
+          setContinueProgress(null);
         }
       } else {
         setContinueNote(null);
+        setContinueProgress(null);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Không tải được bài học");
       setRecent([]);
       setContinueNote(null);
+      setContinueProgress(null);
     } finally {
       setLoading(false);
     }
@@ -576,6 +595,9 @@ export default function Dashboard() {
   const continueSub = continueNote
     ? subjectMeta(continueNote.subject)
     : { color: "var(--accent)", label: "" };
+  const continueProgressPct = continueProgress
+    ? continueProgress.done / continueProgress.total
+    : 0;
 
   return (
     <div
@@ -875,47 +897,49 @@ export default function Dashboard() {
                         flexWrap: "wrap",
                       }}
                     >
-                      <div style={{ flex: "1 1 240px", minWidth: 200 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            fontSize: ".8rem",
-                            color: "var(--muted)",
-                            marginBottom: 8,
-                          }}
-                        >
-                          <span>Tiến độ</span>
-                          <span
+                      {continueProgress ? (
+                        <div style={{ flex: "1 1 240px", minWidth: 200 }}>
+                          <div
                             style={{
-                              fontFamily: "var(--mono)",
-                              color: "var(--accent)",
-                              fontWeight: 600,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              fontSize: ".8rem",
+                              color: "var(--muted)",
+                              marginBottom: 8,
                             }}
                           >
-                            4/7 mục
-                          </span>
-                        </div>
-                        <div
-                          style={{
-                            height: 7,
-                            borderRadius: 99,
-                            background: "var(--track)",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <i
+                            <span>Tiến độ</span>
+                            <span
+                              style={{
+                                fontFamily: "var(--mono)",
+                                color: "var(--accent)",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {continueProgress.done}/{continueProgress.total} mục
+                            </span>
+                          </div>
+                          <div
                             style={{
-                              display: "block",
-                              height: "100%",
-                              width: `${Math.round(CONTINUE_PROGRESS * 100)}%`,
+                              height: 7,
                               borderRadius: 99,
-                              background: "var(--accent)",
+                              background: "var(--track)",
+                              overflow: "hidden",
                             }}
-                          />
+                          >
+                            <i
+                              style={{
+                                display: "block",
+                                height: "100%",
+                                width: `${Math.round(continueProgressPct * 100)}%`,
+                                borderRadius: 99,
+                                background: "var(--accent)",
+                              }}
+                            />
+                          </div>
                         </div>
-                      </div>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() =>
