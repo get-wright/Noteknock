@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, text as sql_text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,8 +9,9 @@ from app.core.deps import get_current_user
 from app.db.session import get_db
 from app.models.note import Note, NoteTag
 from app.models.user import User
-from app.schemas.note import NoteCreate, NoteOut, NoteUpdate
+from app.schemas.note import NoteCreate, NoteOut, NoteUpdate, SearchResult
 from app.services.content import blocks_to_text
+from app.services.search import parse_search
 from app.services.tags import extract_tags
 
 router = APIRouter(tags=["notes"])
@@ -87,6 +88,87 @@ async def create_note(
     await db.commit()
     await db.refresh(note)
     return _note_to_out(note, tags)
+
+
+@router.get("/search", response_model=list[SearchResult])
+async def search_notes(
+    term: str = "",
+    sort: str = "score",
+    order: str = "desc",
+    limit: int | None = None,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> list[SearchResult]:
+    parsed = parse_search(term)
+    has_fts = not parsed["match_all"] and bool(parsed["text"])
+    tag = parsed["tag"]
+
+    if sort not in {"score", "title", "lastModified"}:
+        sort = "score"
+    if order not in {"asc", "desc"}:
+        order = "desc"
+    if not has_fts and sort == "score":
+        sort = "lastModified"
+
+    params: dict = {"owner_id": str(user.id)}
+    sql_parts = [
+        "SELECT n.title,",
+        " EXTRACT(EPOCH FROM n.updated_at)::float8 AS last_modified",
+    ]
+
+    if has_fts:
+        params["text"] = parsed["text"]
+        sql_parts.append(", ts_rank(n.search_vec, q) AS score")
+        sql_parts.append(
+            ", ts_headline('simple', n.title, q,"
+            " 'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=10') AS title_hl"
+        )
+        sql_parts.append(
+            ", ts_headline('simple', n.content_text, q,"
+            " 'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=10') AS content_hl"
+        )
+    else:
+        sql_parts.append(", 0::float8 AS score, NULL::text AS title_hl, NULL::text AS content_hl")
+
+    sql_parts.append(" FROM notes n")
+
+    if has_fts:
+        sql_parts.append(
+            " CROSS JOIN (SELECT COALESCE(NULLIF(websearch_to_tsquery('simple', :text),"
+            " ''::tsquery), plainto_tsquery('simple', :text)) AS q) AS q"
+        )
+
+    if tag:
+        sql_parts.append(" JOIN note_tags nt ON nt.note_id = n.id AND nt.tag = :tag")
+        params["tag"] = tag
+
+    sql_parts.append(" WHERE n.owner_id = :owner_id")
+    if has_fts:
+        sql_parts.append(" AND n.search_vec @@ q")
+
+    sort_col = {"score": "score", "title": "n.title", "lastModified": "n.updated_at"}[sort]
+    direction = "ASC" if order == "asc" else "DESC"
+    sql_parts.append(f" ORDER BY {sort_col} {direction}")
+
+    if limit is not None and limit > 0:
+        params["limit"] = limit
+        sql_parts.append(" LIMIT :limit")
+
+    sql = "".join(sql_parts)
+    result = await db.execute(sql_text(sql), params)
+    rows = result.all()
+
+    tag_matches = [tag] if tag else None
+    return [
+        SearchResult(
+            title=row.title,
+            lastModified=row.last_modified,
+            titleHighlights=row.title_hl,
+            contentHighlights=row.content_hl,
+            tagMatches=tag_matches,
+        )
+        for row in rows
+    ]
 
 
 @router.get("/notes/{title}", response_model=NoteOut)
