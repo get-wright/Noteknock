@@ -135,7 +135,7 @@ export default function Study() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "var(--canvas)",
+          background: "var(--editor-canvas)",
           color: "var(--muted)",
         }}
       >
@@ -154,7 +154,7 @@ export default function Study() {
           alignItems: "center",
           justifyContent: "center",
           gap: 16,
-          background: "var(--canvas)",
+          background: "var(--editor-canvas)",
           padding: 24,
         }}
       >
@@ -181,7 +181,7 @@ export default function Study() {
           alignItems: "center",
           justifyContent: "center",
           gap: 16,
-          background: "var(--canvas)",
+          background: "var(--editor-canvas)",
           padding: 24,
         }}
       >
@@ -197,7 +197,7 @@ export default function Study() {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--canvas)",
+        background: "var(--editor-canvas)",
         padding: "18px 20px 48px",
       }}
     >

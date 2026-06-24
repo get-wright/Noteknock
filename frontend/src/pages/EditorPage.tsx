@@ -1,4 +1,4 @@
-import { ArrowLeft, Image as ImageIcon, RotateCcw, Save } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
@@ -217,34 +217,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
   );
   const words = countWords(plainText);
 
-  const toolbarBtnText = {
-    fontWeight: 700,
-    fontSize: "1.1rem",
-    width: 44,
-    height: 44,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 12,
-    cursor: "pointer",
-    color: "var(--ink)",
-    background: "transparent",
-    border: "none",
-  } as const;
 
-  const toolbarBtnIcon = {
-    width: 44,
-    height: 44,
-    padding: 11,
-    borderRadius: 12,
-    cursor: "pointer",
-    color: "var(--ink)",
-    background: "transparent",
-    border: "none",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  } as const;
 
   if (loadState === "loading") {
     return (
@@ -254,7 +227,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "var(--canvas)",
+          background: "var(--editor-canvas)",
           color: "var(--muted)",
         }}
       >
@@ -273,7 +246,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
           alignItems: "center",
           justifyContent: "center",
           gap: 16,
-          background: "var(--canvas)",
+          background: "var(--editor-canvas)",
           padding: 24,
         }}
       >
@@ -300,7 +273,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
           alignItems: "center",
           justifyContent: "center",
           gap: 16,
-          background: "var(--canvas)",
+          background: "var(--editor-canvas)",
           padding: 24,
         }}
       >
@@ -316,7 +289,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--canvas)",
+        background: "var(--editor-canvas)",
         padding: "18px 20px 40px",
       }}
     >
@@ -456,35 +429,6 @@ export default function EditorPage({ mode }: EditorPageProps) {
             borderTop: "1px solid var(--border)",
           }}
         >
-          <button
-            type="button"
-            title="In đậm (Ctrl+B)"
-            style={toolbarBtnText}
-          >
-            <b>B</b>
-          </button>
-          <button
-            type="button"
-            title="In nghiêng (Ctrl+I)"
-            style={{ ...toolbarBtnText, fontStyle: "italic", fontWeight: 600 }}
-          >
-            <i>I</i>
-          </button>
-          <button type="button" title="Ảnh" style={toolbarBtnIcon}>
-            <ImageIcon size={20} />
-          </button>
-          <button
-            type="button"
-            title="Xóa nội dung"
-            style={toolbarBtnIcon}
-            onClick={() => {
-              const blank = emptyBlocks();
-              setEditorDocument(blank);
-              autosave.setContent(blank);
-            }}
-          >
-            <RotateCcw size={20} />
-          </button>
           <span
             style={{
               marginLeft: "auto",

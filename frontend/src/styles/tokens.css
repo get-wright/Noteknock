@@ -16,6 +16,7 @@
   --green:#5C9E6E; --green-soft:rgba(92,158,110,.15);
   --amber:#C98A2E; --amber-soft:rgba(201,138,46,.16);
   --rose:#C2607B; --rose-soft:rgba(194,96,123,.15);
+  --editor-canvas:#FFFFFF;
 }
 [data-theme="dark"]{
   --canvas:#1E1322; --surface:#2A1D2F; --paper:#33243A;
@@ -30,6 +31,7 @@
   --green:#86C497; --green-soft:rgba(134,196,151,.20);
   --amber:#E2AE5E; --amber-soft:rgba(226,174,94,.20);
   --rose:#DE89A2; --rose-soft:rgba(222,137,162,.20);
+  --editor-canvas:#0B0B0B;
 }
 @keyframes sm-rise{from{transform:translateY(16px);}to{transform:none;}}
 @keyframes sm-breathe{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.82;}}
