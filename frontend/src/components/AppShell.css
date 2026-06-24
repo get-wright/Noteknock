@@ -170,6 +170,7 @@
 .sm-shell.is-sidebar-collapsed .sm-new-lesson,
 .sm-shell.is-sidebar-collapsed .sm-streak-pill {
   width: 56px;
+  gap: 0;
   justify-content: center;
   padding-inline: 0;
 }
