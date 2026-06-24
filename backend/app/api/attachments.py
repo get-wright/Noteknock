@@ -4,7 +4,15 @@ import uuid
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Form,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -199,3 +207,22 @@ async def get_attachment_download_url(
         download=True,
     )
     return AttachmentUrlOut(url=url)
+
+
+@router.get("/attachments/{attachment_id}/content")
+async def get_attachment_content(
+    attachment_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+    storage: StorageService = Depends(get_storage_service),
+) -> Response:
+    attachment = await _get_owner_attachment(db, attachment_id, user.id)
+    data = storage.get_bytes(attachment.key)
+    return Response(
+        content=data,
+        media_type=attachment.content_type,
+        headers={
+            "Cache-Control": "private, max-age=300",
+            "Content-Disposition": "inline",
+        },
+    )

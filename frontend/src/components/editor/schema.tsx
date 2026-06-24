@@ -3,23 +3,16 @@ import {
   defaultBlockSpecs,
 } from "@blocknote/core";
 import { createReactBlockSpec } from "@blocknote/react";
+import { renderAsync } from "docx-preview";
 import { Download, ExternalLink, FileText } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
+  fetchAttachmentBlob,
   isAttachmentAppUrl,
   resolveAttachmentDownloadUrl,
   resolveAttachmentPreviewUrl,
 } from "../../api/attachments";
-
-const PDF_MIN_WIDTH = 280;
-const PDF_MAX_WIDTH = 960;
-const PDF_MIN_HEIGHT = 320;
-const PDF_MAX_HEIGHT = 960;
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
 
 function pdfViewerUrl(url: string): string {
   const parsed = new URL(url);
@@ -72,6 +65,17 @@ function formatContentTypeLabel(contentType: string, filename: string): string {
   }
 
   return normalized ? "Tệp" : "";
+}
+
+function isDocxFile(contentType: string, filename: string): boolean {
+  return (
+    contentType
+      .split(";", 1)[0]
+      .trim()
+      .toLowerCase() ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    filename.toLowerCase().endsWith(".docx")
+  );
 }
 
 type ResolvedAttachmentUrlState = {
@@ -195,27 +199,10 @@ type PdfBlockProps = {
   name: string;
   caption: string;
   showPreview: boolean;
-  previewWidth: number | undefined;
-  previewHeight: number | undefined;
 };
 
-function PdfBlockView({
-  block,
-  editor,
-  props,
-}: {
-  block: { id: string };
-  editor: {
-    updateBlock: (block: { id: string }, update: { props: Partial<PdfBlockProps> }) => void;
-  };
-  props: PdfBlockProps;
-}) {
-  const { url, name, caption, showPreview, previewWidth, previewHeight } = props;
-  const previewShellRef = useRef<HTMLDivElement | null>(null);
-  const [draftSize, setDraftSize] = useState<{
-    width: number | undefined;
-    height: number | undefined;
-  }>({ width: previewWidth, height: previewHeight });
+function PdfBlockView({ props }: { props: PdfBlockProps }) {
+  const { url, name, caption, showPreview } = props;
   const {
     previewUrl,
     downloadUrl,
@@ -225,55 +212,6 @@ function PdfBlockView({
   } = useResolvedAttachmentUrls(url);
   const displayName = name || "PDF";
   const embedUrl = previewUrl ? pdfViewerUrl(previewUrl) : null;
-
-  useEffect(() => {
-    setDraftSize({ width: previewWidth, height: previewHeight });
-  }, [previewHeight, previewWidth]);
-
-  const handleResizePointerDown = useCallback(
-    (event: React.PointerEvent<HTMLButtonElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const rect = previewShellRef.current?.getBoundingClientRect();
-      const startX = event.clientX;
-      const startY = event.clientY;
-      const startWidth = rect?.width ?? previewWidth ?? PDF_MIN_WIDTH;
-      const startHeight = rect?.height ?? previewHeight ?? 420;
-
-      let nextWidth = startWidth;
-      let nextHeight = startHeight;
-
-      const handlePointerMove = (moveEvent: PointerEvent) => {
-        nextWidth = clamp(
-          startWidth + moveEvent.clientX - startX,
-          PDF_MIN_WIDTH,
-          PDF_MAX_WIDTH,
-        );
-        nextHeight = clamp(
-          startHeight + moveEvent.clientY - startY,
-          PDF_MIN_HEIGHT,
-          PDF_MAX_HEIGHT,
-        );
-        setDraftSize({ width: nextWidth, height: nextHeight });
-      };
-
-      const finishResize = () => {
-        window.removeEventListener("pointermove", handlePointerMove);
-        window.removeEventListener("pointerup", finishResize);
-        editor.updateBlock(block, {
-          props: {
-            previewWidth: Math.round(nextWidth),
-            previewHeight: Math.round(nextHeight),
-          },
-        });
-      };
-
-      window.addEventListener("pointermove", handlePointerMove);
-      window.addEventListener("pointerup", finishResize, { once: true });
-    },
-    [block, editor, previewHeight, previewWidth],
-  );
 
   if (!url) {
     return (
@@ -345,23 +283,11 @@ function PdfBlockView({
         </p>
       ) : null}
       {isAttachmentUrl && showPreview && embedUrl ? (
-        <div
-          className="bn-pdf-preview-shell"
-          ref={previewShellRef}
-          style={draftSize.width ? { width: draftSize.width } : undefined}
-        >
+        <div className="bn-pdf-preview-shell bn-document-preview bn-document-preview--pdf">
           <iframe
             className="bn-pdf-frame"
             src={embedUrl}
             title={displayName}
-            style={draftSize.height ? { height: draftSize.height } : undefined}
-          />
-          <button
-            type="button"
-            className="bn-pdf-resize-handle"
-            aria-label="Đổi kích thước xem trước PDF"
-            title="Kéo để đổi kích thước"
-            onPointerDown={handleResizePointerDown}
           />
         </div>
       ) : null}
@@ -377,6 +303,74 @@ type MaterialBlockProps = {
   sizeBytes: number;
 };
 
+function DocxPreview({ name, url }: { name: string; url: string }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let cancelled = false;
+    container.innerHTML = "";
+    setStatus("loading");
+
+    void fetchAttachmentBlob(url)
+      .then(async (blob) => {
+        if (cancelled) return;
+        if (!blob) {
+          setStatus("error");
+          return;
+        }
+        container.innerHTML = "";
+        await renderAsync(blob, container, undefined, {
+          breakPages: true,
+          className: "bn-docx-rendered",
+          ignoreHeight: true,
+          ignoreWidth: true,
+          inWrapper: true,
+        });
+        if (!cancelled) {
+          setStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          container.innerHTML = "";
+          setStatus("error");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      container.innerHTML = "";
+    };
+  }, [url]);
+
+  return (
+    <div
+      className="bn-docx-preview bn-document-preview"
+      aria-label={`Xem trước ${name}`}
+    >
+      {status === "loading" ? (
+        <p className="bn-attachment-status">Đang mở bản xem trước Word…</p>
+      ) : null}
+      {status === "error" ? (
+        <p className="bn-attachment-status bn-attachment-status--error">
+          Không thể xem trước tệp Word này. Bạn vẫn có thể mở hoặc tải xuống.
+        </p>
+      ) : null}
+      <div
+        className="bn-docx-preview__content bn-document-preview__content"
+        ref={containerRef}
+        hidden={status === "error"}
+      />
+    </div>
+  );
+}
+
 function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
   const { url, name, contentType, sizeBytes } = props;
   const {
@@ -391,6 +385,7 @@ function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
     formatContentTypeLabel(contentType, name),
     formatBytes(sizeBytes),
   ].filter(Boolean);
+  const shouldPreviewDocx = isDocxFile(contentType, name);
 
   if (!url) {
     return (
@@ -406,7 +401,12 @@ function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
   }
 
   return (
-    <div className="bn-material-card" contentEditable={false}>
+    <div
+      className={`bn-material-card${
+        shouldPreviewDocx ? " bn-material-card--with-preview" : ""
+      }`}
+      contentEditable={false}
+    >
       <div className="bn-material-icon" aria-hidden="true">
         <FileText size={22} />
       </div>
@@ -470,6 +470,79 @@ function MaterialBlockView({ props }: { props: MaterialBlockProps }) {
           </span>
         )}
       </div>
+      {shouldPreviewDocx && isAttachmentUrl ? (
+        <DocxPreview name={displayName} url={url} />
+      ) : null}
+    </div>
+  );
+}
+
+type FormulaBlockProps = {
+  formula: string;
+};
+
+function FormulaBlockView({
+  block,
+  editor,
+  props,
+}: {
+  block: { id: string };
+  editor: {
+    updateBlock: (
+      block: { id: string },
+      update: { props: Partial<FormulaBlockProps> },
+    ) => void;
+    _tiptapEditor?: { isEditable?: boolean };
+  };
+  props: FormulaBlockProps;
+}) {
+  const [draft, setDraft] = useState(props.formula);
+  const editable = editor._tiptapEditor?.isEditable !== false;
+
+  useEffect(() => {
+    setDraft(props.formula);
+  }, [props.formula]);
+
+  const commit = useCallback(() => {
+    if (draft !== props.formula) {
+      editor.updateBlock(block, { props: { formula: draft } });
+    }
+  }, [block, draft, editor, props.formula]);
+
+  if (!editable) {
+    return (
+      <div
+        className={`bn-formula-block${
+          props.formula ? "" : " bn-formula-block--empty"
+        }`}
+        contentEditable={false}
+      >
+        {props.formula || "∫ u dv = u·v − ∫ v du"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="bn-formula-block" contentEditable={false}>
+      <input
+        className="bn-formula-input"
+        value={draft}
+        placeholder="Nhập công thức, ví dụ: E = mc^2"
+        aria-label="Công thức"
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            commit();
+            event.currentTarget.blur();
+          }
+          if (event.key === "Escape") {
+            setDraft(props.formula);
+            event.currentTarget.blur();
+          }
+        }}
+      />
     </div>
   );
 }
@@ -483,18 +556,9 @@ const formulaBlock = createReactBlockSpec(
     content: "none",
   },
   {
-    render: ({ block }) => {
-      const text = block.props.formula;
-      const empty = !text;
-      return (
-        <div
-          className={`bn-formula-block${empty ? " bn-formula-block--empty" : ""}`}
-          contentEditable={false}
-        >
-          {empty ? "∫ u dv = u·v − ∫ v du" : text}
-        </div>
-      );
-    },
+    render: ({ block, editor }) => (
+      <FormulaBlockView block={block} editor={editor} props={block.props} />
+    ),
   },
 );
 
@@ -506,15 +570,11 @@ const pdfBlock = createReactBlockSpec(
       name: { default: "" },
       caption: { default: "" },
       showPreview: { default: true },
-      previewWidth: { default: undefined, type: "number" },
-      previewHeight: { default: undefined, type: "number" },
     },
     content: "none",
   },
   {
-    render: ({ block, editor }) => (
-      <PdfBlockView block={block} editor={editor} props={block.props} />
-    ),
+    render: ({ block }) => <PdfBlockView props={block.props} />,
   },
 );
 

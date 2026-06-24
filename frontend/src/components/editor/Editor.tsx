@@ -119,31 +119,33 @@ function EditorEditable({
   useEditorChange(handleChange, editor);
 
   return (
-    <BlockNoteView
-      editor={editor}
-      slashMenu={false}
-      theme={theme}
-      data-ph="Bắt đầu viết bài học của bạn…"
-    >
-      <SuggestionMenuController
-        triggerCharacter="/"
-        getItems={async (query) =>
-          filterSuggestionItems(
-            [
-              insertFormulaItem(editor),
-              insertPdfItem(editor, uploadAttachmentForBlock, reportUploadError),
-              insertMaterialItem(
-                editor,
-                uploadAttachmentForBlock,
-                reportUploadError,
-              ),
-              ...getDefaultReactSlashMenuItems(editor),
-            ],
-            query,
-          )
-        }
-      />
-    </BlockNoteView>
+    <div className="bn-editor-host">
+      <BlockNoteView
+        editor={editor}
+        slashMenu={false}
+        theme={theme}
+        data-ph="Bắt đầu viết bài học của bạn…"
+      >
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={async (query) =>
+            filterSuggestionItems(
+              [
+                insertFormulaItem(editor),
+                insertPdfItem(editor, uploadAttachmentForBlock, reportUploadError),
+                insertMaterialItem(
+                  editor,
+                  uploadAttachmentForBlock,
+                  reportUploadError,
+                ),
+                ...getDefaultReactSlashMenuItems(editor),
+              ],
+              query,
+            )
+          }
+        />
+      </BlockNoteView>
+    </div>
   );
 }
 
@@ -165,13 +167,15 @@ function EditorReadOnly({ initialContent }: { initialContent?: unknown[] }) {
   }, [editor, initialContent]);
 
   return (
-    <BlockNoteView
-      editor={editor}
-      slashMenu={false}
-      editable={false}
-      theme={theme}
-      data-ph="Bắt đầu viết bài học của bạn…"
-    />
+    <div className="bn-editor-host">
+      <BlockNoteView
+        editor={editor}
+        slashMenu={false}
+        editable={false}
+        theme={theme}
+        data-ph="Bắt đầu viết bài học của bạn…"
+      />
+    </div>
   );
 }
 

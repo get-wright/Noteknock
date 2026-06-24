@@ -5,6 +5,11 @@
   caret-color: var(--accent);
 }
 
+.bn-editor-host {
+  margin-left: -28px;
+  padding-left: 28px;
+}
+
 .bn-editor:empty::before {
   content: attr(data-ph);
   color: var(--faint);
@@ -58,6 +63,21 @@
   margin: 0 0 1.05em;
   letter-spacing: 0.01em;
   user-select: none;
+}
+
+.bn-formula-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  color: var(--accent);
+  background: transparent;
+}
+
+.bn-formula-input::placeholder {
+  color: var(--faint);
 }
 
 .bn-formula-block--empty {
@@ -164,8 +184,6 @@
   width: 100%;
   max-width: 100%;
   margin: 0;
-  background: var(--paper);
-  overflow: hidden;
 }
 
 .bn-pdf-frame {
@@ -177,32 +195,11 @@
   background: var(--paper);
 }
 
-.bn-pdf-resize-handle {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
-  border-radius: 9px;
-  background:
-    linear-gradient(135deg, transparent 48%, var(--accent) 49%, var(--accent) 53%, transparent 54%),
-    linear-gradient(135deg, transparent 64%, var(--accent) 65%, var(--accent) 69%, transparent 70%),
-    color-mix(in srgb, var(--paper) 88%, transparent);
+.bn-document-preview--pdf .bn-pdf-frame {
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 4px;
   box-shadow: var(--shadow-soft);
-  cursor: nwse-resize;
-  opacity: 0.78;
-}
-
-.bn-pdf-resize-handle:hover,
-.bn-pdf-resize-handle:focus-visible {
-  opacity: 1;
-  outline: none;
-  background:
-    linear-gradient(135deg, transparent 48%, var(--accent) 49%, var(--accent) 53%, transparent 54%),
-    linear-gradient(135deg, transparent 64%, var(--accent) 65%, var(--accent) 69%, transparent 70%),
-    var(--accent-tint);
 }
 
 .bn-pdf-caption {
@@ -232,6 +229,11 @@
   background: var(--accent-tint);
   border-style: dashed;
   box-shadow: none;
+}
+
+.bn-material-card--with-preview {
+  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
 .bn-material-icon {
@@ -289,6 +291,38 @@
   padding: 0;
 }
 
+.bn-document-preview {
+  flex: 1 0 100%;
+  max-height: 560px;
+  min-width: 0;
+  margin-top: 4px;
+  padding: 14px;
+  overflow: auto;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 14px 14px;
+  background: color-mix(in srgb, var(--cream) 64%, var(--paper));
+}
+
+.bn-document-preview--pdf {
+  max-height: none;
+  overflow: hidden;
+}
+
+.bn-document-preview__content {
+  min-height: 180px;
+}
+
+.bn-docx-preview .docx-wrapper {
+  padding: 0;
+  background: transparent;
+}
+
+.bn-docx-preview .docx {
+  max-width: 100%;
+  margin: 0 auto 14px;
+  box-shadow: var(--shadow-soft);
+}
+
 .editor-upload-error {
   display: flex;
   align-items: flex-start;
@@ -329,6 +363,11 @@
 }
 
 @media (max-width: 720px) {
+  .bn-editor-host {
+    margin-left: 0;
+    padding-left: 0;
+  }
+
   .bn-material-card {
     align-items: flex-start;
     flex-wrap: wrap;

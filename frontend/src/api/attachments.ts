@@ -100,3 +100,19 @@ export function resolveAttachmentPreviewUrl(url: string): Promise<string> {
 export function resolveAttachmentDownloadUrl(url: string): Promise<string> {
   return resolveAttachmentUrl(url, "download-url");
 }
+
+export async function fetchAttachmentBlob(url: string): Promise<Blob | null> {
+  const attachmentId = parseAttachmentId(url);
+  if (!attachmentId) {
+    return null;
+  }
+
+  const res = await fetch(apiUrl(`/api/attachments/${attachmentId}/content`), {
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    await throwApiError(res);
+  }
+
+  return res.blob();
+}

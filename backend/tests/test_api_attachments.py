@@ -12,9 +12,14 @@ from app.models.note import Note
 class FakeStorage:
     def __init__(self):
         self.puts = []
+        self.objects = {}
 
     def put_bytes(self, key, data, content_type):
         self.puts.append((key, data, content_type))
+        self.objects[key] = data
+
+    def get_bytes(self, key):
+        return self.objects[key]
 
     def presigned_get_url(self, key, filename, content_type, download=False):
         suffix = "download" if download else "preview"
@@ -165,6 +170,38 @@ async def test_download_url_is_marked_for_attachment(client, auth_token, fake_st
     )
     assert resp.status_code == 200
     assert "/download/" in resp.json()["url"]
+
+
+@pytest.mark.asyncio
+async def test_content_returns_owner_scoped_attachment_bytes(
+    client, auth_token, fake_storage
+):
+    upload_resp = await _upload_pdf(client, auth_token, fake_storage)
+    attachment_id = upload_resp.json()["id"]
+
+    resp = await client.get(
+        f"/api/attachments/{attachment_id}/content",
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+
+    assert resp.status_code == 200
+    assert resp.content == b"%PDF-1.4 test"
+    assert resp.headers["content-type"] == "application/pdf"
+
+
+@pytest.mark.asyncio
+async def test_cross_user_content_returns_404(client, fake_storage):
+    owner_token = await _register_user(client, "content-owner@test.com")
+    other_token = await _register_user(client, "content-other@test.com")
+    upload_resp = await _upload_pdf(client, owner_token, fake_storage)
+    attachment_id = upload_resp.json()["id"]
+
+    resp = await client.get(
+        f"/api/attachments/{attachment_id}/content",
+        headers={"Authorization": f"Bearer {other_token}"},
+    )
+
+    assert resp.status_code == 404
 
 
 @pytest.mark.asyncio

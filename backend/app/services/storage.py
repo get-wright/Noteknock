@@ -125,6 +125,14 @@ class StorageService:
             content_type=content_type,
         )
 
+    def get_bytes(self, key: str) -> bytes:
+        response = self._client.get_object(self._bucket, key)
+        try:
+            return response.read()
+        finally:
+            response.close()
+            response.release_conn()
+
     def presigned_get_url(
         self,
         key: str,
