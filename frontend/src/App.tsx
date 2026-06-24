@@ -5,7 +5,7 @@ import { ProtectedRoute } from "./auth/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Landing from "./pages/Landing";
-import AppPlaceholder from "./pages/AppPlaceholder";
+import Dashboard from "./pages/Dashboard";
 import EditorPage from "./pages/EditorPage";
 
 export default function App() {
@@ -21,7 +21,7 @@ export default function App() {
             path="/app"
             element={
               <ProtectedRoute>
-                <AppPlaceholder />
+                <Dashboard />
               </ProtectedRoute>
             }
           />
