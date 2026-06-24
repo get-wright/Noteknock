@@ -72,3 +72,16 @@ async def client(engine):
     ) as c:
         yield c
     fastapi_app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def auth_token(client):
+    resp = await client.post(
+        "/api/register",
+        json={
+            "name": "Note Tester",
+            "email": "notetester@test.com",
+            "password": "secret123",
+        },
+    )
+    return resp.json()["access_token"]
