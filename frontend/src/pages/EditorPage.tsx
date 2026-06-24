@@ -285,6 +285,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
     isGeneratingRecallRef.current = true;
     setIsGeneratingRecall(true);
     try {
+      await forceSave();
       const items = await generateRecall(savedTitle);
       setRecallItems(sortRecallItems(items));
       setRecallError(null);

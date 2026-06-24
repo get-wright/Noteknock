@@ -1,4 +1,9 @@
+from typing import Annotated
+
+from pydantic import StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+RequiredString = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class Settings(BaseSettings):
@@ -9,9 +14,15 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_expiry_days: int = 30
     jwt_algorithm: str = "HS256"
-    llm_base_url: str
-    llm_api_key: str
-    llm_model: str
+
+
+class LLMSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env", extra="ignore", env_ignore_empty=True
+    )
+    llm_base_url: RequiredString
+    llm_api_key: RequiredString
+    llm_model: RequiredString
 
 
 settings = Settings()
