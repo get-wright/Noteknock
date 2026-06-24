@@ -11,10 +11,10 @@ StudyMap (Vietnamese study/notes app, Peeky design system) ported to a real web 
 ## Current Status
 
 - Phase 3 backend through P3.3 is complete and reviewed: recall items/generation, quiz models/migration `0004`, quiz generation API, quiz attempts, review events, activity, and streak APIs.
-- Latest completed plan task: P3.4 `Frontend quiz screens` (`d75e7e7`, fix `d62e60a`): added `frontend/src/api/quiz.ts`, quiz/result routes, Study quiz CTA wiring, mockup-aligned Quiz and QuizResult screens, real quiz load/generation, and persisted quiz attempts.
-- Verification/review: `npm run build` from `frontend/` passed after implementation and after the fix; `npm run lint` is blocked by missing repo ESLint config. P3.4 spec-review passed; code-review initially found partial-result/submission lifecycle/a11y issues, fixed in `d62e60a`, then code-review passed.
-- Blockers: none for P3.4. Known limitation: early quiz finish submits partial answers by design, and the result screen now marks unanswered questions as `Chưa trả lời`.
-- Next plan task: P3.5 frontend Review screen unless the user redirects.
+- Latest completed plan task: P3.5 `Frontend Review screen` (`e9ebd29`, fix `c900886`): added `frontend/src/api/activity.ts`, `/app/review`, mockup-aligned Review screen, due-review loading from `/api/review/due`, selected-strength review POSTs to `/api/notes/{title}/review`, and QuizResult `Lên lịch ôn tập` routing to Review.
+- Verification/review: `npm run build` from `frontend/` passed after implementation and after the fix; `npm run lint` remains blocked by missing repo ESLint config. P3.5 spec-review passed; code-review initially found per-card submission/unmount/a11y issues, fixed in `c900886`, then code-review passed.
+- Blockers: none for P3.5. Known limitation: `Sắp tới` is session-only because there is no future-due API yet; Dashboard still uses static due counts/nav and was left out of scope.
+- Next plan task: P3.6 frontend Streak screen unless the user redirects.
 
 ---
 
