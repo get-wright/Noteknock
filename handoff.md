@@ -11,10 +11,10 @@ StudyMap (Vietnamese study/notes app, Peeky design system) ported to a real web 
 ## Current Status
 
 - Phase 3 backend through P3.3 is complete and reviewed: recall items/generation, quiz models/migration `0004`, quiz generation API, quiz attempts, review events, activity, and streak APIs.
-- Latest completed plan task: P3.6 `Frontend Streak screen` (`a9bcaea`, fix `3dd0a54`): extended `frontend/src/api/activity.ts` with activity/streak clients, added `/app/streak`, mockup-aligned Streak screen with real current/longest/total stats, UTC-aligned heatmap from `/api/streak`, growth chart and timeline from `/api/activity`, and Dashboard streak tile navigation.
-- Verification/review: `npm run build` from `frontend/` passed after implementation and after the fix; `npm run lint` remains blocked by missing repo ESLint config. P3.6 spec-review passed; code-review initially found heatmap scaling, UTC date alignment, and chart/heatmap a11y issues, fixed in `3dd0a54`, then code-review passed.
-- Blockers: none for P3.6. Known limitation: Dashboard streak count remains static (`12`) because only navigation wiring was in scope.
-- Next plan task: P3.7 frontend Profile screen unless the user redirects.
+- Latest completed plan task: P3.7 `Frontend Profile screen` (`4d13fca`, fix `0a950c4`): added `/app/profile`, mockup-aligned Profile screen with real auth user name/email/initials, static stats/StudyMap Pro card, leaderboard with highlighted current row, settings toggles, logout, and Dashboard leaderboard navigation to Profile.
+- Verification/review: `npm run build` from `frontend/` passed after implementation and after the fix; `npm run lint` remains blocked by missing repo ESLint config. P3.7 spec-review passed; code-review initially found nested settings controls and inert active placeholders, fixed in `0a950c4`, then code-review passed.
+- Blockers: none for P3.7. Known limitations: stat tiles/leaderboard/subscription copy are static, notify/sync toggles are session-only, edit/subscription/language are disabled placeholders, and Dashboard avatar is not wired to Profile.
+- Next plan task: P4.1 Google OAuth unless the user redirects.
 
 ---
 
