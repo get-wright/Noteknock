@@ -150,13 +150,20 @@ function StrengthPicker({
   onChange: (v: number) => void;
 }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+    <span
+      role="radiogroup"
+      aria-label="Độ nhớ ghi nhận"
+      style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+    >
       {[1, 2, 3].map((s) => {
         const on = value === s;
         return (
           <button
             key={s}
             type="button"
+            role="radio"
+            aria-checked={on}
+            aria-pressed={on}
             aria-label={`Độ nhớ ${s}`}
             onClick={(e) => {
               e.stopPropagation();
@@ -311,6 +318,7 @@ function DueCard({
           <button
             type="button"
             disabled={reviewing}
+            aria-label={`Đã ôn ${item.title}`}
             onClick={(e) => {
               e.stopPropagation();
               onReview();
@@ -366,41 +374,66 @@ export default function ReviewPage() {
   const [strengthByNote, setStrengthByNote] = useState<Record<string, number>>(
     {},
   );
-  const [reviewingId, setReviewingId] = useState<string | null>(null);
+  const [reviewingIds, setReviewingIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const reviewingIdsRef = useRef<Set<string>>(new Set());
   const firstCardRef = useRef<HTMLElement | null>(null);
+  const mountedRef = useRef(true);
 
   const sessionStarted = useRef(false);
 
-  const loadDue = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await getDueReviews();
-      setDue(rows);
-      if (!sessionStarted.current) {
-        sessionStarted.current = true;
-        setInitialDueCount(rows.length);
-      }
-      setStrengthByNote((prev) => {
-        const next = { ...prev };
-        for (const r of rows) {
-          if (next[r.noteId] === undefined) {
-            next[r.noteId] = defaultStrengthFor(r);
-          }
-        }
-        return next;
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Không tải được danh sách ôn tập");
-      setDue([]);
-    } finally {
-      setLoading(false);
-    }
+  const syncReviewingIds = useCallback(() => {
+    setReviewingIds(new Set(reviewingIdsRef.current));
   }, []);
 
   useEffect(() => {
-    loadDue();
-  }, [loadDue]);
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (!mountedRef.current) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const rows = await getDueReviews();
+        if (cancelled || !mountedRef.current) return;
+        setDue(rows);
+        if (!sessionStarted.current) {
+          sessionStarted.current = true;
+          setInitialDueCount(rows.length);
+        }
+        setStrengthByNote((prev) => {
+          const next = { ...prev };
+          for (const r of rows) {
+            if (next[r.noteId] === undefined) {
+              next[r.noteId] = defaultStrengthFor(r);
+            }
+          }
+          return next;
+        });
+      } catch (e) {
+        if (cancelled || !mountedRef.current) return;
+        setError(
+          e instanceof Error ? e.message : "Không tải được danh sách ôn tập",
+        );
+        setDue([]);
+      } finally {
+        if (!cancelled && mountedRef.current) {
+          setLoading(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const remaining = due.length;
   const heroTotal = useMemo(
@@ -418,11 +451,15 @@ export default function ReviewPage() {
   };
 
   const markReviewed = async (item: ReviewDue) => {
+    if (reviewingIdsRef.current.has(item.noteId)) return;
+    reviewingIdsRef.current.add(item.noteId);
+    syncReviewingIds();
+
     const strength = strengthByNote[item.noteId] ?? defaultStrengthFor(item);
-    setReviewingId(item.noteId);
-    setError(null);
+    if (mountedRef.current) setError(null);
     try {
       await createReviewEvent(item.title, strength);
+      if (!mountedRef.current) return;
       setDue((list) => list.filter((d) => d.noteId !== item.noteId));
       setDoneCount((c) => c + 1);
       setSoon((list) => [
@@ -440,9 +477,13 @@ export default function ReviewPage() {
         return next;
       });
     } catch (e) {
+      if (!mountedRef.current) return;
       setError(e instanceof Error ? e.message : "Không lưu được lần ôn");
     } finally {
-      setReviewingId(null);
+      reviewingIdsRef.current.delete(item.noteId);
+      if (mountedRef.current) {
+        syncReviewingIds();
+      }
     }
   };
 
@@ -669,7 +710,7 @@ export default function ReviewPage() {
                   }
                   onReview={() => markReviewed(d)}
                   onOpen={() => openNote(d.title)}
-                  reviewing={reviewingId === d.noteId}
+                  reviewing={reviewingIds.has(d.noteId)}
                 />
               ))}
             </div>
