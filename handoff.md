@@ -11,8 +11,10 @@ StudyMap (Vietnamese study/notes app, Peeky design system) ported to a real web 
 ## Current Status
 
 - Phase 3 backend through P3.3 is complete and reviewed: recall items/generation, quiz models/migration `0004`, quiz generation API, quiz attempts, review events, activity, and streak APIs.
-- Latest completed plan task: P3.3 `Add quiz attempts and activity APIs` (`e02acf3`), with spec-review and code-review gates passed.
-- Next plan task: P3.4 frontend quiz screens unless the user redirects.
+- Latest completed plan task: P3.4 `Frontend quiz screens` (`d75e7e7`, fix `d62e60a`): added `frontend/src/api/quiz.ts`, quiz/result routes, Study quiz CTA wiring, mockup-aligned Quiz and QuizResult screens, real quiz load/generation, and persisted quiz attempts.
+- Verification/review: `npm run build` from `frontend/` passed after implementation and after the fix; `npm run lint` is blocked by missing repo ESLint config. P3.4 spec-review passed; code-review initially found partial-result/submission lifecycle/a11y issues, fixed in `d62e60a`, then code-review passed.
+- Blockers: none for P3.4. Known limitation: early quiz finish submits partial answers by design, and the result screen now marks unanswered questions as `Chưa trả lời`.
+- Next plan task: P3.5 frontend Review screen unless the user redirects.
 
 ---
 
