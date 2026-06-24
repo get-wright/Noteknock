@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from app.api import auth
 from app.api import notes
+from app.api import recall
 
 app = FastAPI(title="Noteknock")
 
@@ -30,6 +31,7 @@ async def validation_exception_handler(request, exc: RequestValidationError):
 
 app.include_router(auth.router, prefix="/api")
 app.include_router(notes.router, prefix="/api")
+app.include_router(recall.router, prefix="/api")
 
 
 @app.get("/health")
