@@ -1,5 +1,22 @@
-const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 const TOKEN_KEY = "noteknock_token";
+
+export function apiUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+  const base = API_BASE.replace(/\/$/, "");
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+}
+
+export function authHeaders(): Record<string, string> {
+  const token = getToken();
+  if (token) {
+    return { Authorization: `Bearer ${token}` };
+  }
+  return {};
+}
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -35,11 +52,7 @@ export async function apiRequest<T>(
   opts: RequestOptions = {},
 ): Promise<T> {
   const { method = "GET", body, form, auth = true } = opts;
-  const headers: Record<string, string> = {};
-  if (auth) {
-    const token = getToken();
-    if (token) headers["Authorization"] = `Bearer ${token}`;
-  }
+  const headers: Record<string, string> = auth ? authHeaders() : {};
   let payload: BodyInit | undefined;
   if (form) {
     headers["Content-Type"] = "application/x-www-form-urlencoded";
@@ -48,7 +61,7 @@ export async function apiRequest<T>(
     headers["Content-Type"] = "application/json";
     payload = JSON.stringify(body);
   }
-  const res = await fetch(`${API_BASE}${path}`, { method, headers, body: payload });
+  const res = await fetch(apiUrl(path), { method, headers, body: payload });
   if (!res.ok) {
     let message = res.statusText;
     try {
