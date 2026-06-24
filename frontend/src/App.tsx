@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Landing from "./pages/Landing";
 import AppPlaceholder from "./pages/AppPlaceholder";
+import EditorPage from "./pages/EditorPage";
 
 export default function App() {
   useTheme();
@@ -17,10 +18,26 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
-            path="/app/*"
+            path="/app"
             element={
               <ProtectedRoute>
                 <AppPlaceholder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/new"
+            element={
+              <ProtectedRoute>
+                <EditorPage mode="new" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/notes/:title"
+            element={
+              <ProtectedRoute>
+                <EditorPage mode="edit" />
               </ProtectedRoute>
             }
           />
