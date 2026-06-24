@@ -158,12 +158,51 @@
   color: var(--accent);
 }
 
+.bn-pdf-preview-shell {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  background: var(--paper);
+  overflow: hidden;
+}
+
 .bn-pdf-frame {
   display: block;
   width: 100%;
-  min-height: 420px;
+  height: 420px;
+  min-height: 320px;
   border: 0;
   background: var(--paper);
+}
+
+.bn-pdf-resize-handle {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-radius: 9px;
+  background:
+    linear-gradient(135deg, transparent 48%, var(--accent) 49%, var(--accent) 53%, transparent 54%),
+    linear-gradient(135deg, transparent 64%, var(--accent) 65%, var(--accent) 69%, transparent 70%),
+    color-mix(in srgb, var(--paper) 88%, transparent);
+  box-shadow: var(--shadow-soft);
+  cursor: nwse-resize;
+  opacity: 0.78;
+}
+
+.bn-pdf-resize-handle:hover,
+.bn-pdf-resize-handle:focus-visible {
+  opacity: 1;
+  outline: none;
+  background:
+    linear-gradient(135deg, transparent 48%, var(--accent) 49%, var(--accent) 53%, transparent 54%),
+    linear-gradient(135deg, transparent 64%, var(--accent) 65%, var(--accent) 69%, transparent 70%),
+    var(--accent-tint);
 }
 
 .bn-pdf-caption {

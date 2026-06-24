@@ -4,13 +4,33 @@ import {
 } from "@blocknote/core";
 import { createReactBlockSpec } from "@blocknote/react";
 import { Download, ExternalLink, FileText } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   isAttachmentAppUrl,
   resolveAttachmentDownloadUrl,
   resolveAttachmentPreviewUrl,
 } from "../../api/attachments";
+
+const PDF_MIN_WIDTH = 280;
+const PDF_MAX_WIDTH = 960;
+const PDF_MIN_HEIGHT = 320;
+const PDF_MAX_HEIGHT = 960;
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function pdfViewerUrl(url: string): string {
+  const parsed = new URL(url);
+  const hash = new URLSearchParams(parsed.hash.replace(/^#/, ""));
+  hash.set("toolbar", "0");
+  hash.set("navpanes", "0");
+  hash.set("scrollbar", "0");
+  hash.set("view", "FitH");
+  parsed.hash = hash.toString();
+  return parsed.toString();
+}
 
 function formatBytes(bytes: number): string {
   if (bytes <= 0) return "";
@@ -148,10 +168,26 @@ type PdfBlockProps = {
   caption: string;
   showPreview: boolean;
   previewWidth: number | undefined;
+  previewHeight: number | undefined;
 };
 
-function PdfBlockView({ props }: { props: PdfBlockProps }) {
-  const { url, name, caption, showPreview, previewWidth } = props;
+function PdfBlockView({
+  block,
+  editor,
+  props,
+}: {
+  block: { id: string };
+  editor: {
+    updateBlock: (block: { id: string }, update: { props: Partial<PdfBlockProps> }) => void;
+  };
+  props: PdfBlockProps;
+}) {
+  const { url, name, caption, showPreview, previewWidth, previewHeight } = props;
+  const previewShellRef = useRef<HTMLDivElement | null>(null);
+  const [draftSize, setDraftSize] = useState<{
+    width: number | undefined;
+    height: number | undefined;
+  }>({ width: previewWidth, height: previewHeight });
   const {
     previewUrl,
     downloadUrl,
@@ -160,6 +196,56 @@ function PdfBlockView({ props }: { props: PdfBlockProps }) {
     hasError,
   } = useResolvedAttachmentUrls(url);
   const displayName = name || "PDF";
+  const embedUrl = previewUrl ? pdfViewerUrl(previewUrl) : null;
+
+  useEffect(() => {
+    setDraftSize({ width: previewWidth, height: previewHeight });
+  }, [previewHeight, previewWidth]);
+
+  const handleResizePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const rect = previewShellRef.current?.getBoundingClientRect();
+      const startX = event.clientX;
+      const startY = event.clientY;
+      const startWidth = rect?.width ?? previewWidth ?? PDF_MIN_WIDTH;
+      const startHeight = rect?.height ?? previewHeight ?? 420;
+
+      let nextWidth = startWidth;
+      let nextHeight = startHeight;
+
+      const handlePointerMove = (moveEvent: PointerEvent) => {
+        nextWidth = clamp(
+          startWidth + moveEvent.clientX - startX,
+          PDF_MIN_WIDTH,
+          PDF_MAX_WIDTH,
+        );
+        nextHeight = clamp(
+          startHeight + moveEvent.clientY - startY,
+          PDF_MIN_HEIGHT,
+          PDF_MAX_HEIGHT,
+        );
+        setDraftSize({ width: nextWidth, height: nextHeight });
+      };
+
+      const finishResize = () => {
+        window.removeEventListener("pointermove", handlePointerMove);
+        window.removeEventListener("pointerup", finishResize);
+        editor.updateBlock(block, {
+          props: {
+            previewWidth: Math.round(nextWidth),
+            previewHeight: Math.round(nextHeight),
+          },
+        });
+      };
+
+      window.addEventListener("pointermove", handlePointerMove);
+      window.addEventListener("pointerup", finishResize, { once: true });
+    },
+    [block, editor, previewHeight, previewWidth],
+  );
 
   if (!url) {
     return (
@@ -230,13 +316,26 @@ function PdfBlockView({ props }: { props: PdfBlockProps }) {
           Không thể tạo liên kết xem trước hoặc tải xuống.
         </p>
       ) : null}
-      {isAttachmentUrl && showPreview && previewUrl ? (
-        <iframe
-          className="bn-pdf-frame"
-          src={previewUrl}
-          title={displayName}
-          style={previewWidth ? { width: previewWidth } : undefined}
-        />
+      {isAttachmentUrl && showPreview && embedUrl ? (
+        <div
+          className="bn-pdf-preview-shell"
+          ref={previewShellRef}
+          style={draftSize.width ? { width: draftSize.width } : undefined}
+        >
+          <iframe
+            className="bn-pdf-frame"
+            src={embedUrl}
+            title={displayName}
+            style={draftSize.height ? { height: draftSize.height } : undefined}
+          />
+          <button
+            type="button"
+            className="bn-pdf-resize-handle"
+            aria-label="Đổi kích thước xem trước PDF"
+            title="Kéo để đổi kích thước"
+            onPointerDown={handleResizePointerDown}
+          />
+        </div>
       ) : null}
       {caption ? <p className="bn-pdf-caption">{caption}</p> : null}
     </div>
@@ -377,11 +476,14 @@ const pdfBlock = createReactBlockSpec(
       caption: { default: "" },
       showPreview: { default: true },
       previewWidth: { default: undefined, type: "number" },
+      previewHeight: { default: undefined, type: "number" },
     },
     content: "none",
   },
   {
-    render: ({ block }) => <PdfBlockView props={block.props} />,
+    render: ({ block, editor }) => (
+      <PdfBlockView block={block} editor={editor} props={block.props} />
+    ),
   },
 );
 
