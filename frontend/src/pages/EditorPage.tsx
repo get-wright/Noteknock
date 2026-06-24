@@ -296,21 +296,29 @@ export default function EditorPage({ mode }: EditorPageProps) {
     try {
       const updated = await updateRecallItem(savedTitle, item.id, { content });
       setRecallItems((prev) =>
-        sortRecallItems(prev.map((x) => (x.id === updated.id ? updated : x))),
+        sortRecallItems(
+          prev.map((x) =>
+            x.id === updated.id && x.content.trim() === content ? updated : x,
+          ),
+        ),
       );
       setRecallError(null);
       recallEditOriginalsRef.current[item.id] = updated.content;
     } catch (e) {
       setRecallItems((prev) =>
         prev.map((x) =>
-          x.id === item.id ? { ...x, content: serverContent } : x,
+          x.id === item.id && x.content.trim() === content
+            ? { ...x, content: serverContent }
+            : x,
         ),
       );
       setRecallError(
         e instanceof Error ? e.message : "Không lưu được điểm cần nhớ",
       );
     } finally {
-      delete recallEditOriginalsRef.current[item.id];
+      if (recallEditOriginalsRef.current[item.id] === serverContent) {
+        delete recallEditOriginalsRef.current[item.id];
+      }
     }
   };
 

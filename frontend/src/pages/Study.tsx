@@ -96,15 +96,27 @@ export default function Study() {
         return;
       }
       setLoadState("loading");
+      setRecallItems([]);
+      setRecallError(null);
+      updatingRecallIdsRef.current.clear();
+      setUpdatingRecallIds(new Set());
       try {
-        const [n, recall] = await Promise.all([
-          getNote(titleParam),
-          getRecall(titleParam),
-        ]);
+        const n = await getNote(titleParam);
         if (cancelled) return;
         setNote(n);
-        setRecallItems(sortRecallItems(recall));
         setLoadState("ready");
+        try {
+          const recall = await getRecall(titleParam);
+          if (cancelled) return;
+          setRecallItems(sortRecallItems(recall));
+          setRecallError(null);
+        } catch (e) {
+          if (cancelled) return;
+          setRecallItems([]);
+          setRecallError(
+            e instanceof Error ? e.message : "Không tải được cần nhớ",
+          );
+        }
       } catch (e) {
         if (cancelled) return;
         if (e instanceof ApiError && e.status === 404) {
