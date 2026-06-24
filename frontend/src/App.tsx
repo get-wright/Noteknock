@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import EditorPage from "./pages/EditorPage";
+import Study from "./pages/Study";
 
 export default function App() {
   useTheme();
@@ -34,10 +35,18 @@ export default function App() {
             }
           />
           <Route
-            path="/app/notes/:title"
+            path="/app/notes/:title/edit"
             element={
               <ProtectedRoute>
                 <EditorPage mode="edit" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/notes/:title"
+            element={
+              <ProtectedRoute>
+                <Study />
               </ProtectedRoute>
             }
           />
