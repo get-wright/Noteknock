@@ -5,7 +5,7 @@ import {
   Info,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ApiError } from "../api/client";
 import { getNote } from "../api/notes";
@@ -54,6 +54,14 @@ export default function QuizPage() {
   const [answered, setAnswered] = useState(false);
   const [choice, setChoice] = useState<number | null>(null);
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,7 +80,7 @@ export default function QuizPage() {
           setTopicLabel(subjectLabel(note.subject));
           setTopicColor(subjectColor(note.subject));
         } catch {
-          setTopicLabel(titleParam);
+          if (!cancelled) setTopicLabel(titleParam);
         }
         setLoadMessage("Đang chuẩn bị câu hỏi…");
         const q = await loadOrGenerateQuiz(titleParam);
@@ -127,6 +135,7 @@ export default function QuizPage() {
       setLoadState("submitting");
       try {
         const attempt = await submitQuizAttempt(quiz.id, finalAnswers);
+        if (!mountedRef.current) return;
         const state: QuizResultState = {
           noteTitle: titleParam,
           topicLabel,
@@ -143,6 +152,7 @@ export default function QuizPage() {
         }
         navigate(resultPath, { state });
       } catch (e) {
+        if (!mountedRef.current) return;
         setLoadState("ready");
         setLoadError(
           e instanceof Error ? e.message : "Không gửi được bài làm",

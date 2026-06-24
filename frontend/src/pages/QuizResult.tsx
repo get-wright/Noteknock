@@ -163,14 +163,19 @@ export default function QuizResultPage() {
     return state.quiz.questions
       .filter((q) => {
         const a = answerByQ.get(q.id);
-        return a && !a.correct;
+        if (!a) return true;
+        return !a.correct;
       })
       .map((q) => {
-        const a = answerByQ.get(q.id)!;
-        const youIdx = choiceByQ.get(q.id) ?? a.choice;
+        const a = answerByQ.get(q.id);
+        const unanswered = a === undefined;
+        const youIdx = choiceByQ.get(q.id) ?? a?.choice;
         return {
           prompt: q.prompt,
-          you: optionLabel(q.options, youIdx),
+          unanswered,
+          you: unanswered
+            ? "Chưa trả lời"
+            : optionLabel(q.options, youIdx ?? 0),
           ok: optionLabel(q.options, q.correctIndex),
           why:
             q.explanation?.trim() ||
@@ -389,6 +394,8 @@ export default function QuizResultPage() {
             >
               {missed.map((m, i) => {
                 const open = openMissed === i;
+                const panelId = `missed-panel-${i}`;
+                const headerId = `missed-header-${i}`;
                 return (
                   <div
                     key={i}
@@ -402,6 +409,9 @@ export default function QuizResultPage() {
                   >
                     <button
                       type="button"
+                      id={headerId}
+                      aria-expanded={open}
+                      aria-controls={panelId}
                       onClick={() => setOpenMissed(open ? -1 : i)}
                       style={{
                         width: "100%",
@@ -450,6 +460,10 @@ export default function QuizResultPage() {
                       </span>
                     </button>
                     <div
+                      id={panelId}
+                      role="region"
+                      aria-labelledby={headerId}
+                      hidden={!open}
                       style={{
                         maxHeight: open ? 360 : 0,
                         opacity: open ? 1 : 0,
@@ -492,14 +506,18 @@ export default function QuizResultPage() {
                             </span>
                             <span
                               style={{
-                                fontFamily: "var(--mono)",
+                                fontFamily: m.unanswered ? "var(--body)" : "var(--mono)",
                                 fontSize: ".9rem",
                                 fontWeight: 500,
                                 padding: "5px 11px",
                                 borderRadius: 9,
-                                color: "var(--rose)",
-                                background: "var(--rose-soft)",
-                                textDecoration: "line-through",
+                                color: m.unanswered ? "var(--muted)" : "var(--rose)",
+                                background: m.unanswered
+                                  ? "var(--track)"
+                                  : "var(--rose-soft)",
+                                textDecoration: m.unanswered
+                                  ? "none"
+                                  : "line-through",
                               }}
                             >
                               {m.you}
