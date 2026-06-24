@@ -204,7 +204,9 @@ export default function ProfilePage() {
             </div>
             <button
               type="button"
-              aria-label="Chỉnh sửa"
+              disabled
+              aria-label="Chỉnh sửa hồ sơ — sắp có"
+              title="Chỉnh sửa hồ sơ — sắp có"
               style={{
                 flex: "0 0 auto",
                 width: 40,
@@ -212,8 +214,9 @@ export default function ProfilePage() {
                 border: "1px solid var(--border)",
                 background: "transparent",
                 borderRadius: 12,
-                cursor: "pointer",
+                cursor: "not-allowed",
                 color: "var(--muted)",
+                opacity: 0.55,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -355,6 +358,9 @@ export default function ProfilePage() {
             </div>
             <button
               type="button"
+              disabled
+              title="Quản lý gói đăng ký — sắp có"
+              aria-label="Quản lý gói đăng ký — sắp có"
               style={{
                 position: "relative",
                 width: "100%",
@@ -363,7 +369,8 @@ export default function ProfilePage() {
                 background: "var(--paper)",
                 color: "var(--ink)",
                 borderRadius: 13,
-                cursor: "pointer",
+                cursor: "not-allowed",
+                opacity: 0.55,
                 fontFamily: "var(--body)",
                 fontWeight: 600,
                 fontSize: ".92rem",
@@ -555,17 +562,7 @@ export default function ProfilePage() {
                 gap: 13,
                 minHeight: 58,
                 padding: "12px 16px",
-                cursor: "pointer",
               }}
-              onClick={() => setNotify((v) => !v)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setNotify((v) => !v);
-                }
-              }}
-              role="button"
-              tabIndex={0}
             >
               <span
                 style={{
@@ -617,17 +614,7 @@ export default function ProfilePage() {
                 gap: 13,
                 minHeight: 58,
                 padding: "12px 16px",
-                cursor: "pointer",
               }}
-              onClick={() => setSync((v) => !v)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setSync((v) => !v);
-                }
-              }}
-              role="button"
-              tabIndex={0}
             >
               <span
                 style={{
@@ -663,20 +650,17 @@ export default function ProfilePage() {
               />
             </div>
 
-            <button
-              type="button"
+            <div
+              role="group"
+              aria-label="Ngôn ngữ — Tiếng Việt (chưa đổi được)"
+              title="Đổi ngôn ngữ — sắp có"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 13,
                 minHeight: 58,
                 padding: "12px 16px",
-                width: "100%",
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                fontFamily: "var(--body)",
-                textAlign: "left",
+                opacity: 0.85,
               }}
             >
               <span
@@ -718,8 +702,9 @@ export default function ProfilePage() {
               <ChevronRight
                 size={20}
                 style={{ color: "var(--faint)", flexShrink: 0 }}
+                aria-hidden
               />
-            </button>
+            </div>
           </section>
 
           <button
