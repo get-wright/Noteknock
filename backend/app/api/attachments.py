@@ -25,6 +25,7 @@ from app.services.storage import (
 
 router = APIRouter(tags=["attachments"])
 
+NOTE_NOT_FOUND_DETAIL = "The specified note cannot be found."
 RISKY_EXTENSIONS = frozenset({".html", ".htm", ".svg"})
 
 EXTENSION_CONTENT_TYPES: dict[str, frozenset[str]] = {
@@ -66,7 +67,9 @@ def validate_extension_match(filename: str, content_type: str) -> None:
     if ext in RISKY_EXTENSIONS:
         raise UploadValidationError("Unsupported file extension")
     allowed = EXTENSION_CONTENT_TYPES.get(ext)
-    if allowed is not None and content_type not in allowed:
+    if allowed is None:
+        raise UploadValidationError("Unsupported file extension")
+    if content_type not in allowed:
         raise UploadValidationError("File extension does not match content type")
 
 
@@ -114,14 +117,14 @@ async def upload_attachment(
             parsed_note_id = uuid.UUID(note_id)
         except ValueError as exc:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid note id."
+                status_code=status.HTTP_404_NOT_FOUND, detail=NOTE_NOT_FOUND_DETAIL
             ) from exc
         result = await db.execute(
             select(Note).where(Note.id == parsed_note_id, Note.owner_id == user.id)
         )
         if result.scalar_one_or_none() is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Attachment not found."
+                status_code=status.HTTP_404_NOT_FOUND, detail=NOTE_NOT_FOUND_DETAIL
             )
 
     data = await _read_upload_limited(file, settings.max_upload_bytes)

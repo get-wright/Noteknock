@@ -104,6 +104,7 @@ async def test_upload_with_missing_note_id_returns_404(client, auth_token, fake_
         client, auth_token, fake_storage, note_id=uuid.uuid4()
     )
     assert resp.status_code == 404
+    assert resp.json()["detail"] == "The specified note cannot be found."
 
 
 @pytest.mark.asyncio
@@ -122,6 +123,7 @@ async def test_upload_with_other_users_note_id_returns_404(client, fake_storage,
 
     resp = await _upload_pdf(client, other_token, fake_storage, note_id=note_id)
     assert resp.status_code == 404
+    assert resp.json()["detail"] == "The specified note cannot be found."
 
 
 @pytest.mark.asyncio
@@ -205,6 +207,32 @@ async def test_html_extension_rejected_even_with_allowed_content_type(
         headers={"Authorization": f"Bearer {auth_token}"},
     )
     assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_unknown_extension_rejected_even_with_allowed_content_type(
+    client, auth_token, fake_storage
+):
+    resp = await client.post(
+        "/api/attachments",
+        files={"file": ("malware.exe", b"%PDF-1.4", "application/pdf")},
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "Unsupported file extension"
+
+
+@pytest.mark.asyncio
+async def test_missing_extension_rejected_even_with_allowed_content_type(
+    client, auth_token, fake_storage
+):
+    resp = await client.post(
+        "/api/attachments",
+        files={"file": ("upload", b"%PDF-1.4", "application/pdf")},
+        headers={"Authorization": f"Bearer {auth_token}"},
+    )
+    assert resp.status_code == 400
+    assert resp.json()["detail"] == "Unsupported file extension"
 
 
 @pytest.mark.asyncio
