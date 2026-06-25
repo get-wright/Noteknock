@@ -12,6 +12,7 @@ import {
   isAttachmentAppUrl,
   resolveAttachmentDownloadUrl,
   resolveAttachmentPreviewUrl,
+  revokeResolvedAttachmentUrl,
 } from "../../api/attachments";
 
 function pdfViewerUrl(url: string): string {
@@ -123,21 +124,14 @@ function useResolvedAttachmentUrls(url: string) {
       hasError: false,
     });
 
-    let previewBlobUrl: string | null = null;
-
     void Promise.all([
       resolveAttachmentPreviewUrl(url),
       resolveAttachmentDownloadUrl(url),
     ])
       .then(([previewUrl, downloadUrl]) => {
         if (cancelled) {
-          if (previewUrl.startsWith("blob:")) {
-            URL.revokeObjectURL(previewUrl);
-          }
+          revokeResolvedAttachmentUrl(url);
           return;
-        }
-        if (previewUrl.startsWith("blob:")) {
-          previewBlobUrl = previewUrl;
         }
         setState({
           sourceUrl: url,
@@ -161,9 +155,7 @@ function useResolvedAttachmentUrls(url: string) {
 
     return () => {
       cancelled = true;
-      if (previewBlobUrl) {
-        URL.revokeObjectURL(previewBlobUrl);
-      }
+      revokeResolvedAttachmentUrl(url);
     };
   }, [url]);
 

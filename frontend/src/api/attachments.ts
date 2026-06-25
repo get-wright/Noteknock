@@ -9,6 +9,7 @@ export type Attachment = {
 };
 
 const ATTACHMENT_PATH = /^\/api\/attachments\/([^/]+)$/;
+const attachmentBlobUrlCache = new Map<string, string>();
 
 function expectedApiOrigin(): string | null {
   if (API_BASE && /^https?:\/\//i.test(API_BASE)) {
@@ -110,13 +111,26 @@ async function resolveAttachmentBlobUrl(url: string): Promise<string> {
   if (!attachmentId) {
     return url;
   }
+  const cached = attachmentBlobUrlCache.get(url);
+  if (cached) {
+    return cached;
+  }
 
   const blob = await fetchAttachmentBlob(url);
   if (!blob) {
     return url;
   }
 
-  return URL.createObjectURL(blob);
+  const blobUrl = URL.createObjectURL(blob);
+  attachmentBlobUrlCache.set(url, blobUrl);
+  return blobUrl;
+}
+
+export function revokeResolvedAttachmentUrl(url: string): void {
+  const blobUrl = attachmentBlobUrlCache.get(url);
+  if (!blobUrl) return;
+  URL.revokeObjectURL(blobUrl);
+  attachmentBlobUrlCache.delete(url);
 }
 
 export function resolveAttachmentPreviewUrl(url: string): Promise<string> {
