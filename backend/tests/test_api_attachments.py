@@ -187,6 +187,8 @@ async def test_content_returns_owner_scoped_attachment_bytes(
     assert resp.status_code == 200
     assert resp.content == b"%PDF-1.4 test"
     assert resp.headers["content-type"] == "application/pdf"
+    assert resp.headers.get("content-disposition", "").lower().startswith("inline")
+    assert resp.headers.get("cache-control") == "private, max-age=300"
 
 
 @pytest.mark.asyncio

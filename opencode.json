@@ -58,6 +58,20 @@
       "env": {
         "KAGI_API_KEY": "{env:KAGI_API_KEY}"
       }
+    },
+    "gworkspace": {
+      "type": "local",
+      "command": [
+        "uvx",
+        "workspace-mcp",
+        "--tool-tier",
+        "core"
+      ],
+      "enabled": true,
+      "env": {
+        "GOOGLE_OAUTH_CLIENT_ID": "{env:GOOGLE_OAUTH_CLIENT_ID}",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "{env:GOOGLE_OAUTH_CLIENT_SECRET}"
+      }
     }
   }
 }

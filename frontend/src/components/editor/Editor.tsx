@@ -105,14 +105,20 @@ function EditorEditable({
   });
 
   const appliedContentRef = useRef<unknown[] | undefined>(initialContent);
+  const suppressChangeRef = useRef(false);
 
   useEffect(() => {
     if (initialContent === appliedContentRef.current) return;
     appliedContentRef.current = initialContent;
+    suppressChangeRef.current = true;
     editor.replaceBlocks(editor.document, toPartialBlocks(initialContent));
+    queueMicrotask(() => {
+      suppressChangeRef.current = false;
+    });
   }, [editor, initialContent]);
 
   const handleChange = useCallback(() => {
+    if (suppressChangeRef.current) return;
     onChange?.(editor.document as unknown[]);
   }, [editor, onChange]);
 

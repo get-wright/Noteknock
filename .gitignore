@@ -18,5 +18,6 @@ frontend/dist/
 .DS_Store
 .idea/
 .vscode/
+.opencode/secrets/
 *.swp
 *.swo

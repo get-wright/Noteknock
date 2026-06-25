@@ -30,6 +30,7 @@ export type UseAutosaveOptions = {
 export type UseAutosaveReturn = {
   content: unknown[];
   setContent: (blocks: unknown[]) => void;
+  onEditorChange: (blocks: unknown[]) => void;
   subject: string | null;
   setSubject: (s: string | null) => void;
   difficulty: string | null;
@@ -80,6 +81,52 @@ function clearDraft(draftKey: string): void {
   localStorage.removeItem(draftStorageKey(draftKey));
 }
 
+const LEGACY_NEW_DRAFT_KEY = "__new__";
+
+function blocksToPlainText(blocks: unknown[]): string {
+  if (!Array.isArray(blocks)) return "";
+  let out = "";
+  const walk = (items: unknown[]) => {
+    for (const block of items) {
+      if (!block || typeof block !== "object") continue;
+      const b = block as {
+        type?: string;
+        content?: unknown[];
+        children?: unknown[];
+      };
+      if (b.type === "code") continue;
+      if (Array.isArray(b.content)) {
+        for (const inline of b.content) {
+          if (inline && typeof inline === "object" && "text" in inline) {
+            const t = (inline as { text?: string }).text;
+            if (typeof t === "string") out += `${t} `;
+          }
+        }
+      }
+      if (Array.isArray(b.children)) walk(b.children);
+    }
+  };
+  walk(blocks);
+  return out.replace(/\s+/g, " ").trim();
+}
+
+function isMeaningfulDraft(
+  content: unknown[],
+  subject: string | null,
+  difficulty: string | null,
+): boolean {
+  if (subject != null || difficulty != null) return true;
+  return blocksToPlainText(content).length > 0;
+}
+
+function serializeBlocks(blocks: unknown[]): string {
+  try {
+    return JSON.stringify(blocks);
+  } catch {
+    return "";
+  }
+}
+
 export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
   const {
     draftKey,
@@ -125,6 +172,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
   const savingRef = useRef(false);
   const pendingSaveRef = useRef(false);
   const savePromiseRef = useRef<Promise<SaveResult> | null>(null);
+  const editorBaselineRef = useRef(serializeBlocks(initialContent));
 
   titleRef.current = title;
   originalTitleRef.current = originalTitle;
@@ -136,22 +184,33 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
   useEffect(() => {
     setContentState(initialContent);
     contentRef.current = initialContent;
+    editorBaselineRef.current = serializeBlocks(initialContent);
     setSubjectState(initialSubject);
     subjectRef.current = initialSubject;
     setDifficultyState(initialDifficulty);
     difficultyRef.current = initialDifficulty;
     setSaveText(isNew ? "Chưa lưu" : "Đã lưu");
     setDirty(false);
-  }, [draftKey]);
+    setPendingDraft(null);
+  }, [draftKey, initialContent, initialSubject, initialDifficulty, isNew]);
 
-  const didDraftCheckRef = useRef(false);
+  const didDraftCheckRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (didDraftCheckRef.current) return;
+    if (didDraftCheckRef.current === draftKey) return;
     if (loadedAt === 0 && !isNew) return;
-    didDraftCheckRef.current = true;
+    didDraftCheckRef.current = draftKey;
+    if (isNew) {
+      clearDraft(LEGACY_NEW_DRAFT_KEY);
+    }
     const draft = readDraft(draftKey);
     if (!draft) return;
+    if (
+      !isMeaningfulDraft(draft.content, draft.subject, draft.difficulty)
+    ) {
+      clearDraft(draftKey);
+      return;
+    }
     if (draft.ts > loadedAt) {
       setPendingDraft(draft);
     }
@@ -161,6 +220,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
     if (hydrateKey === 0) return;
     setContentState(initialContent);
     contentRef.current = initialContent;
+    editorBaselineRef.current = serializeBlocks(initialContent);
     setSubjectState(initialSubject);
     subjectRef.current = initialSubject;
     setDifficultyState(initialDifficulty);
@@ -170,12 +230,14 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
   }, [hydrateKey, initialContent, initialSubject, initialDifficulty, isNew]);
 
   const persistDraft = useCallback(() => {
-    writeDraft(
-      draftKey,
-      contentRef.current,
-      subjectRef.current,
-      difficultyRef.current,
-    );
+    const content = contentRef.current;
+    const subject = subjectRef.current;
+    const difficulty = difficultyRef.current;
+    if (isMeaningfulDraft(content, subject, difficulty)) {
+      writeDraft(draftKey, content, subject, difficulty);
+    } else {
+      clearDraft(draftKey);
+    }
   }, [draftKey]);
 
   const runSave = useCallback(async (): Promise<SaveResult> => {
@@ -220,6 +282,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
           }
           if (!pendingSaveRef.current) {
             clearDraft(draftKey);
+            editorBaselineRef.current = serializeBlocks(contentRef.current);
             setDirty(false);
             setSaveText("Đã lưu");
             onSavedRef.current?.(note);
@@ -259,10 +322,21 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
     }, DEBOUNCE_MS);
   }, [persistDraft, runSave]);
 
+  const onEditorChange = useCallback(
+    (blocks: unknown[]) => {
+      setContentState(blocks);
+      contentRef.current = blocks;
+      if (serializeBlocks(blocks) === editorBaselineRef.current) return;
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
+
   const setContent = useCallback(
     (blocks: unknown[]) => {
       setContentState(blocks);
       contentRef.current = blocks;
+      editorBaselineRef.current = serializeBlocks(blocks);
       scheduleSave();
     },
     [scheduleSave],
@@ -316,6 +390,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
     contentRef.current = pendingDraft.content;
     subjectRef.current = pendingDraft.subject;
     difficultyRef.current = pendingDraft.difficulty;
+    editorBaselineRef.current = serializeBlocks(pendingDraft.content);
     setPendingDraft(null);
     setDirty(true);
     setSaveText("Chưa lưu");
@@ -330,6 +405,7 @@ export function useAutosave(opts: UseAutosaveOptions): UseAutosaveReturn {
   return {
     content,
     setContent,
+    onEditorChange,
     subject,
     setSubject,
     difficulty,

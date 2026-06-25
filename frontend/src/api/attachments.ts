@@ -8,11 +8,21 @@ export type Attachment = {
   sizeBytes: number;
 };
 
-export type AttachmentUrl = {
-  url: string;
-};
-
 const ATTACHMENT_PATH = /^\/api\/attachments\/([^/]+)$/;
+
+function expectedApiOrigin(): string | null {
+  if (API_BASE && /^https?:\/\//i.test(API_BASE)) {
+    try {
+      return new URL(API_BASE).origin;
+    } catch {
+      return null;
+    }
+  }
+  if (typeof globalThis !== "undefined" && "location" in globalThis) {
+    return globalThis.location.origin;
+  }
+  return null;
+}
 
 async function throwApiError(res: Response): Promise<never> {
   let message = res.statusText;
@@ -25,47 +35,48 @@ async function throwApiError(res: Response): Promise<never> {
   throw new ApiError(res.status, message);
 }
 
+function resolveUrlBase(): string {
+  if (API_BASE && /^https?:\/\//i.test(API_BASE)) {
+    return API_BASE.replace(/\/$/, "");
+  }
+  if (typeof globalThis !== "undefined" && "location" in globalThis) {
+    return globalThis.location.origin;
+  }
+  return "http://localhost";
+}
+
 export function parseAttachmentId(url: string): string | null {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  let parsed: URL;
   try {
-    const apiBase = new URL(API_BASE);
-    const parsedUrl = new URL(url, apiBase);
-    if (parsedUrl.origin !== apiBase.origin) {
-      return null;
-    }
-
-    const match = parsedUrl.pathname.match(ATTACHMENT_PATH);
-    if (!match || parsedUrl.search || parsedUrl.hash) {
-      return null;
-    }
-
-    return match[1];
+    parsed = trimmed.startsWith("/")
+      ? new URL(trimmed, resolveUrlBase())
+      : new URL(trimmed);
   } catch {
     return null;
   }
+
+  if (parsed.search || parsed.hash) {
+    return null;
+  }
+
+  if (!trimmed.startsWith("/")) {
+    const apiOrigin = expectedApiOrigin();
+    if (!apiOrigin || parsed.origin !== apiOrigin) {
+      return null;
+    }
+  }
+
+  const match = parsed.pathname.match(ATTACHMENT_PATH);
+  return match?.[1] ?? null;
 }
 
 export function isAttachmentAppUrl(url: string): boolean {
   return parseAttachmentId(url) !== null;
-}
-
-async function resolveAttachmentUrl(
-  url: string,
-  endpoint: "preview-url" | "download-url",
-): Promise<string> {
-  const attachmentId = parseAttachmentId(url);
-  if (!attachmentId) {
-    return url;
-  }
-
-  const res = await fetch(apiUrl(`/api/attachments/${attachmentId}/${endpoint}`), {
-    headers: authHeaders(),
-  });
-  if (!res.ok) {
-    await throwApiError(res);
-  }
-
-  const data = (await res.json()) as AttachmentUrl;
-  return data.url;
 }
 
 export async function uploadAttachment(
@@ -94,12 +105,26 @@ export async function uploadAttachment(
   };
 }
 
+async function resolveAttachmentBlobUrl(url: string): Promise<string> {
+  const attachmentId = parseAttachmentId(url);
+  if (!attachmentId) {
+    return url;
+  }
+
+  const blob = await fetchAttachmentBlob(url);
+  if (!blob) {
+    return url;
+  }
+
+  return URL.createObjectURL(blob);
+}
+
 export function resolveAttachmentPreviewUrl(url: string): Promise<string> {
-  return resolveAttachmentUrl(url, "preview-url");
+  return resolveAttachmentBlobUrl(url);
 }
 
 export function resolveAttachmentDownloadUrl(url: string): Promise<string> {
-  return resolveAttachmentUrl(url, "download-url");
+  return resolveAttachmentBlobUrl(url);
 }
 
 export async function fetchAttachmentBlob(url: string): Promise<Blob | null> {

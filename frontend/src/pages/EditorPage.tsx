@@ -59,6 +59,32 @@ function emptyBlocks(): unknown[] {
   return [{ type: "paragraph", content: [] }];
 }
 
+const NEW_NOTE_DRAFT_SESSION_KEY = "noteknock_new_note_draft_session";
+
+function getOrCreateNewNoteDraftKey(): string {
+  try {
+    const existing = sessionStorage.getItem(NEW_NOTE_DRAFT_SESSION_KEY);
+    if (existing) return existing;
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const key = `__new__:${id}`;
+    sessionStorage.setItem(NEW_NOTE_DRAFT_SESSION_KEY, key);
+    return key;
+  } catch {
+    return `__new__:${Date.now()}`;
+  }
+}
+
+export function clearNewNoteDraftSession(): void {
+  try {
+    sessionStorage.removeItem(NEW_NOTE_DRAFT_SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 function subjectToCustomTags(subject: string | null): CustomTag[] {
   if (!subject || subject in SUBJECTS) return [];
   return [
@@ -111,7 +137,10 @@ export default function EditorPage({ mode }: EditorPageProps) {
     emptyBlocks(),
   );
 
-  const draftKey = mode === "new" ? "__new__" : routeTitle;
+  const [newNoteDraftKey] = useState(() =>
+    mode === "new" ? getOrCreateNewNoteDraftKey() : "",
+  );
+  const draftKey = mode === "new" ? newNoteDraftKey : routeTitle;
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recallEditOriginalsRef = useRef<Record<string, string>>({});
   const isCreatingRecallRef = useRef(false);
@@ -203,6 +232,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
       setTitleError(message);
     },
     onPromotedFromNew: (note) => {
+      clearNewNoteDraftSession();
       setIsNew(false);
       setOriginalTitle(note.title);
       setTitle(note.title);
@@ -614,7 +644,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
 
         <Editor
           initialContent={editorDocument}
-          onChange={autosave.setContent}
+          onChange={autosave.onEditorChange}
           onUploadError={(file, error) => {
             setUploadError(`${file.name}: ${error.message}`);
           }}

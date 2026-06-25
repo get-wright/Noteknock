@@ -123,20 +123,29 @@ function useResolvedAttachmentUrls(url: string) {
       hasError: false,
     });
 
+    let previewBlobUrl: string | null = null;
+
     void Promise.all([
       resolveAttachmentPreviewUrl(url),
       resolveAttachmentDownloadUrl(url),
     ])
       .then(([previewUrl, downloadUrl]) => {
-        if (!cancelled) {
-          setState({
-            sourceUrl: url,
-            previewUrl,
-            downloadUrl,
-            isResolving: false,
-            hasError: false,
-          });
+        if (cancelled) {
+          if (previewUrl.startsWith("blob:")) {
+            URL.revokeObjectURL(previewUrl);
+          }
+          return;
         }
+        if (previewUrl.startsWith("blob:")) {
+          previewBlobUrl = previewUrl;
+        }
+        setState({
+          sourceUrl: url,
+          previewUrl,
+          downloadUrl,
+          isResolving: false,
+          hasError: false,
+        });
       })
       .catch(() => {
         if (!cancelled) {
@@ -152,6 +161,9 @@ function useResolvedAttachmentUrls(url: string) {
 
     return () => {
       cancelled = true;
+      if (previewBlobUrl) {
+        URL.revokeObjectURL(previewBlobUrl);
+      }
     };
   }, [url]);
 
