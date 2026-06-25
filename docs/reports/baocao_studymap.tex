@@ -1,0 +1,507 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setmainlanguage{vietnamese}
+\setmainfont{Times New Roman}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{tocloft}
+
+\geometry{top=2.5cm,bottom=2.5cm,left=3cm,right=2cm}
+\hypersetup{colorlinks=true,linkcolor=black,urlcolor=blue}
+\raggedbottom
+\setlength{\parindent}{1.2cm}
+\setlength{\parskip}{0.35em}
+\renewcommand{\arraystretch}{1.25}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setlist[itemize]{leftmargin=1.8cm,itemsep=0.25em}
+\setlist[enumerate]{leftmargin=1.8cm,itemsep=0.25em}
+\titleformat{\chapter}[display]{\bfseries\centering\Large}{\MakeUppercase{\chaptername}\ \thechapter}{0.5em}{\Large\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{-0.8cm}{1.0cm}
+\titleformat{\section}{\bfseries\large}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\bfseries}{\thesubsection.}{0.6em}{}
+
+\newcommand{\placeholderfigure}[1]{%
+  \begin{figure}[H]
+    \centering
+    \fbox{\begin{minipage}[c][5cm][c]{0.82\textwidth}
+      \centering\itshape #1
+    \end{minipage}}
+  \end{figure}
+}
+
+\newcommand{\docimage}[2][]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=0.736\textwidth,height=0.576\textheight,keepaspectratio]{#2}
+    \if\relax\detokenize{#1}\relax\else\caption{#1}\fi
+  \end{figure}
+}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  {\bfseries ĐẠI HỌC BÁCH KHOA HÀ NỘI\par}
+  \vspace{0.35cm}
+  {\bfseries ***** *****\par}
+  \vspace{1.0cm}
+  \includegraphics[height=3.04cm,keepaspectratio]{assets/docx/word/media/image21.jpg}\par
+  \vspace{0.8cm}
+  {\bfseries\Large BÁO CÁO TỔNG HỢP CUỐI KÌ\par}
+  \vspace{0.5cm}
+  {\bfseries Đề tài: Ứng dụng ghi chú môn học (StudyMap)\par}
+  \vfill
+  \begin{tabular}{>{\bfseries}p{5cm}p{8cm}}
+    Lớp & 169292 \\
+    Học phần & Tư duy công nghệ và thiết kế kỹ thuật \\
+    Mã học phần & ET3262 \\
+    Giảng viên hướng dẫn & Nguyễn Tiến Dũng \\
+  \end{tabular}
+  \vspace{1cm}
+
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Thành viên} & \textbf{Mã sinh viên} \\
+    \midrule
+    NGUYỄN ĐẶNG ANH DŨNG & 202414619 \\
+    NGUYỄN PHÚC HIẾU & 202412977 \\
+    NGUYỄN ĐỨC TÙNG & 202414442 \\
+    TẠ QUỐC HÙNG & 20235593 \\
+    \bottomrule
+  \end{tabular}
+  \vfill
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\chapter*{GIỚI THIỆU CHUNG}
+\addcontentsline{toc}{chapter}{GIỚI THIỆU CHUNG}
+
+Trong môi trường đại học hiện đại, sinh viên phải đối mặt với khối lượng kiến thức khổng lồ và áp lực thi cử lớn. Tuy nhiên, phương pháp quản lý học tập hiện nay vẫn còn nhiều bất cập. Phần lớn sinh viên vẫn lưu trữ bài giảng, tài liệu một cách phân mảnh trên nhiều nền tảng hoặc ghi chép thụ động, dẫn đến tình trạng thất lạc thông tin, quá tải trước mùa thi và khó hệ thống hóa kiến thức để ôn tập hiệu quả. Bên cạnh đó, việc tìm kiếm các phương pháp học khoa học, công cụ tự đánh giá như flashcard/quiz, hay các tài liệu tham khảo chất lượng vẫn còn rất phân tán. Cộng đồng học tập cũng đóng vai trò quan trọng, giúp sinh viên, đặc biệt là tân sinh viên, kết nối, trao đổi kinh nghiệm và cùng nhau làm việc nhóm đúng cách. Những vấn đề này đặt ra nhu cầu về một giải pháp tập trung, giúp sinh viên dễ dàng quản lý ghi chú, tự động hóa quy trình ôn thi, chia sẻ tài liệu và kết nối cộng đồng học tập -- tất cả trong một ứng dụng duy nhất.
+
+\chapter{PHA 1: Đồng cảm (Empathize)}
+
+\section{Tổng quan về pha 1}
+
+\textbf{Định nghĩa:} Empathize là bước khởi đầu trong quy trình Design Thinking, tập trung vào việc thấu hiểu người dùng một cách sâu sắc. Ở pha này, nhóm thiết kế đặt mình vào góc nhìn của người dùng để quan sát, lắng nghe và cảm nhận những trải nghiệm, cảm xúc, nhu cầu cũng như khó khăn mà họ gặp phải trong đời sống thực tế. Mục tiêu của pha Empathize không phải là tìm ra giải pháp, mà là hiểu rõ ``người dùng là ai'' và ``họ thực sự đang gặp vấn đề gì''.
+
+\textbf{Mục tiêu:} Mục tiêu chính của Empathize là xây dựng sự đồng cảm với người dùng, từ đó thu thập những hiểu biết chân thực và có giá trị.
+
+\textbf{Vai trò:} Empathize đóng vai trò nền tảng cho toàn bộ quá trình Design Thinking. Những hiểu biết thu được ở pha này sẽ ảnh hưởng trực tiếp đến cách xác định vấn đề ở pha Define và định hướng cho các ý tưởng ở pha Ideate. Nếu pha Empathize được thực hiện không đầy đủ hoặc thiếu chiều sâu, các pha sau có nguy cơ giải quyết sai vấn đề hoặc không đáp ứng đúng nhu cầu thực tế của người dùng.
+
+\section{Thực nghiệm}
+
+\subsection*{Khách hàng 1: Nguyễn Minh Phương}
+\textbf{Hồ sơ:} Sinh viên K69 -- Chương trình tiên tiến EE-E8 tại Đại học Bách khoa Hà Nội. Lối sống thoải mái, phóng khoáng, không gò bó.
+
+\textbf{Nét đặc trưng:} Luôn vui vẻ, tạo không khí tích cực, mọi người thường rất thoải mái khi tiếp xúc. Thích bóng đá và bi-a, đặc biệt hâm mộ FC Barcelona.
+
+\textbf{Mục tiêu:} Đạt bằng xuất sắc khi tốt nghiệp đại học. Có kỹ năng thực tập, được tuyển dụng vào vị trí phù hợp với khả năng và mục tiêu. Mở rộng mối quan hệ.
+
+\textbf{Hoạt động:} Thường xuyên sử dụng điện thoại. Thích những nội dung ngắn, xúc tích. Lên lớp thường xuyên. Tham khảo nhiều kinh nghiệm từ bạn bè.
+
+\subsection*{Khách hàng 2: Nguyễn Đức Minh}
+\textbf{Hồ sơ:} Sinh viên K69 -- Chương trình tiên tiến IT-E10 tại Đại học Bách khoa Hà Nội. Lối sống nghiêm túc, có trách nhiệm.
+
+\textbf{Nét đặc trưng:} Thích đọc chuyện và bóng chuyền. Fan cứng anh Độ Mixi.
+
+\textbf{Mục tiêu:} Đạt bằng xuất sắc khi tốt nghiệp đại học. Khối tài sản 50 tỷ trước 40 tuổi. Học bổng Harvard. Có thêm nhiều bạn bè.
+
+\textbf{Hoạt động:} Ngủ sớm, dậy sớm, xem TikTok, truyện audio thường xuyên. Học bài trước khi đi học vào 5 rưỡi sáng.
+
+\subsection*{Khách hàng 3: Trần Thái Bảo}
+\textbf{Hồ sơ:} Sinh viên K69 -- Chương trình ETTN tại Đại học Bách khoa Hà Nội. Lối sống thích trải nghiệm, ham chơi.
+
+\textbf{Nét đặc trưng:} Thích đá bóng, chơi thể thao. Thích vận động ngoài trời. Chăm chỉ, có kỷ luật tốt.
+
+\textbf{Mục tiêu:} Đạt bằng xuất sắc. Có nhiều bạn bè hơn, người yêu. Có công việc tốt. Có sức khỏe, thể hình đẹp.
+
+\textbf{Hoạt động:} Mang iPad nhiều để có thể ghi chép, dùng Kindle để đọc sách. Thường dùng Google Gemini để tổng hợp làm flashcard, text tóm tắt để ôn tập trước kỳ thi.
+
+\subsection*{Khách hàng 4: Nguyễn Thu Hà}
+\textbf{Hồ sơ:} Sinh viên nữ năm 3 Đại học Kinh tế Quốc dân, GPA 3.9/4.0, học lực tốt. Sống có kế hoạch, nghiêm túc trong học tập. Thích đọc sách, nghe nhạc nhẹ, đi cafe học bài. Thường tự học vào buổi tối sau khi đi học về.
+
+\textbf{Nét đặc trưng:} Chăm chỉ, có trách nhiệm với việc học. Kỷ luật và đặt tiêu chuẩn cao cho bản thân. Khá lý trí trong mua sắm và ra quyết định. Dễ bị áp lực khi cảm thấy bản thân chưa kiểm soát tốt kiến thức.
+
+\textbf{Mục tiêu:} Duy trì kết quả học tập xuất sắc. Ghi nhớ bài tốt hơn ngay sau giờ học. Tối ưu cách ghi chép để giảm thời gian tự học lại ban đêm. Xây dựng hệ thống ôn tập hiệu quả, dễ nhớ. Cân bằng giữa học tập và nghỉ ngơi.
+
+\textbf{Hoạt động:} Thường xuyên ghi chép trong giờ học. Mang theo điện thoại, iPad hoặc laptop đến trường. Gần ngày thi thường đọc lại vở, slide và tự làm đề cương. Hay hỏi bạn bè để đối chiếu cách hiểu bài.
+
+\section{Phản hồi người dùng}
+
+Các câu hỏi khảo sát chính gồm:
+\begin{enumerate}
+  \item Bạn có hài lòng với kết quả học tập của mình?
+  \item Bạn có thường xuyên ghi chép bài không?
+  \item Bạn có gặp khó khăn nào khi sử dụng phương pháp này không?
+  \item Nếu không ghi chép, tại sao bạn không ghi chép? Bạn có gặp khó khăn nào khi không ghi chép không?
+  \item Bạn có thường xuyên mang thiết bị điện tử hoặc máy tính đến trường không?
+\end{enumerate}
+
+\docimage[Biểu đồ khảo sát người dùng trong tài liệu gốc]{assets/docx/word/media/image20.png}
+
+Từ kết quả khảo sát, có thể thấy tinh thần tự giác và ý thức đối với việc học tập của sinh viên nhìn chung rất cao khi phần lớn đều duy trì thói quen ghi chép bài và mang theo thiết bị điện tử lên lớp. Tuy nhiên, họ vẫn gặp nhiều khó khăn, lo lắng trong việc hệ thống hóa kiến thức và chưa thực sự hài lòng với kết quả học tập hiện tại. Bên cạnh đó, gánh nặng về áp lực khối lượng bài vở và sự phân mảnh thông tin hằng ngày cũng là một rào cản lớn khiến nhiều bạn dễ rơi vào tình trạng quá tải trước mùa thi. Ngược lại, khi được đề xuất giải pháp về một ứng dụng ghi chú thông minh tích hợp công cụ học chủ động (active learning), hầu hết sinh viên đều sẵn sàng đón nhận. Điều này cho thấy vấn đề cốt lõi không nằm ở sự lười biếng hay thiếu tập trung, mà ở việc thiếu một công cụ hỗ trợ quản lý kiến thức tiện lợi, từ đó khẳng định tính phù hợp của giải pháp mà nhóm đề xuất.
+
+\section*{Bản đồ đồng cảm}
+\addcontentsline{toc}{section}{Bản đồ đồng cảm}
+\docimage[Bản đồ đồng cảm]{assets/docx/word/media/image14.png}
+
+Bản đồ đồng cảm cho thấy sinh viên luôn có tinh thần chủ động trong học tập và mong muốn việc ghi chép bài giảng trở nên ngắn gọn, rõ ràng và thuận tiện hơn để hiểu sâu kiến thức thay vì chỉ chạy theo điểm số. Tuy nhiên, họ thường gặp khó khăn do lượng kiến thức dồn dập trên lớp, ghi chép nhiều nhưng khó hệ thống, dễ quên bài ngay sau khi về nhà và rơi vào trạng thái quá tải, căng thẳng trước mỗi kỳ thi vì phải lệ thuộc vào việc cày lại từ đầu. Đồng thời, họ mong muốn quản lý tốt hơn hệ thống tài liệu và tối ưu hóa thời gian tự học ban đêm để mang lại một lộ trình ôn thi nhẹ nhàng, hiệu quả và duy trì được mức GPA cao. Điều này cho thấy nhu cầu về một giải pháp hỗ trợ quản lý ghi chú và tự động hóa quy trình ôn tập cho sinh viên là rất lớn.
+
+\chapter{PHA 2: Xác định (Define)}
+
+Pha Define tập trung vào việc tổng hợp thông tin để xác định vấn đề cốt lõi và đưa ra định hướng cho giai đoạn ý tưởng.
+
+\section{Tóm tắt thiết kế (POV \& HMW)}
+\docimage[Tóm tắt thiết kế trong tài liệu gốc]{assets/docx/word/media/image2.png}
+
+\subsection*{Nhận thức và phản hồi của người dùng (User Insights)}
+Qua quá trình khảo sát và đồng cảm, nhóm đã đúc kết được ba nỗi đau (pain points) lớn nhất của sinh viên hiện nay:
+\begin{itemize}
+  \item \textbf{Quá tải thông tin:} Người học luôn gặp khó khăn trong việc hệ thống lại kiến thức sau khi phải tiếp thu các bài tài liệu, giáo trình quá dài.
+  \item \textbf{Mau quên:} Do thiếu các công cụ kiểm tra và thực hành ngay lập tức, kiến thức mới nạp vào không được khắc sâu và dễ dàng trôi đi.
+  \item \textbf{Thiếu động lực:} Phương pháp học lý thuyết thuần túy dễ gây cảm giác nhàm chán; sinh viên rất cần những yếu tố tương tác và thử thách để kích thích tinh thần học tập.
+\end{itemize}
+
+\subsection*{Tuyên bố vấn đề (Point of View -- POV)}
+Người học (học sinh/sinh viên) cần một cách để hệ thống hóa kiến thức trọng tâm và kiểm tra mức độ ghi nhớ, bởi vì họ thường cảm thấy mông lung và nhanh chóng quên đi những gì vừa học nếu không được vận động trí não ngay.
+
+\subsection*{Câu hỏi gợi mở định hướng giải pháp (How Might We -- HMW)}
+\begin{enumerate}
+  \item Làm thế nào để giúp người dùng tóm tắt nội dung bài học một cách súc tích nhất?
+  \item Làm thế nào để tạo ra các bộ quiz cá nhân hóa, mang tính chất vui vẻ và không gây áp lực?
+  \item Làm thế nào để theo dõi tiến độ và nhắc nhở người dùng ôn tập lại những phần kiến thức họ còn yếu?
+\end{enumerate}
+
+\subsection*{Các yêu cầu thiết kế cốt lõi (Design Requirements)}
+\textbf{Tính năng cốt lõi:}
+\begin{itemize}
+  \item Tích hợp công cụ tóm tắt thủ công trực quan theo dạng sơ đồ tư duy (mindmap) hoặc gạch đầu dòng (bullet points).
+  \item Phát triển trình tạo quiz tự động dựa trên chính nội dung bài học mà người dùng cung cấp.
+  \item Hệ thống thông báo nhắc nhở ôn tập định kỳ để chống lại ``đường cong lãng quên''.
+\end{itemize}
+
+\textbf{Trải nghiệm người dùng (UX/UI):}
+\begin{itemize}
+  \item Giao diện cần tối giản, lược bỏ tối đa các yếu tố gây xao nhãng để người dùng tập trung 100\% vào bài học và làm bài quiz.
+  \item Hỗ trợ chế độ ban đêm (Dark Mode) giúp bảo vệ thị lực khi sinh viên phải học tập và ôn thi trong thời gian dài.
+\end{itemize}
+
+\section{Bản đồ các bên liên quan (Stakeholder Map)}
+\docimage[Stakeholder Map trong tài liệu gốc]{assets/docx/word/media/image30.jpg}
+
+Để tối ưu hóa quy trình phát triển ứng dụng StudyMap, nhóm đã xây dựng sơ đồ các bên liên quan dưới dạng mô hình vòng tròn đồng tâm nhằm phân loại rõ phạm vi tác động:
+\begin{itemize}
+  \item \textbf{Vòng cốt lõi (Đội thiết kế):} Gồm nhóm thiết kế, lập trình ứng dụng và quản lý dự án/khách hàng. Đây là lực lượng trực tiếp thực thi, chịu trách nhiệm xây dựng tính năng và vận hành kỹ thuật cho sản phẩm.
+  \item \textbf{Vòng tác động trực tiếp (Bên liên quan bên ngoài):} Gồm người sử dụng (học sinh, sinh viên), cùng bộ phận marketing, nhà hoạch định chiến lược, nhà đầu tư và đại diện pháp lý.
+  \item \textbf{Vòng tác động vĩ mô (Đơn vị cung cấp / Người ảnh hưởng):} Gồm hạ tầng công nghệ, nền tảng phân phối, đối thủ cạnh tranh và cộng đồng giáo dục / KOLs.
+\end{itemize}
+Sơ đồ cung cấp một cái nhìn chiến lược toàn diện, giúp nhóm quản trị nguồn lực hiệu quả và luôn bám sát định hướng lấy người dùng làm trung tâm.
+
+\section{Bản đồ bối cảnh (Context Map)}
+\docimage[Context Map trong tài liệu gốc]{assets/docx/word/media/image16.png}
+
+\subsection*{Các xu hướng chính (Main Trends)}
+\begin{itemize}
+  \item \textbf{Số hóa trong học tập:} Sinh viên ngày càng có xu hướng phụ thuộc và sử dụng phổ biến các thiết bị thông minh để phục vụ việc ghi chép, lưu trữ và học tập hàng ngày.
+  \item \textbf{Cá nhân hóa và ứng dụng AI:} Xu hướng học tập cá nhân hóa kết hợp với việc ứng dụng trí tuệ nhân tạo để tóm tắt kiến thức và hỗ trợ ôn thi đang tăng trưởng mạnh mẽ.
+  \item \textbf{Áp lực học đường gia tăng:} Áp lực về điểm số ngày càng lớn, dẫn đến tỷ lệ nợ môn và thi lại có xu hướng cao, đặc biệt là tại các trường đại học khối ngành kỹ thuật.
+\end{itemize}
+
+\subsection*{Mục tiêu và nhu cầu của người dùng (User Goals \& Needs)}
+\begin{itemize}
+  \item Tập trung vào sinh viên đại học, đặc biệt là nhóm sinh viên đang nợ môn hoặc sinh viên năm cuối cần chuẩn bị ôn thi lại.
+  \item Người dùng cần một hệ thống ghi chú và ôn tập gọn gàng, dễ dàng tra cứu để nhanh chóng tổng hợp lại kiến thức trước kỳ thi.
+  \item Sinh viên mong muốn có một lộ trình học tập được chia nhỏ theo từng bước để giảm cảm giác quá tải hoặc hoang mang.
+  \item Nhu cầu sở hữu các bản tóm tắt ngắn gọn, súc tích để dễ dàng ôn tập lại, thay vì phải tốn thời gian cày lại toàn bộ tập vở hay slide bài giảng.
+\end{itemize}
+
+\subsection*{Yếu tố công nghệ (Technology Factors)}
+\begin{itemize}
+  \item \textbf{Số hóa tài liệu thông minh (OCR + AI):} Ứng dụng công nghệ nhận dạng ký tự quang học kết hợp với AI để nhận diện chữ viết tay và hình ảnh chụp slide bài giảng.
+  \item \textbf{Tự động hóa bằng AI:} Sử dụng AI để tự động xử lý, tóm tắt nội dung học tập và tự động tạo ra các bộ câu hỏi ôn tập trực tiếp từ ghi chú của người dùng.
+  \item \textbf{Xử lý âm thanh và đồng bộ hóa:} Tích hợp tính năng ghi âm bài giảng, chuyển đổi giọng nói thành văn bản và đảm bảo dữ liệu được đồng bộ trên đa nền tảng thiết bị.
+\end{itemize}
+
+\subsection*{Yếu tố kinh doanh (Business Factors)}
+\begin{itemize}
+  \item \textbf{Lợi thế cạnh tranh (USP):} StudyMap có cơ hội bứt phá nhờ tích hợp trọn gói chuỗi tính năng Scan -- Tóm tắt AI -- Tạo Quiz, được thiết kế tối ưu riêng cho thói quen và ngôn ngữ của sinh viên Việt Nam.
+  \item \textbf{Tiềm năng thị trường rộng lớn:} Thị trường có quy mô lớn với nhu cầu thực tế từ hàng triệu sinh viên đại học trên cả nước.
+  \item \textbf{Mô hình doanh thu linh hoạt:} Áp dụng mô hình Freemium kết hợp thương mại hóa qua các gói Pro nâng cao được bán theo mùa thi.
+\end{itemize}
+
+\section{Hành trình khách hàng (Customer Journey)}
+\docimage[Customer Journey trong tài liệu gốc]{assets/docx/word/media/image6.png}
+
+Hành trình trải nghiệm của sinh viên trên ứng dụng StudyMap được khắc họa rõ nét qua chuỗi 5 pha hoạt động liền mạch, từ tâm lý lo âu ban đầu sang tự tin làm chủ kiến thức. Xuất phát từ cảm giác lo lắng trước áp lực ôn thi, người dùng khởi động ứng dụng để hệ thống nhanh chóng thiết lập không gian học tập cá nhân. Dù có chút bối rối ở pha tiếp nhận khi phải chọn hoặc tải lên tài liệu mới, sinh viên vẫn tràn đầy kỳ vọng vào khả năng trích xuất ý chính tự động của công nghệ AI. Tâm lý này nhanh chóng chuyển dịch sang sự tập trung và an tâm ở pha hệ thống kiến thức, nơi người dùng dễ dàng bao quát bài học thông qua các bản tóm tắt ngắn và sơ đồ tư duy trực quan. Sự tập trung cao độ tiếp tục được duy trì khi họ bước vào pha kiểm tra với các bài trắc nghiệm được tối ưu riêng từ chính nội dung vừa nạp. Cuối cùng, hành trình khép lại ở pha đánh giá; việc xem điểm số cùng các lời giải thích lỗi sai chi tiết giúp sinh viên giải tỏa khúc mắc, mang lại cảm giác thỏa mãn, tự tin và chủ động lên lịch trình cho các buổi ôn tập tiếp theo.
+
+\section{Bản đồ cơ hội (Opportunity Map)}
+\docimage[Opportunity Map trong tài liệu gốc]{assets/docx/word/media/image8.png}
+
+\subsection*{Vùng cơ hội vàng (Tác động cao -- Khả thi cao)}
+\begin{itemize}
+  \item \textbf{Số hóa ghi chép thông minh kết hợp ngữ cảnh:} Trình viết bài học tối giản tối ưu cho việc nạp công thức toán học, hỗ trợ chèn nhanh ảnh chụp slide và chuyển đổi giao diện linh hoạt để sinh viên học ban đêm.
+  \item \textbf{Hệ thống phản hồi vòng lặp:} StudyMap tạo cơ hội lớn nhờ tính năng giải thích lỗi sai ngay khi xem kết quả quiz.
+  \item \textbf{Quản trị bằng Spaced Repetition:} Theo dõi mức độ lưu trữ kiến thức qua các vạch độ nhớ và tự động lên lịch nhắc nhở ôn tập sau khoảng nghỉ tối ưu.
+  \item \textbf{Kích thích động lực bằng Social \& Gamification:} Tận dụng chuỗi học tập, lịch sử đóng góp dạng heatmap và bảng xếp hạng điểm số để bạn bè cùng lớp cạnh tranh lành mạnh.
+\end{itemize}
+
+\subsection*{Thách thức chiến lược (Tác động cao -- Khả thi thấp)}
+Chuyển đổi từ ảnh chụp slide sang nội dung số bằng AI là cơ hội cho gói StudyMap Pro nhưng cần thêm thời gian tối ưu thuật toán, đặc biệt với OCR nâng cao và trích xuất công thức phức tạp.
+
+\subsection*{Tính năng phụ trợ (Tác động thấp -- Khả thi cao)}
+Tương tác nhóm trên Leaderboard cho phép gửi nhanh icon cổ vũ hoặc lời nhắc trực tiếp tới những người bạn đang đứng top trên bảng xếp hạng để tăng tính gắn kết.
+
+\subsection*{Vùng hạn chế / Cần tránh (Tác động thấp -- Khả thi thấp)}
+Nhóm kiên định bám sát giao diện tập trung và tối giản hiện tại, tránh sa đà vào việc xây dựng một bộ soạn thảo khối quá cồng kềnh như Notion hoặc một hệ thống lưu trữ file nặng nề làm loãng trải nghiệm ôn thi cấp tốc.
+
+\chapter{PHA 3: Lên ý tưởng (Ideate)}
+
+Pha Ideate tạo ra và chọn lọc các ý tưởng sáng tạo để giải quyết vấn đề, nhằm chuẩn bị cho giai đoạn phát triển sản phẩm mẫu.
+
+Nhóm đã sử dụng phương pháp SCAMPER để đề xuất nhiều ý tưởng và tính năng khác nhau nhằm giải quyết các nhu cầu của người dùng. Từ các ý tưởng đó, nhóm tiến hành đánh giá và lựa chọn những tính năng có tính khả thi cao, phù hợp, đáp ứng được nhu cầu cốt lõi của người dùng, qua đó đảm bảo ứng dụng mang lại giá trị thực tế và hiệu quả.
+
+\section{Bản đồ mối quan hệ}
+
+Các ý tưởng ban đầu gồm:
+\begin{itemize}
+  \item Dark mode
+  \item Tự tạo bộ câu hỏi từ bài giảng
+  \item Chia sẻ lộ trình học tập
+  \item Tổng hợp kiến thức theo tài liệu
+  \item Thảo luận dưới mỗi bài ghi chú
+  \item Bảng xếp hạng người đóng góp
+  \item Nhắc lịch học tập
+  \item Chuỗi học tập (Streak)
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Nhóm ý tưởng theo bản đồ mối quan hệ}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{3cm}X}
+\toprule
+Nhóm & Ý tưởng \\
+\midrule
+Nhóm 1: Hình thức ghi chú & Tổng hợp kiến thức từ tài liệu \\
+Nhóm 2: Hỗ trợ, tiện ích & Dark mode; nhắc lịch học tập \\
+Nhóm 3: Phương pháp học tập & Tạo câu hỏi từ bài giảng \\
+Nhóm 4: Tương tác cộng đồng & Chia sẻ lộ trình học tập; thảo luận dưới mỗi bài ghi chú \\
+Nhóm 5: Động lực & Bảng xếp hạng người đóng góp; chuỗi học tập (Streak) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Bản đồ ưu tiên (Prioritization Map)}
+\docimage[Prioritization Map trong tài liệu gốc]{assets/docx/word/media/image32.png}
+
+Bản đồ ưu tiên được xây dựng dựa trên hai tiêu chí chính là lợi ích mang lại cho người dùng và độ khó khi triển khai. Mục tiêu của bản đồ là giúp nhóm lựa chọn những tính năng phù hợp nhất với nguồn lực của một dự án sinh viên.
+
+Cụ thể, nhóm ``dễ thực hiện -- lợi ích cao'' gồm các tính năng như tạo câu hỏi từ bài và giao diện tối. Đây là những tính năng cốt lõi, mang lại giá trị thiết thực và trải nghiệm trực quan cho người dùng nên được ưu tiên phát triển trước. Nhóm ``khó thực hiện -- lợi ích cao'' bao gồm tổng hợp kiến thức từ tài liệu, là tính năng tiềm năng có độ phức tạp lớn về mặt công nghệ có thể nghiên cứu sâu hơn trong tương lai. Nhóm ``dễ thực hiện -- lợi ích thấp'' gồm bảng xếp hạng người đóng góp, nhắc lịch học và chuỗi học tập, đóng vai trò hỗ trợ tăng tính tương tác cho ứng dụng. Cuối cùng, nhóm ``khó thực hiện -- lợi ích thấp'' như chia sẻ lộ trình học tập hoặc thảo luận dưới mỗi bài được xem là chưa cần thiết ở giai đoạn đầu do tốn nhiều công sức vận hành hệ thống. Từ đó, nhóm quyết định tập trung vào các tính năng thuộc nhóm dễ thực hiện -- lợi ích cao để đảm bảo tính khả thi và hiệu quả của dự án.
+
+\section{Đánh giá ý tưởng (Idea Evaluation)}
+
+\begin{table}[H]
+\centering
+\caption{Đánh giá ý tưởng theo các tiêu chí}\label{tab:idea-evaluation}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.4cm}YYYY}
+\toprule
+\textbf{Tiêu chí} & \textbf{Tự tạo bộ câu hỏi từ bài giảng} & \textbf{Ghi chú theo sơ đồ tư duy} & \textbf{Chuỗi học tập (Streak)} & \textbf{Giao diện tối (Dark mode)} \\
+\midrule
+Tác động của khách hàng & Cao: Giúp học sinh tự kiểm tra kiến thức ngay lập tức, tăng hiệu quả ôn thi rõ rệt. & Cao: Thay đổi cách ghi chép truyền thống, giúp người học dễ ghi nhớ và có tư duy hệ thống hơn. & Trung bình: Đánh vào tâm lý, tạo thói quen mở app hàng ngày. & Rất cao: Giải quyết tình trạng mỏi mắt khi sinh viên thức đêm đọc tài liệu hoặc chạy deadline. \\
+Ảnh hưởng kinh doanh & Cao: Tính năng cốt lõi tạo độ nhận diện cao cho app. & Trung bình: Giữ chân người dùng ở lại app lâu hơn. & Cao: Tăng chỉ số người dùng hoạt động hàng ngày. & Rất cao: Yếu tố bắt buộc đối với ứng dụng hiện đại để cạnh tranh và giữ chân người dùng. \\
+Cải thiện tiềm năng & Cao: Có thể nâng cấp để chia sẻ bộ câu hỏi chéo giữa học sinh. & Trung bình: Có thể tích hợp thêm template sơ đồ tư duy đa dạng. & Cao: Có thể phát triển thêm tính năng đổi quà, tích điểm từ streak. & Trung bình: Có thể mở rộng tùy biến bộ màu giao diện theo sở thích. \\
+Tính khả thi & Trung bình: Cần thuật toán xử lý ngôn ngữ tự nhiên tốt. & Cao: Giao diện đã có nhiều thư viện mã nguồn mở hỗ trợ. & Rất cao: Logic lập trình đơn giản, không tốn nhiều tài nguyên phát triển. & Cao: Có nhiều thư viện hỗ trợ chuyển đổi giao diện sáng/tối. \\
+Sáng tạo & Cao: Biến việc đọc bài giảng thụ động thành chủ động làm quiz. & Trung bình: Ý tưởng tốt nhưng đã xuất hiện ở nhiều app ghi chú lớn. & Trung bình: Áp dụng mô hình giống Duolingo, quen thuộc nhưng hiệu quả. & Trung bình: Ý tưởng phổ biến trên nhiều ứng dụng học tập. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Sau khi đánh giá 4 ý tưởng dựa trên 5 tiêu chí, nhóm nhận thấy cả 4 ý tưởng đều đáp ứng được các nhu cầu của người dùng. Bên cạnh đó, ứng dụng có giao diện đơn giản, dễ sử dụng và phù hợp với nguồn lực, thời gian thực hiện của nhóm sinh viên. Đây là nền tảng phù hợp để phát triển các tính năng nâng cao trong tương lai.
+
+\section{Khung sườn ứng dụng (Wireframes)}
+
+\begin{table}[H]
+\centering
+\caption{Khung sườn ứng dụng}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{4cm}X}
+\toprule
+Tiêu chí & Giá trị / Mô tả \\
+\midrule
+Tên sản phẩm & StudyMap \\
+Chức năng chính & Tổng hợp kiến thức và tạo câu hỏi từ tài liệu \\
+Đối tượng & Học sinh, sinh viên \\
+Nền tảng & Android/iOS/Web \\
+Giao diện người dùng & Màn hình cảm ứng \\
+Tương tác người dùng & Người dùng tương tác trực tiếp ứng dụng \\
+Công nghệ sử dụng & HTML, CSS, chủ yếu là lập trình \\
+Trạng thái sản phẩm & Prototype (mô hình thử nghiệm) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\chapter{PHA 4: Tạo mẫu (Prototype)}
+
+\section{Nguyên mẫu thực}
+
+Sau khi hoàn thiện ý tưởng và xác định các tính năng cốt lõi, nhóm tiến hành xây dựng nguyên mẫu.
+
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image4.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image23.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image34.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image22.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image11.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image13.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image26.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image33.png}
+\docimage[Hình ảnh nguyên mẫu thực trong tài liệu gốc]{assets/docx/word/media/image25.png}
+
+Mỗi người dùng sẽ tạo hồ sơ học tập cá nhân bằng cách nhập các thông tin cơ bản. Sau khi hồ sơ được tạo, người dùng có thể đi qua luồng tải tài liệu hoặc dùng tài liệu có sẵn, sau đó thử luồng tạo bộ câu hỏi từ bài giảng hoặc thiết lập lịch nhắc học/ôn thi trên nguyên mẫu.
+
+Khi thiết lập tạo bộ câu hỏi hoặc lịch nhắc, người dùng chọn môn học cần ôn tập. Nguyên mẫu mô phỏng việc ghi nhận thông tin vào tiến trình học tập của môn học đó, hiển thị lịch nhắc ôn tập và chuỗi học tập.
+
+Nguyên mẫu này người dùng chưa tương tác được tất cả chức năng và vẫn còn khá nhiều lỗi như lỗi quiz trả lời, lỗi nhập tài liệu vào bài học, lỗi bảng xếp hạng người đóng góp. Đây là nguyên mẫu sơ khai nhất của nhóm nên còn nhiều hạn chế và sai sót.
+
+\section{Nguyên mẫu số 2}
+
+Nhóm đã chuyển sang website để dễ thuận tiện hơn trong việc sửa đổi thêm các tài liệu. Nguyên mẫu này đã sửa lại lỗi BXH và lỗi lọc các môn học.
+
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 2 trong tài liệu gốc]{assets/docx/word/media/image10.png}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 2 trong tài liệu gốc]{assets/docx/word/media/image12.png}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 2 trong tài liệu gốc]{assets/docx/word/media/image15.png}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 2 trong tài liệu gốc]{assets/docx/word/media/image17.png}
+
+\section{Nguyên mẫu số 3}
+
+Đây là nguyên mẫu website cuối cùng, tập trung vào việc thể hiện rõ hơn luồng thao tác, bố cục màn hình và các điều chỉnh theo phản hồi của người dùng. Sau nguyên mẫu đầu tiên, nhóm nhận thấy hướng website thuận tiện hơn cho việc học của học sinh, sinh viên nên đã tiếp tục tinh chỉnh theo nhu cầu khách hàng.
+
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 3 trong tài liệu gốc]{assets/docx/word/media/image28.jpg}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 3 trong tài liệu gốc]{assets/docx/word/media/image36.jpg}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 3 trong tài liệu gốc]{assets/docx/word/media/image29.jpg}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 3 trong tài liệu gốc]{assets/docx/word/media/image27.jpg}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 3 trong tài liệu gốc]{assets/docx/word/media/image35.jpg}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 3 trong tài liệu gốc]{assets/docx/word/media/image31.jpg}
+\docimage[Ảnh chụp các màn hình nguyên mẫu số 3 trong tài liệu gốc]{assets/docx/word/media/image18.jpg}
+
+\section{Cơ sở lựa chọn thiết kế}
+
+Các quyết định thiết kế của nguyên mẫu số 3 được xây dựng dựa trên các lập luận ở những pha trước: người dùng cần một công cụ học tập gọn, giảm quá tải thông tin, tạo kiểm tra chủ động ngay từ ghi chú và duy trì động lực học hằng ngày. Vì vậy, nhóm ưu tiên một website có luồng thao tác rõ ràng thay vì mở rộng quá nhiều tính năng phụ. Giao diện tập trung vào các tác vụ chính gồm ghi chú, tạo quiz, xem kết quả, ôn tập theo chu kỳ và theo dõi streak.
+
+\docimage[Use case tổng quát cho StudyMap và AI quiz]{assets/diagrams/usecase-studymap.png}
+
+Sơ đồ use case cho thấy phần lõi của sản phẩm không chỉ là trình ghi chú, mà là vòng học tập khép kín: người dùng xem hoặc tạo ghi chú, sinh quiz từ nội dung đã học, làm bài kiểm tra, xem kết quả, sau đó quay lại ôn tập theo lịch. Cách tổ chức này bám sát kết quả đánh giá ý tưởng ở Chương 3: tính năng tạo câu hỏi mang tác động cao, streak giúp duy trì động lực, còn hồ sơ/bảng xếp hạng giúp người dùng thấy tiến độ của mình.
+
+\docimage[Sequence tạo quiz từ ghi chú]{assets/diagrams/sequence-generate-quiz.png}
+
+Sequence tạo quiz là cơ sở để nhóm đặt nút tạo câu hỏi gần màn hình đọc ghi chú. Người dùng không phải rời ngữ cảnh học tập; nội dung ghi chú được gửi qua API, kiểm tra quyền sở hữu, gọi dịch vụ AI và lưu bộ câu hỏi để dùng lại. Vì bước gọi AI có độ trễ và có thể lỗi, nguyên mẫu cần thể hiện trạng thái chờ, thông báo lỗi dễ hiểu và hướng người dùng sang màn hình làm quiz khi tạo xong.
+
+\docimage[Sequence làm quiz và xem kết quả]{assets/diagrams/sequence-take-quiz.png}
+
+Sequence làm quiz giải thích lựa chọn hiển thị từng câu hỏi với bốn lựa chọn rõ ràng, sau đó trả kết quả theo từng câu. Việc lưu lượt làm bài giúp nguyên mẫu có cơ sở hiển thị điểm số, phần sai cần ôn lại và cập nhật tiến độ học tập. Đây là phần chuyển ý tưởng ``học chủ động'' thành trải nghiệm cụ thể thay vì chỉ dừng ở màn hình ghi chú.
+
+\docimage[Sequence ôn tập lặp lại theo lịch]{assets/diagrams/sequence-review.png}
+\docimage[Sequence theo dõi streak]{assets/diagrams/sequence-streak.png}
+
+Hai sequence Review và Streak bổ sung lý do nhóm đưa các chỉ số tiến độ vào dashboard. Review dùng lịch nhắc dựa trên thời điểm cần ôn lại, còn Streak ghi nhận ngày có hoạt động học tập. Do đó, Prototype 3 ưu tiên các thẻ thống kê ngắn, heatmap/streak và danh sách bài cần ôn để người dùng nhìn thấy ngay việc cần làm tiếp theo. Thiết kế này nối trực tiếp từ bản đồ cơ hội: tăng động lực bằng gamification nhưng vẫn giữ giao diện tối giản để không làm loãng mục tiêu ôn tập.
+
+\begin{table}[H]
+\centering
+\caption{So sánh các phiên bản prototype}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{>{\bfseries\raggedright\arraybackslash}p{2.6cm}YYY}
+\toprule
+\textbf{Phiên bản} & \textbf{Đặc điểm} & \textbf{Ưu điểm} & \textbf{Hạn chế} \\
+\midrule
+Prototype 1 & Mẫu demo & Nhanh, dễ chỉnh sửa & Mới chỉ là bản vẽ nên chưa có tương tác \\
+Prototype 2 & Giao diện hoàn chỉnh hơn & Trực quan & Đầy đủ tính năng phù hợp với người dùng \\
+Prototype 3 & Website có luồng học tập rõ hơn, bám theo use case và sequence chính & Thể hiện tốt vòng ghi chú -- tạo quiz -- làm quiz -- ôn tập -- streak; phù hợp hơn với nhu cầu học trên laptop và trình duyệt & Vẫn là nguyên mẫu, một số xử lý như AI, thông báo thời gian thực và đồng bộ dữ liệu mới được mô phỏng hoặc thể hiện ở mức luồng thiết kế \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Kết quả đạt được}
+\begin{itemize}
+  \item Hoàn thiện luồng tạo hồ sơ học tập: Cho phép sinh viên nhập thông tin cá nhân và thiết lập danh sách các môn học cụ thể trong kỳ trên nguyên mẫu.
+  \item Mô phỏng luồng tự tạo bộ câu hỏi và thiết lập lịch học: Thể hiện được các bước tải tài liệu bài giảng, đặt mục tiêu ôn tập và cấu hình lịch nhắc nhở học bài cho từng môn học.
+  \item Mô phỏng nhắc lịch và duy trì tương tác cơ bản: Hiển thị cơ chế nhắc học và chuỗi học tập để người dùng hình dung thói quen sử dụng hằng ngày.
+  \item Xây dựng được nguyên mẫu có khả năng tương tác: Hoàn thiện bản mẫu có độ trung thực cao với giao diện tối trực quan, cho phép người dùng trải nghiệm luồng thao tác chính.
+\end{itemize}
+
+\section{Hạn chế của nguyên mẫu hiện tại}
+\begin{itemize}
+  \item Chưa hỗ trợ quét ảnh và xử lý tài liệu đa định dạng: Nguyên mẫu hiện tại mới chỉ mô phỏng luồng tải file PDF/Slide cơ bản, chưa thể nhận diện hoặc xử lý tốt các tệp hình ảnh, tài liệu có dung lượng quá lớn hay các ký tự công thức đặc thù.
+  \item Chưa tích hợp không gian thảo luận nhóm: Tính năng tương tác cộng đồng như bình luận dưới bài tập hay chia sẻ bộ câu hỏi công khai giữa các sinh viên mới dừng lại ở mức ý tưởng sơ khai.
+  \item Chưa có hệ thống thông báo thời gian thực: Các thông báo nhắc nhở lịch học và cảnh báo mất chuỗi streak chưa được đồng bộ hóa trực tiếp theo thời gian thực của thiết bị.
+\end{itemize}
+
+\chapter{PHA 5: Kiểm thử (Test)}
+
+Pha Test thu thập đánh giá từ người dùng khi sử dụng phiên bản thử nghiệm để củng cố và hoàn thiện phiên bản thử nghiệm.
+
+\section{Danh sách phản hồi người dùng}
+
+\docimage[Phản hồi người dùng 1 trong tài liệu gốc]{assets/docx/word/media/image5.png}
+\docimage[Phản hồi người dùng 2 trong tài liệu gốc]{assets/docx/word/media/image3.png}
+\docimage[Phản hồi người dùng 3 trong tài liệu gốc]{assets/docx/word/media/image7.png}
+\docimage[Phản hồi người dùng 4 trong tài liệu gốc]{assets/docx/word/media/image1.png}
+
+\section{Lưới chụp phản hồi người dùng}
+\docimage[Lưới chụp phản hồi người dùng trong tài liệu gốc]{assets/docx/word/media/image9.png}
+
+Lưới chụp phản hồi người dùng cho thấy nguyên mẫu ứng dụng đáp ứng tốt các nhu cầu học tập cốt lõi của sinh viên thông qua tính năng tóm tắt kiến thức, tự tạo bộ câu hỏi trắc nghiệm, chuỗi học tập và giao diện tối. Người dùng đánh giá cao sự tiện lợi, tính chủ động ôn tập và khả năng bảo vệ thị lực ban đêm của ứng dụng. Tuy nhiên, một số giao diện còn tích hợp quá nhiều chức năng khiến trải nghiệm dễ bị rối và phân tâm. Các góp ý chủ yếu tập trung phát triển thêm ý tưởng mới như tính năng quét ảnh/tài liệu, đồng thời định hướng bổ sung tính năng thảo luận dưới mỗi bài tập và cơ chế chia sẻ các bài tập công khai với nhau để nâng cao tương tác cộng đồng học tập.
+
+\section{Đề xuất tinh chỉnh}
+
+\subsection*{Tinh chỉnh hệ thống điều hướng \& kiến trúc thông tin}
+\textbf{Tách biệt bảng xếp hạng (BXH):} Đưa module BXH ra khỏi tab Profile. Nhóm có thể tạo một lối tắt truy cập nhanh ngay tại góc trên của Dashboard hoặc tích hợp thẳng vào tab Ôn tập/Review để thúc đẩy tinh thần cạnh tranh lành mạnh mà không bắt người dùng phải bấm sâu vào Hồ sơ.
+
+\textbf{Thêm tính năng Onboarding Walkthrough:} Thiết kế một chuỗi 3 bước hướng dẫn bằng bong bóng chỉ dẫn chạy tự động cho tài khoản mới khi vừa qua màn hình đăng nhập, giải thích rõ công năng của nút viết bài và các phân hệ chính để giải quyết vấn đề loay hoay tìm chức năng.
+
+\subsection*{Tinh chỉnh hệ thống bộ lọc \& phân loại}
+\textbf{Nâng cấp chip lọc trên Dashboard:} Giao diện Dashboard hiện tại mới chỉ hỗ trợ lọc theo trạng thái bài viết. Đề xuất bổ sung thêm các chip lọc theo môn học song song ngay phía dưới để người dùng lọc nhanh giáo trình trực tiếp từ menu ngoài mà không cần mở nhiều thao tác.
+
+\subsection*{Sửa lỗi kỹ thuật và đồng bộ giao diện}
+\textbf{Đồng bộ hóa token màu của Dark Mode:} Tiến hành kiểm tra lại toàn bộ tệp thiết kế CSS và các thuộc tính biến màu trên tất cả các màn hình. Đảm bảo khi người dùng kích hoạt tính năng đổi nền sáng/tối tại màn hình Ôn tập hoặc Hồ sơ, toàn bộ hệ thống menu ngoài và thanh tabbar điều hướng đều thay đổi màu sắc đồng bộ, mượt mà.
+
+\subsection*{Phát triển các tính năng mở rộng}
+\textbf{Phát triển module xuất bản \& chia sẻ:} Tích hợp thêm nút ``Xuất bản'' tại góc trên cùng của màn hình đọc bài học hoặc trình viết. Khi bấm vào, hệ thống sẽ render dữ liệu văn bản/sơ đồ tư duy trực quan và tải xuống dưới dạng file PDF hoặc hình ảnh chất lượng cao. Bổ sung tùy chọn gửi link chia sẻ nhanh bộ câu hỏi trắc nghiệm qua các nền tảng mạng xã hội để tăng tương tác nhóm học tập.
+
+\chapter{KẾT LUẬN VÀ ĐỊNH HƯỚNG PHÁT TRIỂN}
+
+Thông qua học phần Tư duy công nghệ và thiết kế kỹ thuật, nhóm đã triển khai đề tài Ứng dụng ghi chú và quản lý học tập thông minh cho sinh viên nhằm hỗ trợ người học hệ thống hóa kiến thức, ôn thi và tối ưu hóa thời gian tự học hiệu quả hơn. Nhóm đã áp dụng quy trình Design Thinking gồm năm giai đoạn: Đồng cảm, Xác định, Lên ý tưởng, Tạo mẫu và Thử nghiệm để phát triển giải pháp dựa trên nhu cầu thực tế của người dùng.
+
+Qua khảo sát và phỏng vấn, nhóm nhận thấy nhiều sinh viên gặp khó khăn trong việc ghi nhớ, quản lý lượng tài liệu bài giảng phân mảnh, dễ rơi vào trạng thái quá tải trước mùa thi và thiếu các công cụ học tập chủ động. Từ đó, nhóm đã xây dựng nguyên mẫu ứng dụng tập trung vào các chức năng cốt lõi và khả thi nhất bao gồm: hồ sơ quản lý môn học, lịch nhắc học tập kết hợp chuỗi học tập, giao diện tối bảo vệ thị lực ban đêm và đặc biệt là tính năng tự tạo bộ câu hỏi ôn tập từ bài giảng.
+
+Kết quả thử nghiệm bước đầu cho thấy người dùng đánh giá cao tính tiện lợi, giao diện thân thiện, khả năng kích thích tinh thần chủ động ôn luyện và giảm áp lực học tập ban đêm. Tuy nhiên, sản phẩm hiện mới ở mức nguyên mẫu sơ khai và vẫn cần tiếp tục tối ưu hóa sâu hơn về mặt kỹ thuật cấu trúc hệ thống.
+
+Trong tương lai, nhóm định hướng phát triển và triển khai tính năng chiến lược dài hạn là tích hợp AI để tổng hợp kiến thức, đồng thời mở rộng thuật toán xử lý dữ liệu để nâng cao trải nghiệm cá nhân hóa lộ trình học tập, hướng tới xây dựng một ứng dụng quản lý tri thức toàn diện và dễ tiếp cận cho cộng đồng sinh viên.
+
+\chapter*{BẢNG PHÂN CHIA CÔNG VIỆC}
+\addcontentsline{toc}{chapter}{BẢNG PHÂN CHIA CÔNG VIỆC}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{4.5cm}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{7.2cm}@{}}
+\toprule
+\textbf{Thành viên} & \textbf{Mã sinh viên} & \textbf{Công việc} \\
+\midrule
+NGUYỄN ĐẶNG ANH DŨNG & 202414619 & Phân công công việc, xây dựng báo cáo, tổng hợp thông tin \\
+NGUYỄN PHÚC HIẾU & 202412977 & Xây dựng báo cáo \\
+NGUYỄN ĐỨC TÙNG & 202414442 & Làm slide, take note thông tin \\
+TẠ QUỐC HÙNG & 20235593 & Lập trình, xây dựng sản phẩm, nguyên mẫu \\
+\bottomrule
+\end{longtable}
+
+\end{document}
