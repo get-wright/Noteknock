@@ -223,7 +223,7 @@ export default function EditorPage({ mode }: EditorPageProps) {
     title,
     originalTitle,
     isNew,
-    initialContent: mode === "new" ? emptyBlocks() : initialContent,
+    initialContent,
     initialSubject: loadedNote?.subject ?? null,
     initialDifficulty: loadedNote?.difficulty ?? null,
     loadedAt,
